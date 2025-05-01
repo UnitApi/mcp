@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.19] - 2025-05-01
+
+### Removed
+- Changes in update/project.py
+- Changes in update/setup.py
+
 ## [0.1.18] - 2025-05-01
 
 ## [0.1.17] - 2025-05-01

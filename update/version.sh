@@ -28,8 +28,7 @@ pip install -e .
 python update/src.py -f src/unitmcp/__init__.py --type patch
 python update/src.py -f src/unitmcp/_version.py --type patch
 python update/src.py -f pyproject.toml --type patch
-python update/project.sh
-
+# python update/project.sh
 python update/changelog.py
 #python increment.py
 bash update/git.sh

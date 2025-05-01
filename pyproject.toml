@@ -1,10 +1,28 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
+requires = ["setuptools>=45", "setuptools_scm>=6.2", "wheel>=0.37.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "unitmcp"
-version = "0.1.9"
+version = "0.1.19"
+description = "UnitMCP package for MCP hardware integration with Ollama LLM and Raspberry Pi hardware control."
+readme = "README.md"
+requires-python = ">=3.7.3"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Tom Sapletta" }]
+maintainers = [{ name = "unitmcp developers" }]
+keywords = ["python", "unitmcp", "streaming", "real-time", "annotation", "processing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
 dependencies = [
     "pyyaml>=6.0.1",
     "psutil>=5.9.0",
@@ -37,7 +55,7 @@ dependencies = [
 ]
 
 [tool.mypy]
-python_version = "0.1.9"
+python_version = "0.1.19"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
