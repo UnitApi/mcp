@@ -31,24 +31,30 @@ python update_version.py -f path/to/your/file.py -v 0.2.5
 python update_version.py -f path/to/your/file.py --no-backup
 ```
 
-# Skrypty w folderze update/
+# update/
 
-Folder `update/` zawiera narzędzia do aktualizacji i zarządzania zależnościami projektu. Skrypty `.sh` zostały przeniesione do folderu `scripts/`.
+Folder zawiera narzędzia do aktualizacji projektu i zarządzania wersjami.
 
-## Powiązane skrypty:
+**Skrypty bash:**
 
-- **duplicated.sh** – (teraz w `scripts/`) Wyszukuje duplikaty plików lub zależności.  
-  `bash scripts/duplicated.sh`
-- **pip.sh** – (teraz w `scripts/`) Aktualizuje pip i zależności.  
-  `bash scripts/pip.sh`
-- **requirements.sh** – (teraz w `scripts/`) Instaluje zależności z requirements.txt.  
-  `bash scripts/requirements.sh`
+- `duplicated.sh`, `pip.sh`, `requirements.sh` – po reorganizacji są w scripts/.
+- `git.sh` – automatyzuje operacje git (push, tag, itp.).
+- `pypi.sh` – automatyzuje publikację do PyPI.
+- `src.sh`, `project.sh`, `changelog.py` – narzędzia do aktualizacji wersji kodu i changeloga.
 
-## Skrypty i narzędzia Python:
+**Użycie:**
 
-- **duplicated.py** – Wyszukuje duplikaty plików lub zależności.
-- **requirements.py** – Zarządza zależnościami Pythona.
-- **versions.py** – Zarządza wersjami pakietów.
+```bash
+bash update/pypi.sh
+```
+
+**Narzędzia Python:**
+
+- `duplicated.py`, `requirements.py`, `versions.py` – narzędzia do analizy i zarządzania zależnościami oraz wersjami.
+
+---
+
+Więcej szczegółów w nagłówkach poszczególnych skryptów.
 
 ---
 

@@ -59,3 +59,37 @@ bash <nazwa_skryptu.sh>
 ---
 
 Jeśli chcesz szczegółowy opis działania któregoś skryptu, zajrzyj do jego nagłówka lub kodu źródłowego.
+
+# scripts/
+
+W tym folderze znajdują się narzędziowe skrypty bash wykorzystywane w projekcie. Każdy plik posiada krótki opis i przykład użycia.
+
+**Lista skryptów:**
+
+- `build.sh` – Buduje projekt lokalnie.
+- `configure_hardware.sh` – Konfiguruje sprzęt (np. Raspberry Pi, PC).
+- `duplicated.sh` – Wyszukuje duplikaty plików lub zależności.
+- `git.sh` – Ułatwia operacje na repozytorium git.
+- `optimize_rpi.sh` – Optymalizuje Raspberry Pi.
+- `pip.sh` – Aktualizuje pip i zależności.
+- `publish.sh` – Publikuje projekt do repozytorium lub PyPI.
+- `pyaudio.sh`, `pyaudio2.sh`, `pyaudio3.sh` – Instalacja i diagnostyka PyAudio.
+- `python.sh` – Instalacja Pythona i zależności na Fedorze.
+- `requirements.sh` – Instaluje zależności z requirements.txt.
+- `setup_service.sh` – Konfiguruje usługę systemową.
+- `spacy.sh` – Instalacja i konfiguracja spaCy.
+- `ssh.sh` – Wrapper do połączeń SSH.
+- `ssh_connect_wrapper.sh` – Wrapper rozszerzający ssh.sh.
+- `upgrade.sh` – Aktualizuje środowisko lub zależności.
+- `version.sh` – Wyświetla wersję projektu.
+
+**Użycie:**
+
+```bash
+cd scripts
+bash <nazwa_skryptu.sh>
+```
+
+---
+
+Więcej szczegółów znajdziesz w nagłówkach poszczególnych skryptów.

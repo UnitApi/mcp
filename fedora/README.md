@@ -1,10 +1,13 @@
-# Instalacja na Fedora
+# fedora/
 
-Aby zainstalować wymagane zależności na systemie Fedora, uruchom:
+Ten folder zawiera skrypt instalacyjny dla systemu Fedora:
 
+- `install.sh` – Instaluje wszystkie wymagane zależności dla projektu na Fedorze.
+
+**Użycie:**
 ```bash
 cd fedora
 bash install.sh
 ```
 
-Skrypt `install.sh` automatycznie zainstaluje wszystkie niezbędne pakiety.
+Po zakończeniu instalacji środowisko będzie gotowe do pracy z projektem.

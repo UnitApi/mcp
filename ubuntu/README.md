@@ -1,10 +1,13 @@
-# Instalacja na Ubuntu
+# ubuntu/
 
-Aby zainstalować wymagane zależności na systemie Ubuntu, uruchom:
+Ten folder zawiera skrypt instalacyjny dla systemu Ubuntu:
 
+- `install.sh` – Instaluje wszystkie wymagane zależności dla projektu na Ubuntu.
+
+**Użycie:**
 ```bash
 cd ubuntu
 bash install.sh
 ```
 
-Skrypt `install.sh` automatycznie zainstaluje wszystkie niezbędne pakiety.
+Po zakończeniu instalacji środowisko będzie gotowe do pracy z projektem.

@@ -15,12 +15,13 @@ class JsonFormatter(logging.Formatter):
     """
     A simple JSON formatter for logging.
     """
+
     def format(self, record):
         log_record = {
             "timestamp": datetime.now().isoformat(),
             "name": record.name,
             "levelname": record.levelname,
-            "message": record.getMessage()
+            "message": record.getMessage(),
         }
         if hasattr(record, "exc_info") and record.exc_info:
             log_record["exc_info"] = self.formatException(record.exc_info)

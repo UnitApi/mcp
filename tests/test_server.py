@@ -7,7 +7,7 @@ test_server.py
 import pytest
 import asyncio
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, AsyncMock
 
 from unitmcp.protocols.mcp import MCPRequest, MCPResponse
 from unitmcp.server.base import MCPServer, MCPHardwareServer
@@ -73,9 +73,9 @@ class TestMCPHardwareServer:
         """Test client request handling."""
         # Register a mock server
         mock_server = Mock(spec=MCPServer)
-        mock_server.handle_request.return_value = MCPResponse(
+        mock_server.handle_request = AsyncMock(return_value=MCPResponse(
             id="test123", result={"status": "success"}
-        )
+        ))
         hardware_server.register_server("test", mock_server)
 
         # Grant permission
@@ -93,6 +93,10 @@ class TestMCPHardwareServer:
 
         writer = Mock()
         writer.get_extra_info.return_value = "127.0.0.1:12345"
+        writer.write = Mock()
+        writer.drain = AsyncMock()
+        writer.close = Mock()
+        writer.wait_closed = AsyncMock()
 
         # Handle client request
         await hardware_server.handle_client(reader, writer)
