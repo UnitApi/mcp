@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Starting publication process...${NC}"
 
 echo -e "${GREEN}push changes...${NC}"
-./git.sh
+bash update/git.sh
 
 echo -e "${GREEN}Check if we're in a clean git state${NC}"
 if [[ -n $(git status -s) ]]; then
