@@ -1,40 +1,31 @@
 #!/bin/bash
 
-# Installation script for Ubuntu/Debian systems
+# Installation script for Ubuntu/Debian systems (deduplikowany)
 set -e
 
-echo "Installing unitmcp on Ubuntu/Debian"
-
-# Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+SHARED_INSTALL="$PROJECT_DIR/install/shared_install.sh"
 
-# Function to check if a package is installed
-is_installed() {
-    dpkg -l "$1" &> /dev/null
-}
+if [ ! -f "$SHARED_INSTALL" ]; then
+  echo "Brak pliku shared_install.sh! Przerwij."
+  exit 1
+fi
+source "$SHARED_INSTALL"
 
-# System dependencies
-echo "Installing system dependencies..."
-sudo apt-get update
-sudo apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-dev \
-    python3-venv \
-    ffmpeg \
-    v4l-utils \
-    portaudio19-dev \
-    libopencv-dev \
-    libasound2-dev \
-    libxlib-dev \
-    libffi-dev \
-    libssl-dev \
-    build-essential \
-    pkg-config \
-    git
+# Instalacja zależności systemowych
+install_system_deps ubuntu "${default_system_deps_ubuntu[@]}"
 
-# Optional: Install CUDA dependencies if NVIDIA GPU is present
+# Tworzenie i aktywacja venv
+create_and_activate_venv "$PROJECT_DIR/.venv" python3
+
+# Instalacja pip requirements
+install_pip_requirements "$PROJECT_DIR/requirements.txt"
+
+# Instalacja dev requirements jeśli istnieją
+install_dev_requirements "$PROJECT_DIR/requirements-dev.txt"
+
+# Instalacja CUDA dependencies jeśli NVIDIA GPU jest obecny
 if lspci | grep -i nvidia &> /dev/null; then
     echo "NVIDIA GPU detected, installing CUDA dependencies..."
     if ! is_installed nvidia-cuda-toolkit; then
@@ -42,39 +33,17 @@ if lspci | grep -i nvidia &> /dev/null; then
     fi
 fi
 
-# Create virtual environment
-echo "Creating Python virtual environment..."
-python3 -m venv "${PROJECT_DIR}/.venv"
-source "${PROJECT_DIR}/.venv/bin/activate"
-
-# Upgrade pip
-pip install --upgrade pip
-
-# Install Python dependencies
-echo "Installing Python dependencies..."
-pip install -r "${PROJECT_DIR}/requirements.txt"
-
-# Install development dependencies if present
-if [ -f "${PROJECT_DIR}/requirements-dev.txt" ]; then
-    echo "Installing development dependencies..."
-    pip install -r "${PROJECT_DIR}/requirements-dev.txt"
-fi
-
-# Install the package in development mode
-echo "Installing unitmcp package..."
-pip install -e "${PROJECT_DIR}"
-
-# Configure hardware
+# Konfiguracja sprzętu
 echo "Configuring hardware..."
 sudo "${SCRIPT_DIR}/configure_hardware.sh" list
 
-# Install models if needed
+# Instalacja modeli jeśli potrzebne
 if [ -f "${SCRIPT_DIR}/install_models.sh" ]; then
     echo "Installing AI models..."
     "${SCRIPT_DIR}/install_models.sh"
 fi
 
-# Setup service if needed
+# Ustawienie usługi jeśli potrzebne
 if [ -f "${SCRIPT_DIR}/setup_service.sh" ]; then
     echo "Setting up system service..."
     sudo "${SCRIPT_DIR}/setup_service.sh"

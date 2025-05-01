@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.25] - 2025-05-01
+
+### Added
+- Changes in install/shared_install.sh
+- Changes in test/env.sh
+
 ## [0.1.24] - 2025-05-01
 
 ### Added

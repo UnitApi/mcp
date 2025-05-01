@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "unitmcp"
-version = "0.1.24"
+version = "0.1.25"
 description = "UnitMCP package for MCP hardware integration with Ollama LLM and Raspberry Pi hardware control."
 readme = "README.md"
 requires-python = ">=3.7.3"
@@ -55,7 +55,7 @@ dependencies = [
 ]
 
 [tool.mypy]
-python_version = "0.1.24"
+python_version = "0.1.25"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
