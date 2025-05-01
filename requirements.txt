@@ -31,3 +31,4 @@ opencv-python>=4.5.0
 upnpclient>=1.0.3
 zeroconf>=0.38.1
 wsdiscovery>=2.0.0
+pytest-asyncio

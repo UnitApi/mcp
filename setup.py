@@ -20,6 +20,10 @@ version = {}
 with open("src/unitmcp/_version.py") as f:
     exec(f.read(), version)
 
+# Fallback if _version.py is missing or empty
+if not version.get("__version__"):
+    version["__version__"] = "0.1.0"
+
 # Configuration setup
 setup(
     name="unitmcp",
@@ -39,47 +43,40 @@ setup(
         "psutil>=5.9.0",
         "requests>=2.31.0",
         "urllib3>=1.26.9",
-        
-        # Streaming dependencies
         "websockets>=10.3",
         "aiohttp>=3.8.0",
         "fastapi>=0.110.0",
         "uvicorn>=0.27.0",
-        
-        # HTTPS/Certificate management
         "acme>=4.0.0",
         "cryptography>=42.0.0",
         "certbot>=2.7.0",
         "dnspython>=2.4.0",
-        
-        # Device discovery
         "upnpclient>=1.0.3",
         "zeroconf>=0.38.1",
         "wsdiscovery>=2.0.0",
         "onvif-zeep>=0.2.12",
-        
-        # Media processing
-        "opencv-python>=4.6.0",
+        "opencv-python>=4.5.0",
+        "pillow>=11.2.0",
+        "pyautogui>=0.9.50",
+        "pynput>=1.7.0",
+        "pyaudio>=0.2.11",
+        "sounddevice>=0.4.0",
+        "paramiko>=3.5.1",
         "numpy>=1.22.3",
-        "Pillow>=9.1.0",
-        # PyAudio is optional and requires system dependencies
-        
-        # Protocol support
         "grpcio>=1.62.0",
         "grpcio-tools>=1.62.0",
         "paho-mqtt>=1.6.0",
         "redis>=4.0.0",
-        
-        # DSL support
         "pydantic>=1.9.0",
         "click>=8.0.0",
     ],
     extras_require={
         "dev": [
             # Testing
-            "pytest>=7.1.2",
-            "pytest-cov>=2.12.1",
-            "pytest-asyncio>=0.21.0",
+            "pytest>=8.3.5",
+            "pytest-cov>=4.1.0",
+            "pytest-asyncio>=0.23.0",
+            "pytest-mock>=3.12.0",
             
             # Code quality
             "black>=23.0.0",
@@ -91,6 +88,7 @@ setup(
             "types-requests>=2.31.0",
             "types-PyYAML>=6.0.1",
             "types-psutil>=5.9.0",
+            "python-dotenv>=1.1.0",
         ],
         "dsl": [
             # DSL format support
@@ -99,8 +97,8 @@ setup(
         ],
         "audio": [
             # Audio processing dependencies
-            "pyaudio>=0.2.13",
-            "sounddevice>=0.4.6",
+            "pyaudio>=0.2.11",
+            "sounddevice>=0.4.0",
             "soundfile>=0.12.1",
         ],
     },

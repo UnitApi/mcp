@@ -69,6 +69,7 @@ class TestMCPHardwareServer:
         assert hardware_server.servers["gpio"] == gpio_server
 
     @pytest.mark.asyncio
+    @pytest.mark.timeout(5)  # Add a 5-second timeout to prevent hanging
     async def test_handle_client_request(self, hardware_server):
         """Test client request handling."""
         # Register a mock server
