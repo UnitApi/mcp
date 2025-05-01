@@ -1,6 +1,6 @@
 # MCP Hardware Project Summary
 
-![graph.svg](graph.svg)
+![graph.svg](docs/graph.svg)
 
 ## 🚀 Project Overview
 
@@ -38,6 +38,9 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
    - Conditional execution
    - Error handling and retries
    - Variable substitution
+
+
+![architecture.svg](docs/architecture.svg)
 
 ## 💡 Key Features
 
@@ -224,3 +227,5 @@ await agent.process_command("Turn on the lights")
 ---
 
 The MCP Hardware project provides a robust foundation for building hardware automation systems, AI-controlled devices, and interactive hardware applications. With its modular architecture and comprehensive examples, developers can quickly create sophisticated hardware control solutions.
+
+![project.svg](docs/project.svg)

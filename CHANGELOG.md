@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.22] - 2025-05-01
+
+### Added
+- Changes in docs/architecture.svg
+- Changes in docs/graph.svg
+- Changes in docs/project.svg
+- Changes in scripts/debug_imports.py
+- Changes in scripts/test_imports.py
+
+### Removed
+- Changes in examples/README.md
+- Changes in examples/__init__.py
+- Changes in examples/audio_record.py
+- Changes in examples/integrated_demo.py
+- Changes in examples/keyboard_demo.py
+- Changes in examples/led_control.py
+- Changes in examples/mouse_demo.py
+- Changes in examples/ollama_integration.py
+- Changes in examples/pipeline_demo.py
+- Changes in examples/rpi_control.py
+- Changes in examples/security_system.py
+- Changes in examples/shell_cli_demo.py
+- Changes in examples/simple_pipeline.py
+- Changes in examples/start_server.py
+- Changes in examples/traffic_light.py
+- Changes in examples/voice_assistant.py
+- Changes in project.svg
+
 ## [0.1.21] - 2025-05-01
 
 ## [0.1.20] - 2025-05-01
