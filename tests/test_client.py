@@ -4,6 +4,7 @@ test_client.py
 
 """Tests for MCP client functionality."""
 
+import os
 import pytest
 import asyncio
 import json
@@ -11,6 +12,10 @@ from unittest.mock import Mock, patch, AsyncMock
 
 from unitmcp.client.client import MCPHardwareClient
 from unitmcp.protocols.mcp import MCPRequest, MCPResponse
+from unitmcp.server.input import HAS_INPUT_LIBS
+
+# Check if we should skip tkinter tests
+SKIP_TKINTER_TESTS = os.environ.get("unitmcp_SKIP_TKINTER_TESTS") == "1"
 
 
 class TestMCPHardwareClient:
@@ -196,6 +201,7 @@ class TestMCPHardwareClient:
                 mock_disconnect.assert_called_once()
 
     @pytest.mark.asyncio
+    @pytest.mark.skipif(SKIP_TKINTER_TESTS, reason="Tkinter not available")
     async def test_screenshot(self, client):
         """Test screenshot method."""
         with patch.object(client, "send_request") as mock_send:
@@ -213,6 +219,7 @@ class TestMCPHardwareClient:
             assert result["image_data"] == "base64data"
 
     @pytest.mark.asyncio
+    @pytest.mark.skipif(SKIP_TKINTER_TESTS, reason="Tkinter not available")
     async def test_hotkey(self, client):
         """Test hotkey method."""
         with patch.object(client, "send_request") as mock_send:

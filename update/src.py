@@ -18,7 +18,8 @@ def get_version_from_file(file_path):
             patterns = [
                 r'__version__\s*=\s*(?:version\s*=\s*)?[\'"]([^\'"]+)[\'"]',  # __version__ = version = "0.1.3"
                 r'__version__\s*=\s*[\'"]([^\'"]+)[\'"]',  # __version__ = "0.1.8"
-                r'version\s*=\s*[\'"]([^\'"]+)[\'"]'  # version = "0.1.3"
+                # Only match version = ... if not prefixed by python_
+                r'(?<!python_)version\s*=\s*[\'"]([^\'"]+)[\'"]'  # version = "0.1.3" (not python_version)
             ]
 
             for pattern in patterns:

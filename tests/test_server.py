@@ -4,6 +4,7 @@ test_server.py
 
 """Tests for MCP server functionality."""
 
+import os
 import pytest
 import asyncio
 import json
@@ -12,8 +13,11 @@ from unittest.mock import Mock, patch, AsyncMock
 from unitmcp.protocols.mcp import MCPRequest, MCPResponse
 from unitmcp.server.base import MCPServer, MCPHardwareServer
 from unitmcp.server.gpio import GPIOServer
-from unitmcp.server.input import InputServer
+from unitmcp.server.input import InputServer, HAS_INPUT_LIBS
 from unitmcp.security.permissions import PermissionManager
+
+# Check if we should skip tkinter tests
+SKIP_TKINTER_TESTS = os.environ.get("unitmcp_SKIP_TKINTER_TESTS") == "1"
 
 
 class TestMCPServer:
@@ -70,6 +74,7 @@ class TestMCPHardwareServer:
 
     @pytest.mark.asyncio
     @pytest.mark.timeout(5)  # Add a 5-second timeout to prevent hanging
+    @pytest.mark.skipif(SKIP_TKINTER_TESTS, reason="Tkinter not available")
     async def test_handle_client_request(self, hardware_server):
         """Test client request handling."""
         # Register a mock server
@@ -84,13 +89,17 @@ class TestMCPHardwareServer:
 
         # Mock reader and writer
         reader = AsyncMock()
-        reader.read.return_value = json.dumps(
-            {
-                "id": "test123",
-                "method": "test.action",
-                "params": {"client_id": "client1"},
-            }
-        ).encode()
+        # First read returns data, second read returns empty to terminate the loop
+        reader.read.side_effect = [
+            json.dumps(
+                {
+                    "id": "test123",
+                    "method": "test.action",
+                    "params": {"client_id": "client1"},
+                }
+            ).encode(),
+            b"",  # Empty data to terminate the loop
+        ]
 
         writer = Mock()
         writer.get_extra_info.return_value = "127.0.0.1:12345"
@@ -105,6 +114,8 @@ class TestMCPHardwareServer:
         # Verify server was called
         mock_server.handle_request.assert_called_once()
         writer.write.assert_called_once()
+        writer.close.assert_called_once()
+        writer.wait_closed.assert_called_once()
 
 
 class TestGPIOServer:
