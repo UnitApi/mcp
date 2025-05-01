@@ -12,6 +12,7 @@ from enum import Enum
 
 class MCPErrorCode(Enum):
     """Standard MCP error codes."""
+
     PARSE_ERROR = -32700
     INVALID_REQUEST = -32600
     METHOD_NOT_FOUND = -32601
@@ -24,43 +25,40 @@ class MCPErrorCode(Enum):
 @dataclass
 class MCPRequest:
     """MCP request format."""
+
     id: str
     method: str
     params: Dict[str, Any]
 
     def to_json(self) -> str:
         """Convert request to JSON string."""
-        return json.dumps({
-            "jsonrpc": "2.0",
-            "id": self.id,
-            "method": self.method,
-            "params": self.params
-        })
+        return json.dumps(
+            {
+                "jsonrpc": "2.0",
+                "id": self.id,
+                "method": self.method,
+                "params": self.params,
+            }
+        )
 
     @classmethod
-    def from_json(cls, data: str) -> 'MCPRequest':
+    def from_json(cls, data: str) -> "MCPRequest":
         """Create request from JSON string."""
         obj = json.loads(data)
-        return cls(
-            id=obj["id"],
-            method=obj["method"],
-            params=obj.get("params", {})
-        )
+        return cls(id=obj["id"], method=obj["method"], params=obj.get("params", {}))
 
 
 @dataclass
 class MCPResponse:
     """MCP response format."""
+
     id: str
     result: Optional[Dict[str, Any]] = None
     error: Optional[Dict[str, Any]] = None
 
     def to_json(self) -> str:
         """Convert response to JSON string."""
-        obj = {
-            "jsonrpc": "2.0",
-            "id": self.id
-        }
+        obj = {"jsonrpc": "2.0", "id": self.id}
         if self.result is not None:
             obj["result"] = self.result
         if self.error is not None:
@@ -68,11 +66,7 @@ class MCPResponse:
         return json.dumps(obj)
 
     @classmethod
-    def from_json(cls, data: str) -> 'MCPResponse':
+    def from_json(cls, data: str) -> "MCPResponse":
         """Create response from JSON string."""
         obj = json.loads(data)
-        return cls(
-            id=obj["id"],
-            result=obj.get("result"),
-            error=obj.get("error")
-        )
+        return cls(id=obj["id"], result=obj.get("result"), error=obj.get("error"))

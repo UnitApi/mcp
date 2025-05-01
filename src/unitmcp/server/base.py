@@ -32,18 +32,11 @@ class MCPServer(ABC):
         return self.permission_manager.check_permission(client_id, resource)
 
     def create_error_response(
-            self,
-            request_id: str,
-            code: MCPErrorCode,
-            message: str
+        self, request_id: str, code: MCPErrorCode, message: str
     ) -> MCPResponse:
         """Create error response."""
         return MCPResponse(
-            id=request_id,
-            error={
-                "code": code.value,
-                "message": message
-            }
+            id=request_id, error={"code": code.value, "message": message}
         )
 
 
@@ -51,10 +44,10 @@ class MCPHardwareServer:
     """Main MCP hardware server."""
 
     def __init__(
-            self,
-            host: str = "127.0.0.1",
-            port: int = 8888,
-            permission_manager: Optional[PermissionManager] = None
+        self,
+        host: str = "127.0.0.1",
+        port: int = 8888,
+        permission_manager: Optional[PermissionManager] = None,
     ):
         self.host = host
         self.port = port
@@ -69,9 +62,11 @@ class MCPHardwareServer:
         server.permission_manager = self.permission_manager
         self.logger.info(f"Registered server for prefix: {prefix}")
 
-    async def handle_client(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    async def handle_client(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ):
         """Handle incoming client connection."""
-        client_addr = writer.get_extra_info('peername')
+        client_addr = writer.get_extra_info("peername")
         self.logger.info(f"New client connected: {client_addr}")
 
         try:
@@ -96,18 +91,20 @@ class MCPHardwareServer:
                             id=request.id,
                             error={
                                 "code": MCPErrorCode.METHOD_NOT_FOUND.value,
-                                "message": f"No server for prefix: {prefix}"
-                            }
+                                "message": f"No server for prefix: {prefix}",
+                            },
                         )
                     else:
                         # Check permissions
-                        if not self.permission_manager.check_permission(client_id, prefix):
+                        if not self.permission_manager.check_permission(
+                            client_id, prefix
+                        ):
                             response = MCPResponse(
                                 id=request.id,
                                 error={
                                     "code": MCPErrorCode.PERMISSION_DENIED.value,
-                                    "message": f"Permission denied for {prefix}"
-                                }
+                                    "message": f"Permission denied for {prefix}",
+                                },
                             )
                         else:
                             server = self.servers[prefix]
@@ -123,19 +120,19 @@ class MCPHardwareServer:
                         id="unknown",
                         error={
                             "code": MCPErrorCode.PARSE_ERROR.value,
-                            "message": "Invalid JSON"
-                        }
+                            "message": "Invalid JSON",
+                        },
                     )
                     writer.write(error_response.to_json().encode())
                     await writer.drain()
                 except Exception as e:
                     self.logger.error(f"Error handling request: {e}")
                     error_response = MCPResponse(
-                        id=request.id if 'request' in locals() else "unknown",
+                        id=request.id if "request" in locals() else "unknown",
                         error={
                             "code": MCPErrorCode.INTERNAL_ERROR.value,
-                            "message": str(e)
-                        }
+                            "message": str(e),
+                        },
                     )
                     writer.write(error_response.to_json().encode())
                     await writer.drain()
@@ -149,11 +146,7 @@ class MCPHardwareServer:
 
     async def start(self):
         """Start the MCP server."""
-        server = await asyncio.start_server(
-            self.handle_client,
-            self.host,
-            self.port
-        )
+        server = await asyncio.start_server(self.handle_client, self.host, self.port)
 
         self._running = True
         self.logger.info(f"MCP Hardware Server started on {self.host}:{self.port}")

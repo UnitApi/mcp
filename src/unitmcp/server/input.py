@@ -21,23 +21,28 @@ try:
 except ImportError:
     HAS_INPUT_LIBS = False
 
-
     # Mock classes for environments without input libraries
     class MockController:
-        def type(self, text): pass
+        def type(self, text):
+            pass
 
-        def press(self, key): pass
+        def press(self, key):
+            pass
 
-        def release(self, key): pass
+        def release(self, key):
+            pass
 
-        def position(self): return (0, 0)
+        def position(self):
+            return (0, 0)
 
-        def move(self, x, y): pass
+        def move(self, x, y):
+            pass
 
-        def click(self, button, count=1): pass
+        def click(self, button, count=1):
+            pass
 
-        def scroll(self, dx, dy): pass
-
+        def scroll(self, dx, dy):
+            pass
 
     KeyboardController = MockController
     MouseController = MockController
@@ -65,9 +70,7 @@ class InputServer(MCPServer):
             method_parts = request.method.split(".")
             if len(method_parts) < 2:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.METHOD_NOT_FOUND,
-                    "Invalid method format"
+                    request.id, MCPErrorCode.METHOD_NOT_FOUND, "Invalid method format"
                 )
 
             action = method_parts[1]
@@ -95,7 +98,7 @@ class InputServer(MCPServer):
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.METHOD_NOT_FOUND,
-                    f"Unknown input method: {action}"
+                    f"Unknown input method: {action}",
                 )
 
             return await handlers[action](request)
@@ -103,9 +106,7 @@ class InputServer(MCPServer):
         except Exception as e:
             self.logger.error(f"Input error: {e}")
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INTERNAL_ERROR,
-                str(e)
+                request.id, MCPErrorCode.INTERNAL_ERROR, str(e)
             )
 
     async def type_text(self, request: MCPRequest) -> MCPResponse:
@@ -114,9 +115,7 @@ class InputServer(MCPServer):
 
         if not text:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing text parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing text parameter"
             )
 
         try:
@@ -126,17 +125,11 @@ class InputServer(MCPServer):
                 self.keyboard.type(text)
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "text": text
-                }
+                id=request.id, result={"status": "success", "text": text}
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to type text: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to type text: {e}"
             )
 
     async def press_key(self, request: MCPRequest) -> MCPResponse:
@@ -145,9 +138,7 @@ class InputServer(MCPServer):
 
         if not key:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing key parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing key parameter"
             )
 
         try:
@@ -156,18 +147,10 @@ class InputServer(MCPServer):
             else:
                 self.keyboard.press(key)
 
-            return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "key": key
-                }
-            )
+            return MCPResponse(id=request.id, result={"status": "success", "key": key})
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to press key: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to press key: {e}"
             )
 
     async def release_key(self, request: MCPRequest) -> MCPResponse:
@@ -176,9 +159,7 @@ class InputServer(MCPServer):
 
         if not key:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing key parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing key parameter"
             )
 
         try:
@@ -187,18 +168,10 @@ class InputServer(MCPServer):
             else:
                 self.keyboard.release(key)
 
-            return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "key": key
-                }
-            )
+            return MCPResponse(id=request.id, result={"status": "success", "key": key})
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to release key: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to release key: {e}"
             )
 
     async def hotkey(self, request: MCPRequest) -> MCPResponse:
@@ -207,9 +180,7 @@ class InputServer(MCPServer):
 
         if not keys:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing keys parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing keys parameter"
             )
 
         try:
@@ -223,17 +194,13 @@ class InputServer(MCPServer):
                     self.keyboard.release(key)
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "keys": keys
-                }
+                id=request.id, result={"status": "success", "keys": keys}
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to execute hotkey: {e}"
+                f"Failed to execute hotkey: {e}",
             )
 
     async def move_mouse(self, request: MCPRequest) -> MCPResponse:
@@ -245,9 +212,7 @@ class InputServer(MCPServer):
 
         if x is None or y is None:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing x or y parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing x or y parameter"
             )
 
         try:
@@ -265,18 +230,11 @@ class InputServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "x": x,
-                    "y": y,
-                    "relative": relative
-                }
+                result={"status": "success", "x": x, "y": y, "relative": relative},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to move mouse: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to move mouse: {e}"
             )
 
     async def click(self, request: MCPRequest) -> MCPResponse:
@@ -297,25 +255,19 @@ class InputServer(MCPServer):
                     self.mouse.move(x, y)
 
                 mouse_button = (
-                    Button.left if button == "left" else
-                    Button.right if button == "right" else
-                    Button.middle
+                    Button.left
+                    if button == "left"
+                    else Button.right if button == "right" else Button.middle
                 )
                 self.mouse.click(mouse_button, clicks)
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "button": button,
-                    "clicks": clicks
-                }
+                result={"status": "success", "button": button, "clicks": clicks},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to click: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to click: {e}"
             )
 
     async def double_click(self, request: MCPRequest) -> MCPResponse:
@@ -335,17 +287,11 @@ class InputServer(MCPServer):
                 self.mouse.click(Button.left, 2)
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "action": "double_click"
-                }
+                id=request.id, result={"status": "success", "action": "double_click"}
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to double click: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to double click: {e}"
             )
 
     async def right_click(self, request: MCPRequest) -> MCPResponse:
@@ -365,17 +311,11 @@ class InputServer(MCPServer):
                 self.mouse.click(Button.right, 1)
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "action": "right_click"
-                }
+                id=request.id, result={"status": "success", "action": "right_click"}
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to right click: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to right click: {e}"
             )
 
     async def scroll(self, request: MCPRequest) -> MCPResponse:
@@ -400,14 +340,12 @@ class InputServer(MCPServer):
                 result={
                     "status": "success",
                     "amount": amount,
-                    "horizontal": horizontal
-                }
+                    "horizontal": horizontal,
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to scroll: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to scroll: {e}"
             )
 
     async def drag_to(self, request: MCPRequest) -> MCPResponse:
@@ -419,9 +357,7 @@ class InputServer(MCPServer):
 
         if x is None or y is None:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing x or y parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing x or y parameter"
             )
 
         try:
@@ -429,9 +365,9 @@ class InputServer(MCPServer):
                 pyautogui.dragTo(x, y, duration=duration, button=button)
             else:
                 mouse_button = (
-                    Button.left if button == "left" else
-                    Button.right if button == "right" else
-                    Button.middle
+                    Button.left
+                    if button == "left"
+                    else Button.right if button == "right" else Button.middle
                 )
                 self.mouse.press(mouse_button)
                 await asyncio.sleep(0.1)
@@ -441,18 +377,11 @@ class InputServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "x": x,
-                    "y": y,
-                    "button": button
-                }
+                result={"status": "success", "x": x, "y": y, "button": button},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to drag: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to drag: {e}"
             )
 
     async def get_mouse_position(self, request: MCPRequest) -> MCPResponse:
@@ -464,18 +393,13 @@ class InputServer(MCPServer):
                 x, y = self.mouse.position()
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "x": x,
-                    "y": y
-                }
+                id=request.id, result={"status": "success", "x": x, "y": y}
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to get mouse position: {e}"
+                f"Failed to get mouse position: {e}",
             )
 
     async def screenshot(self, request: MCPRequest) -> MCPResponse:
@@ -492,6 +416,7 @@ class InputServer(MCPServer):
                 # Convert to base64 for transport
                 import io
                 import base64
+
                 buffer = io.BytesIO()
                 screenshot.save(buffer, format="PNG")
                 image_data = base64.b64encode(buffer.getvalue()).decode()
@@ -501,49 +426,41 @@ class InputServer(MCPServer):
                     result={
                         "status": "success",
                         "image_data": image_data,
-                        "format": "png"
-                    }
+                        "format": "png",
+                    },
                 )
             else:
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.HARDWARE_ERROR,
-                    "Screenshot functionality not available"
+                    "Screenshot functionality not available",
                 )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to take screenshot: {e}"
+                f"Failed to take screenshot: {e}",
             )
 
     async def start_recording(self, request: MCPRequest) -> MCPResponse:
         """Start recording input events."""
         if self.recording:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Already recording"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Already recording"
             )
 
         self.recording = True
         self.recorded_events = []
 
         return MCPResponse(
-            id=request.id,
-            result={
-                "status": "success",
-                "message": "Recording started"
-            }
+            id=request.id, result={"status": "success", "message": "Recording started"}
         )
 
     async def stop_recording(self, request: MCPRequest) -> MCPResponse:
         """Stop recording input events."""
         if not self.recording:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Not recording"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Not recording"
             )
 
         self.recording = False
@@ -551,11 +468,7 @@ class InputServer(MCPServer):
 
         return MCPResponse(
             id=request.id,
-            result={
-                "status": "success",
-                "events": events,
-                "count": len(events)
-            }
+            result={"status": "success", "events": events, "count": len(events)},
         )
 
     async def playback_recording(self, request: MCPRequest) -> MCPResponse:
@@ -565,39 +478,40 @@ class InputServer(MCPServer):
 
         if not events:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "No events to playback"
+                request.id, MCPErrorCode.INVALID_PARAMS, "No events to playback"
             )
 
         try:
             for event in events:
                 event_type = event.get("type")
                 if event_type == "keyboard":
-                    await self.type_text(MCPRequest(
-                        id=request.id,
-                        method="input.typeText",
-                        params={"text": event.get("text", "")}
-                    ))
+                    await self.type_text(
+                        MCPRequest(
+                            id=request.id,
+                            method="input.typeText",
+                            params={"text": event.get("text", "")},
+                        )
+                    )
                 elif event_type == "mouse_move":
-                    await self.move_mouse(MCPRequest(
-                        id=request.id,
-                        method="input.moveMouse",
-                        params={
-                            "x": event.get("x", 0),
-                            "y": event.get("y", 0)
-                        }
-                    ))
+                    await self.move_mouse(
+                        MCPRequest(
+                            id=request.id,
+                            method="input.moveMouse",
+                            params={"x": event.get("x", 0), "y": event.get("y", 0)},
+                        )
+                    )
                 elif event_type == "mouse_click":
-                    await self.click(MCPRequest(
-                        id=request.id,
-                        method="input.click",
-                        params={
-                            "button": event.get("button", "left"),
-                            "x": event.get("x"),
-                            "y": event.get("y")
-                        }
-                    ))
+                    await self.click(
+                        MCPRequest(
+                            id=request.id,
+                            method="input.click",
+                            params={
+                                "button": event.get("button", "left"),
+                                "x": event.get("x"),
+                                "y": event.get("y"),
+                            },
+                        )
+                    )
 
                 # Delay between events
                 delay = event.get("delay", 0.1) / speed
@@ -605,14 +519,11 @@ class InputServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "events_played": len(events)
-                }
+                result={"status": "success", "events_played": len(events)},
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to playback recording: {e}"
+                f"Failed to playback recording: {e}",
             )

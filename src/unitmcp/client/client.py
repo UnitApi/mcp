@@ -17,10 +17,7 @@ class MCPHardwareClient:
     """Client for MCP hardware server."""
 
     def __init__(
-            self,
-            host: str = "127.0.0.1",
-            port: int = 8888,
-            client_id: str = None
+        self, host: str = "127.0.0.1", port: int = 8888, client_id: str = None
     ):
         self.host = host
         self.port = port
@@ -51,9 +48,7 @@ class MCPHardwareClient:
             self.logger.info("Disconnected from MCP server")
 
     async def send_request(
-            self,
-            method: str,
-            params: Dict[str, Any] = None
+        self, method: str, params: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """Send request to MCP server."""
         if not self._connected:
@@ -66,9 +61,7 @@ class MCPHardwareClient:
 
         # Create request
         request = MCPRequest(
-            id=str(int(time.time() * 1000)),
-            method=method,
-            params=params
+            id=str(int(time.time() * 1000)), method=method, params=params
         )
 
         try:
@@ -92,97 +85,65 @@ class MCPHardwareClient:
     # GPIO control methods
     async def setup_pin(self, pin: int, mode: str = "OUT") -> Dict[str, Any]:
         """Setup GPIO pin."""
-        return await self.send_request("gpio.setupPin", {
-            "pin": pin,
-            "mode": mode
-        })
+        return await self.send_request("gpio.setupPin", {"pin": pin, "mode": mode})
 
     async def write_pin(self, pin: int, value: bool) -> Dict[str, Any]:
         """Write to GPIO pin."""
-        return await self.send_request("gpio.writePin", {
-            "pin": pin,
-            "value": value
-        })
+        return await self.send_request("gpio.writePin", {"pin": pin, "value": value})
 
     async def read_pin(self, pin: int) -> Dict[str, Any]:
         """Read from GPIO pin."""
-        return await self.send_request("gpio.readPin", {
-            "pin": pin
-        })
+        return await self.send_request("gpio.readPin", {"pin": pin})
 
     async def setup_led(self, device_id: str, pin: int) -> Dict[str, Any]:
         """Setup LED device."""
-        return await self.send_request("gpio.setupLED", {
-            "device_id": device_id,
-            "pin": pin
-        })
+        return await self.send_request(
+            "gpio.setupLED", {"device_id": device_id, "pin": pin}
+        )
 
     async def control_led(
-            self,
-            device_id: str,
-            action: str,
-            **kwargs
+        self, device_id: str, action: str, **kwargs
     ) -> Dict[str, Any]:
         """Control LED device."""
-        params = {
-            "device_id": device_id,
-            "action": action
-        }
+        params = {"device_id": device_id, "action": action}
         params.update(kwargs)
         return await self.send_request("gpio.controlLED", params)
 
     # Input control methods
     async def type_text(self, text: str) -> Dict[str, Any]:
         """Type text using keyboard."""
-        return await self.send_request("input.typeText", {
-            "text": text
-        })
+        return await self.send_request("input.typeText", {"text": text})
 
     async def press_key(self, key: str) -> Dict[str, Any]:
         """Press a specific key."""
-        return await self.send_request("input.pressKey", {
-            "key": key
-        })
+        return await self.send_request("input.pressKey", {"key": key})
 
     async def release_key(self, key: str) -> Dict[str, Any]:
         """Release a specific key."""
-        return await self.send_request("input.releaseKey", {
-            "key": key
-        })
+        return await self.send_request("input.releaseKey", {"key": key})
 
     async def hotkey(self, *keys: str) -> Dict[str, Any]:
         """Execute keyboard hotkey."""
-        return await self.send_request("input.hotkey", {
-            "keys": list(keys)
-        })
+        return await self.send_request("input.hotkey", {"keys": list(keys)})
 
     async def move_mouse(
-            self,
-            x: int,
-            y: int,
-            relative: bool = False,
-            duration: float = 0.1
+        self, x: int, y: int, relative: bool = False, duration: float = 0.1
     ) -> Dict[str, Any]:
         """Move mouse to coordinates."""
-        return await self.send_request("input.moveMouse", {
-            "x": x,
-            "y": y,
-            "relative": relative,
-            "duration": duration
-        })
+        return await self.send_request(
+            "input.moveMouse",
+            {"x": x, "y": y, "relative": relative, "duration": duration},
+        )
 
     async def click(
-            self,
-            button: str = "left",
-            clicks: int = 1,
-            x: Optional[int] = None,
-            y: Optional[int] = None
+        self,
+        button: str = "left",
+        clicks: int = 1,
+        x: Optional[int] = None,
+        y: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Perform mouse click."""
-        params = {
-            "button": button,
-            "clicks": clicks
-        }
+        params = {"button": button, "clicks": clicks}
         if x is not None:
             params["x"] = x
         if y is not None:
@@ -191,9 +152,7 @@ class MCPHardwareClient:
         return await self.send_request("input.click", params)
 
     async def double_click(
-            self,
-            x: Optional[int] = None,
-            y: Optional[int] = None
+        self, x: Optional[int] = None, y: Optional[int] = None
     ) -> Dict[str, Any]:
         """Perform double click."""
         params = {}
@@ -205,9 +164,7 @@ class MCPHardwareClient:
         return await self.send_request("input.doubleClick", params)
 
     async def right_click(
-            self,
-            x: Optional[int] = None,
-            y: Optional[int] = None
+        self, x: Optional[int] = None, y: Optional[int] = None
     ) -> Dict[str, Any]:
         """Perform right click."""
         params = {}
@@ -218,40 +175,25 @@ class MCPHardwareClient:
 
         return await self.send_request("input.rightClick", params)
 
-    async def scroll(
-            self,
-            amount: int,
-            horizontal: bool = False
-    ) -> Dict[str, Any]:
+    async def scroll(self, amount: int, horizontal: bool = False) -> Dict[str, Any]:
         """Perform mouse scroll."""
-        return await self.send_request("input.scroll", {
-            "amount": amount,
-            "horizontal": horizontal
-        })
+        return await self.send_request(
+            "input.scroll", {"amount": amount, "horizontal": horizontal}
+        )
 
     async def drag_to(
-            self,
-            x: int,
-            y: int,
-            duration: float = 0.5,
-            button: str = "left"
+        self, x: int, y: int, duration: float = 0.5, button: str = "left"
     ) -> Dict[str, Any]:
         """Drag mouse to coordinates."""
-        return await self.send_request("input.dragTo", {
-            "x": x,
-            "y": y,
-            "duration": duration,
-            "button": button
-        })
+        return await self.send_request(
+            "input.dragTo", {"x": x, "y": y, "duration": duration, "button": button}
+        )
 
     async def get_mouse_position(self) -> Dict[str, Any]:
         """Get current mouse position."""
         return await self.send_request("input.getMousePosition")
 
-    async def screenshot(
-            self,
-            region: Optional[tuple] = None
-    ) -> Dict[str, Any]:
+    async def screenshot(self, region: Optional[tuple] = None) -> Dict[str, Any]:
         """Take a screenshot."""
         params = {}
         if region:

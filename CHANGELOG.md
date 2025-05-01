@@ -2,6 +2,200 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.44] - 2025-05-01
+
+### Added
+- Changes in fedora/README.md
+- Changes in macos/README.md
+- Changes in macos/install.sh
+- Changes in scripts/README.md
+- Changes in scripts/build.sh
+- Changes in scripts/duplicated.sh
+- Changes in scripts/install.sh
+- Changes in scripts/pip.sh
+- Changes in scripts/pyaudio.sh
+- Changes in scripts/pyaudio2.sh
+- Changes in scripts/pyaudio3.sh
+- Changes in scripts/python.sh
+- Changes in scripts/requirements.sh
+- Changes in scripts/spacy.sh
+- Changes in src/unitmcp/_version.py
+- Changes in ubuntu/README.md
+- Changes in ubuntu/install.sh
+- Changes in update/README.md
+- Changes in update/changelog.py
+- Changes in update/git.sh
+- Changes in update/project.py
+- Changes in update/pypi.sh
+- Changes in update/setup.py
+- Changes in update/src.py
+- Changes in update/version.sh
+
+## [0.1.43] - 2025-05-01
+
+### Added
+- Changes in fedora/README.md
+- Changes in macos/README.md
+- Changes in macos/install.sh
+- Changes in scripts/README.md
+- Changes in scripts/build.sh
+- Changes in scripts/duplicated.sh
+- Changes in scripts/git.sh
+- Changes in scripts/install.sh
+- Changes in scripts/pip.sh
+- Changes in scripts/pyaudio.sh
+- Changes in scripts/pyaudio2.sh
+- Changes in scripts/pyaudio3.sh
+- Changes in scripts/python.sh
+- Changes in scripts/requirements.sh
+- Changes in scripts/spacy.sh
+- Changes in src/unitmcp/_version.py
+- Changes in ubuntu/README.md
+- Changes in ubuntu/install.sh
+- Changes in update/README.md
+- Changes in update/changelog.py
+- Changes in update/project.py
+- Changes in update/pypi.sh
+- Changes in update/setup.py
+- Changes in update/src.py
+- Changes in update/version.sh
+
+## [0.1.42] - 2025-05-01
+
+### Added
+- Changes in fedora/README.md
+- Changes in macos/README.md
+- Changes in macos/install.sh
+- Changes in scripts/README.md
+- Changes in scripts/build.sh
+- Changes in scripts/duplicated.sh
+- Changes in scripts/git.sh
+- Changes in scripts/install.sh
+- Changes in scripts/pip.sh
+- Changes in scripts/pyaudio.sh
+- Changes in scripts/pyaudio2.sh
+- Changes in scripts/pyaudio3.sh
+- Changes in scripts/python.sh
+- Changes in scripts/requirements.sh
+- Changes in scripts/spacy.sh
+- Changes in src/unitmcp/_version.py
+- Changes in ubuntu/README.md
+- Changes in ubuntu/install.sh
+- Changes in update/README.md
+- Changes in update/project.py
+- Changes in update/pypi.sh
+- Changes in update/setup.py
+- Changes in update/src.py
+- Changes in update/version.sh
+
+## [0.1.41] - 2025-05-01
+
+### Added
+- Changes in fedora/README.md
+- Changes in macos/README.md
+- Changes in macos/install.sh
+- Changes in scripts/README.md
+- Changes in scripts/build.sh
+- Changes in scripts/duplicated.sh
+- Changes in scripts/git.sh
+- Changes in scripts/install.sh
+- Changes in scripts/pip.sh
+- Changes in scripts/pyaudio.sh
+- Changes in scripts/pyaudio2.sh
+- Changes in scripts/pyaudio3.sh
+- Changes in scripts/python.sh
+- Changes in scripts/requirements.sh
+- Changes in scripts/spacy.sh
+- Changes in src/unitmcp/_version.py
+- Changes in ubuntu/README.md
+- Changes in ubuntu/install.sh
+- Changes in update/README.md
+- Changes in update/project.py
+- Changes in update/setup.py
+- Changes in update/src.py
+- Changes in update/version.sh
+
+## [0.1.40] - 2025-05-01
+
+### Added
+- Changes in fedora/README.md
+- Changes in macos/README.md
+- Changes in macos/install.sh
+- Changes in scripts/README.md
+- Changes in scripts/build.sh
+- Changes in scripts/duplicated.sh
+- Changes in scripts/git.sh
+- Changes in scripts/install.sh
+- Changes in scripts/pip.sh
+- Changes in scripts/pyaudio.sh
+- Changes in scripts/pyaudio2.sh
+- Changes in scripts/pyaudio3.sh
+- Changes in scripts/python.sh
+- Changes in scripts/requirements.sh
+- Changes in scripts/spacy.sh
+- Changes in src/unitmcp/_version.py
+- Changes in ubuntu/README.md
+- Changes in ubuntu/install.sh
+- Changes in update/README.md
+- Changes in update/project.py
+- Changes in update/setup.py
+- Changes in update/src.py
+- Changes in update/version.sh
+
+## [0.1.39] - 2025-05-01
+
+### Added
+- Changes in fedora/README.md
+- Changes in macos/README.md
+- Changes in macos/install.sh
+- Changes in scripts/README.md
+- Changes in scripts/build.sh
+- Changes in scripts/duplicated.sh
+- Changes in scripts/git.sh
+- Changes in scripts/install.sh
+- Changes in scripts/pip.sh
+- Changes in scripts/pyaudio.sh
+- Changes in scripts/pyaudio2.sh
+- Changes in scripts/pyaudio3.sh
+- Changes in scripts/python.sh
+- Changes in scripts/requirements.sh
+- Changes in scripts/spacy.sh
+- Changes in src/unitmcp/_version.py
+- Changes in ubuntu/README.md
+- Changes in ubuntu/install.sh
+- Changes in update/README.md
+- Changes in update/project.py
+- Changes in update/setup.py
+- Changes in update/src.py
+- Changes in update/version.sh
+
+## [0.1.38] - 2025-05-01
+
+### Added
+- Changes in fedora/README.md
+- Changes in macos/README.md
+- Changes in macos/install.sh
+- Changes in scripts/README.md
+- Changes in scripts/build.sh
+- Changes in scripts/duplicated.sh
+- Changes in scripts/git.sh
+- Changes in scripts/install.sh
+- Changes in scripts/pip.sh
+- Changes in scripts/pyaudio.sh
+- Changes in scripts/pyaudio2.sh
+- Changes in scripts/pyaudio3.sh
+- Changes in scripts/python.sh
+- Changes in scripts/requirements.sh
+- Changes in scripts/spacy.sh
+- Changes in src/unitmcp/_version.py
+- Changes in ubuntu/README.md
+- Changes in ubuntu/install.sh
+- Changes in update/README.md
+- Changes in update/project.py
+- Changes in update/setup.py
+- Changes in update/src.py
+- Changes in update/version.sh
+
 ## [0.1.37] - 2025-05-01
 
 ### Added

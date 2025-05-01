@@ -11,7 +11,7 @@ from .base import MCPServer
 from ..protocols.mcp import MCPRequest, MCPResponse, MCPErrorCode
 
 # Check if we're on a Raspberry Pi
-IS_RPI = platform.machine() in ['armv7l', 'aarch64']
+IS_RPI = platform.machine() in ["armv7l", "aarch64"]
 
 if IS_RPI:
     import RPi.GPIO as GPIO
@@ -26,39 +26,47 @@ else:
         LOW = False
 
         @staticmethod
-        def setmode(mode): pass
+        def setmode(mode):
+            pass
 
         @staticmethod
-        def setup(pin, mode): pass
+        def setup(pin, mode):
+            pass
 
         @staticmethod
-        def output(pin, value): pass
+        def output(pin, value):
+            pass
 
         @staticmethod
-        def input(pin): return False
+        def input(pin):
+            return False
 
         @staticmethod
-        def cleanup(): pass
-
+        def cleanup():
+            pass
 
     GPIO = MockGPIO()
 
-
     class MockDevice:
-        def on(self): pass
+        def on(self):
+            pass
 
-        def off(self): pass
+        def off(self):
+            pass
 
-        def toggle(self): pass
+        def toggle(self):
+            pass
 
-        def blink(self, on_time=1, off_time=1): pass
+        def blink(self, on_time=1, off_time=1):
+            pass
 
         @property
-        def is_lit(self): return False
+        def is_lit(self):
+            return False
 
         @property
-        def is_pressed(self): return False
-
+        def is_pressed(self):
+            return False
 
     LED = Button = Buzzer = MotionSensor = MockDevice
 
@@ -80,9 +88,7 @@ class GPIOServer(MCPServer):
             method_parts = request.method.split(".")
             if len(method_parts) < 2:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.METHOD_NOT_FOUND,
-                    "Invalid method format"
+                    request.id, MCPErrorCode.METHOD_NOT_FOUND, "Invalid method format"
                 )
 
             action = method_parts[1]
@@ -107,7 +113,7 @@ class GPIOServer(MCPServer):
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.METHOD_NOT_FOUND,
-                    f"Unknown GPIO method: {action}"
+                    f"Unknown GPIO method: {action}",
                 )
 
             return await handlers[action](request)
@@ -115,9 +121,7 @@ class GPIOServer(MCPServer):
         except Exception as e:
             self.logger.error(f"GPIO error: {e}")
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INTERNAL_ERROR,
-                str(e)
+                request.id, MCPErrorCode.INTERNAL_ERROR, str(e)
             )
 
     async def setup_pin(self, request: MCPRequest) -> MCPResponse:
@@ -127,9 +131,7 @@ class GPIOServer(MCPServer):
 
         if pin is None:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing pin parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing pin parameter"
             )
 
         try:
@@ -141,18 +143,13 @@ class GPIOServer(MCPServer):
             self.pins_in_use.add(pin)
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "pin": pin,
-                    "mode": mode
-                }
+                id=request.id, result={"status": "success", "pin": pin, "mode": mode}
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to setup motion sensor: {e}"
+                f"Failed to setup motion sensor: {e}",
             )
 
     async def read_motion_sensor(self, request: MCPRequest) -> MCPResponse:
@@ -161,9 +158,7 @@ class GPIOServer(MCPServer):
 
         if not device_id:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing device_id parameter"
             )
 
         sensor = self.devices.get(device_id)
@@ -171,7 +166,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Invalid motion sensor device: {device_id}"
+                f"Invalid motion sensor device: {device_id}",
             )
 
         try:
@@ -180,14 +175,14 @@ class GPIOServer(MCPServer):
                 result={
                     "status": "success",
                     "device_id": device_id,
-                    "motion_detected": sensor.motion_detected
-                }
+                    "motion_detected": sensor.motion_detected,
+                },
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to read motion sensor: {e}"
+                f"Failed to read motion sensor: {e}",
             )
 
     async def cleanup(self, request: MCPRequest) -> MCPResponse:
@@ -199,16 +194,11 @@ class GPIOServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "message": "GPIO cleanup completed"
-                }
+                result={"status": "success", "message": "GPIO cleanup completed"},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to cleanup GPIO: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to cleanup GPIO: {e}"
             )
 
     async def write_pin(self, request: MCPRequest) -> MCPResponse:
@@ -220,25 +210,18 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                "Missing pin or value parameter"
+                "Missing pin or value parameter",
             )
 
         try:
             GPIO.output(pin, GPIO.HIGH if value else GPIO.LOW)
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "pin": pin,
-                    "value": value
-                }
+                id=request.id, result={"status": "success", "pin": pin, "value": value}
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to write pin: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to write pin: {e}"
             )
 
     async def read_pin(self, request: MCPRequest) -> MCPResponse:
@@ -247,9 +230,7 @@ class GPIOServer(MCPServer):
 
         if pin is None:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing pin parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing pin parameter"
             )
 
         try:
@@ -257,17 +238,11 @@ class GPIOServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "pin": pin,
-                    "value": bool(value)
-                }
+                result={"status": "success", "pin": pin, "value": bool(value)},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to read pin: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to read pin: {e}"
             )
 
     async def setup_led(self, request: MCPRequest) -> MCPResponse:
@@ -279,7 +254,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id or pin parameter"
+                "Missing device_id or pin parameter",
             )
 
         try:
@@ -289,17 +264,11 @@ class GPIOServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "device_id": device_id,
-                    "pin": pin
-                }
+                result={"status": "success", "device_id": device_id, "pin": pin},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to setup LED: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to setup LED: {e}"
             )
 
     async def control_led(self, request: MCPRequest) -> MCPResponse:
@@ -311,7 +280,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id or action parameter"
+                "Missing device_id or action parameter",
             )
 
         led = self.devices.get(device_id)
@@ -319,7 +288,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Invalid LED device: {device_id}"
+                f"Invalid LED device: {device_id}",
             )
 
         try:
@@ -335,9 +304,7 @@ class GPIOServer(MCPServer):
                 led.blink(on_time=on_time, off_time=off_time)
             else:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    f"Invalid action: {action}"
+                    request.id, MCPErrorCode.INVALID_PARAMS, f"Invalid action: {action}"
                 )
 
             return MCPResponse(
@@ -346,14 +313,12 @@ class GPIOServer(MCPServer):
                     "status": "success",
                     "device_id": device_id,
                     "action": action,
-                    "state": "on" if led.is_lit else "off"
-                }
+                    "state": "on" if led.is_lit else "off",
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to control LED: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to control LED: {e}"
             )
 
     async def setup_button(self, request: MCPRequest) -> MCPResponse:
@@ -365,7 +330,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id or pin parameter"
+                "Missing device_id or pin parameter",
             )
 
         try:
@@ -375,17 +340,11 @@ class GPIOServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "device_id": device_id,
-                    "pin": pin
-                }
+                result={"status": "success", "device_id": device_id, "pin": pin},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to setup button: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to setup button: {e}"
             )
 
     async def read_button(self, request: MCPRequest) -> MCPResponse:
@@ -394,9 +353,7 @@ class GPIOServer(MCPServer):
 
         if not device_id:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id parameter"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing device_id parameter"
             )
 
         button = self.devices.get(device_id)
@@ -404,7 +361,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Invalid button device: {device_id}"
+                f"Invalid button device: {device_id}",
             )
 
         try:
@@ -413,14 +370,12 @@ class GPIOServer(MCPServer):
                 result={
                     "status": "success",
                     "device_id": device_id,
-                    "is_pressed": button.is_pressed
-                }
+                    "is_pressed": button.is_pressed,
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to read button: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to read button: {e}"
             )
 
     async def setup_buzzer(self, request: MCPRequest) -> MCPResponse:
@@ -432,7 +387,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id or pin parameter"
+                "Missing device_id or pin parameter",
             )
 
         try:
@@ -442,17 +397,11 @@ class GPIOServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "device_id": device_id,
-                    "pin": pin
-                }
+                result={"status": "success", "device_id": device_id, "pin": pin},
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to setup buzzer: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to setup buzzer: {e}"
             )
 
     async def control_buzzer(self, request: MCPRequest) -> MCPResponse:
@@ -464,7 +413,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id or action parameter"
+                "Missing device_id or action parameter",
             )
 
         buzzer = self.devices.get(device_id)
@@ -472,7 +421,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Invalid buzzer device: {device_id}"
+                f"Invalid buzzer device: {device_id}",
             )
 
         try:
@@ -487,24 +436,18 @@ class GPIOServer(MCPServer):
                 buzzer.beep(on_time=on_time, off_time=off_time, n=count)
             else:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    f"Invalid action: {action}"
+                    request.id, MCPErrorCode.INVALID_PARAMS, f"Invalid action: {action}"
                 )
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "device_id": device_id,
-                    "action": action
-                }
+                result={"status": "success", "device_id": device_id, "action": action},
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to control buzzer: {e}"
+                f"Failed to control buzzer: {e}",
             )
 
     async def setup_motion_sensor(self, request: MCPRequest) -> MCPResponse:
@@ -516,7 +459,7 @@ class GPIOServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                "Missing device_id or pin parameter"
+                "Missing device_id or pin parameter",
             )
 
         try:
@@ -526,15 +469,11 @@ class GPIOServer(MCPServer):
 
             return MCPResponse(
                 id=request.id,
-                result={
-                    "status": "success",
-                    "device_id": device_id,
-                    "pin": pin
-                }
+                result={"status": "success", "device_id": device_id, "pin": pin},
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to setup motion sensor: {e}"
+                f"Failed to setup motion sensor: {e}",
             )

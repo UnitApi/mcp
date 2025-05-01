@@ -21,29 +21,36 @@ try:
 except ImportError:
     HAS_CAMERA = False
 
-
     # Mock classes for environments without camera support
     class MockVideoCapture:
         def __init__(self, device=0):
             self.device = device
 
-        def isOpened(self): return False
+        def isOpened(self):
+            return False
 
-        def read(self): return False, None
+        def read(self):
+            return False, None
 
-        def release(self): pass
+        def release(self):
+            pass
 
-        def get(self, prop): return 0
+        def get(self, prop):
+            return 0
 
-        def set(self, prop, value): return False
+        def set(self, prop, value):
+            return False
 
-
-    cv2 = type('cv2', (), {
-        'VideoCapture': MockVideoCapture,
-        'CAP_PROP_FRAME_WIDTH': 3,
-        'CAP_PROP_FRAME_HEIGHT': 4,
-        'CAP_PROP_FPS': 5,
-    })()
+    cv2 = type(
+        "cv2",
+        (),
+        {
+            "VideoCapture": MockVideoCapture,
+            "CAP_PROP_FRAME_WIDTH": 3,
+            "CAP_PROP_FRAME_HEIGHT": 4,
+            "CAP_PROP_FPS": 5,
+        },
+    )()
 
 
 class CameraServer(MCPServer):
@@ -61,9 +68,7 @@ class CameraServer(MCPServer):
             method_parts = request.method.split(".")
             if len(method_parts) < 2:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.METHOD_NOT_FOUND,
-                    "Invalid method format"
+                    request.id, MCPErrorCode.METHOD_NOT_FOUND, "Invalid method format"
                 )
 
             action = method_parts[1]
@@ -86,7 +91,7 @@ class CameraServer(MCPServer):
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.METHOD_NOT_FOUND,
-                    f"Unknown camera method: {action}"
+                    f"Unknown camera method: {action}",
                 )
 
             return await handlers[action](request)
@@ -94,18 +99,14 @@ class CameraServer(MCPServer):
         except Exception as e:
             self.logger.error(f"Camera error: {e}")
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INTERNAL_ERROR,
-                str(e)
+                request.id, MCPErrorCode.INTERNAL_ERROR, str(e)
             )
 
     async def list_cameras(self, request: MCPRequest) -> MCPResponse:
         """List available camera devices."""
         if not HAS_CAMERA:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                "Camera support not available"
+                request.id, MCPErrorCode.HARDWARE_ERROR, "Camera support not available"
             )
 
         try:
@@ -115,28 +116,24 @@ class CameraServer(MCPServer):
             for i in range(10):
                 cap = cv2.VideoCapture(i)
                 if cap.isOpened():
-                    cameras.append({
-                        "id": i,
-                        "name": f"Camera {i}",
-                        "available": True,
-                        "width": int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                        "height": int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-                        "fps": int(cap.get(cv2.CAP_PROP_FPS))
-                    })
+                    cameras.append(
+                        {
+                            "id": i,
+                            "name": f"Camera {i}",
+                            "available": True,
+                            "width": int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                            "height": int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                            "fps": int(cap.get(cv2.CAP_PROP_FPS)),
+                        }
+                    )
                     cap.release()
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "cameras": cameras
-                }
+                id=request.id, result={"status": "success", "cameras": cameras}
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to list cameras: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to list cameras: {e}"
             )
 
     async def open_camera(self, request: MCPRequest) -> MCPResponse:
@@ -148,7 +145,7 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} already open"
+                f"Camera {device_name} already open",
             )
 
         try:
@@ -157,7 +154,7 @@ class CameraServer(MCPServer):
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to open camera {camera_id}"
+                    f"Failed to open camera {camera_id}",
                 )
 
             # Set default properties
@@ -181,15 +178,13 @@ class CameraServer(MCPServer):
                     "properties": {
                         "width": int(camera.get(cv2.CAP_PROP_FRAME_WIDTH)),
                         "height": int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-                        "fps": int(camera.get(cv2.CAP_PROP_FPS))
-                    }
-                }
+                        "fps": int(camera.get(cv2.CAP_PROP_FPS)),
+                    },
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to open camera: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to open camera: {e}"
             )
 
     async def close_camera(self, request: MCPRequest) -> MCPResponse:
@@ -200,7 +195,7 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         try:
@@ -215,17 +210,11 @@ class CameraServer(MCPServer):
             del self.active_streams[device_name]
 
             return MCPResponse(
-                id=request.id,
-                result={
-                    "status": "success",
-                    "device_name": device_name
-                }
+                id=request.id, result={"status": "success", "device_name": device_name}
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to close camera: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to close camera: {e}"
             )
 
     async def capture_image(self, request: MCPRequest) -> MCPResponse:
@@ -236,7 +225,7 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         try:
@@ -245,9 +234,7 @@ class CameraServer(MCPServer):
 
             if not ret:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    "Failed to capture frame"
+                    request.id, MCPErrorCode.HARDWARE_ERROR, "Failed to capture frame"
                 )
 
             # Convert to desired format
@@ -257,25 +244,23 @@ class CameraServer(MCPServer):
             # Encode image
             if format_type == "jpeg":
                 encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
-                ret, buffer = cv2.imencode('.jpg', frame, encode_param)
+                ret, buffer = cv2.imencode(".jpg", frame, encode_param)
             elif format_type == "png":
-                ret, buffer = cv2.imencode('.png', frame)
+                ret, buffer = cv2.imencode(".png", frame)
             else:
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.INVALID_PARAMS,
-                    f"Unsupported format: {format_type}"
+                    f"Unsupported format: {format_type}",
                 )
 
             if not ret:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    "Failed to encode image"
+                    request.id, MCPErrorCode.HARDWARE_ERROR, "Failed to encode image"
                 )
 
             # Convert to base64
-            image_base64 = base64.b64encode(buffer).decode('utf-8')
+            image_base64 = base64.b64encode(buffer).decode("utf-8")
 
             return MCPResponse(
                 id=request.id,
@@ -284,14 +269,12 @@ class CameraServer(MCPServer):
                     "image_data": image_base64,
                     "format": format_type,
                     "width": frame.shape[1],
-                    "height": frame.shape[0]
-                }
+                    "height": frame.shape[0],
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to capture image: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to capture image: {e}"
             )
 
     async def start_recording(self, request: MCPRequest) -> MCPResponse:
@@ -302,14 +285,14 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         if device_name in self.recording_tasks:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Already recording on {device_name}"
+                f"Already recording on {device_name}",
             )
 
         try:
@@ -332,18 +315,24 @@ class CameraServer(MCPServer):
                     "status": "recording_started",
                     "device_name": device_name,
                     "format": output_format,
-                    "fps": fps
-                }
+                    "fps": fps,
+                },
             )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to start recording: {e}"
+                f"Failed to start recording: {e}",
             )
 
-    async def _record_video(self, device_name: str, camera: cv2.VideoCapture,
-                            duration: float, fps: int, output_format: str):
+    async def _record_video(
+        self,
+        device_name: str,
+        camera: cv2.VideoCapture,
+        duration: float,
+        fps: int,
+        output_format: str,
+    ):
         """Record video in background task."""
         frames = []
         start_time = asyncio.get_event_loop().time()
@@ -381,14 +370,14 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         if device_name not in self.recording_tasks:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Not recording on {device_name}"
+                f"Not recording on {device_name}",
             )
 
         try:
@@ -419,8 +408,8 @@ class CameraServer(MCPServer):
                         "status": "recording_stopped",
                         "device_name": device_name,
                         "frame_count": len(frames),
-                        "duration": len(frames) / 30.0  # Assuming 30 fps
-                    }
+                        "duration": len(frames) / 30.0,  # Assuming 30 fps
+                    },
                 )
             else:
                 return MCPResponse(
@@ -429,14 +418,14 @@ class CameraServer(MCPServer):
                         "status": "recording_stopped",
                         "device_name": device_name,
                         "frame_count": 0,
-                        "duration": 0
-                    }
+                        "duration": 0,
+                    },
                 )
         except Exception as e:
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to stop recording: {e}"
+                f"Failed to stop recording: {e}",
             )
 
     async def set_camera_property(self, request: MCPRequest) -> MCPResponse:
@@ -449,14 +438,12 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         if not property_name or value is None:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.INVALID_PARAMS,
-                "Missing property or value"
+                request.id, MCPErrorCode.INVALID_PARAMS, "Missing property or value"
             )
 
         try:
@@ -479,7 +466,7 @@ class CameraServer(MCPServer):
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.INVALID_PARAMS,
-                    f"Unknown property: {property_name}"
+                    f"Unknown property: {property_name}",
                 )
 
             success = camera.set(property_map[property_name], value)
@@ -491,14 +478,12 @@ class CameraServer(MCPServer):
                     "status": "success" if success else "failed",
                     "property": property_name,
                     "requested_value": value,
-                    "actual_value": actual_value
-                }
+                    "actual_value": actual_value,
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to set property: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to set property: {e}"
             )
 
     async def get_camera_property(self, request: MCPRequest) -> MCPResponse:
@@ -510,7 +495,7 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         try:
@@ -534,7 +519,7 @@ class CameraServer(MCPServer):
                     return self.create_error_response(
                         request.id,
                         MCPErrorCode.INVALID_PARAMS,
-                        f"Unknown property: {property_name}"
+                        f"Unknown property: {property_name}",
                     )
 
                 value = camera.get(property_map[property_name])
@@ -543,8 +528,8 @@ class CameraServer(MCPServer):
                     result={
                         "status": "success",
                         "property": property_name,
-                        "value": value
-                    }
+                        "value": value,
+                    },
                 )
             else:
                 # Get all properties
@@ -554,16 +539,11 @@ class CameraServer(MCPServer):
 
                 return MCPResponse(
                     id=request.id,
-                    result={
-                        "status": "success",
-                        "properties": properties
-                    }
+                    result={"status": "success", "properties": properties},
                 )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to get property: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to get property: {e}"
             )
 
     async def detect_faces(self, request: MCPRequest) -> MCPResponse:
@@ -574,7 +554,7 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         try:
@@ -583,14 +563,12 @@ class CameraServer(MCPServer):
 
             if not ret:
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    "Failed to capture frame"
+                    request.id, MCPErrorCode.HARDWARE_ERROR, "Failed to capture frame"
                 )
 
             # Load face detection classifier
             face_cascade = cv2.CascadeClassifier(
-                cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+                cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
             )
 
             # Convert to grayscale for detection
@@ -598,30 +576,24 @@ class CameraServer(MCPServer):
 
             # Detect faces
             faces = face_cascade.detectMultiScale(
-                gray,
-                scaleFactor=1.1,
-                minNeighbors=5,
-                minSize=(30, 30)
+                gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
             )
 
             # Convert results
             face_list = []
-            for (x, y, w, h) in faces:
-                face_list.append({
-                    "x": int(x),
-                    "y": int(y),
-                    "width": int(w),
-                    "height": int(h)
-                })
+            for x, y, w, h in faces:
+                face_list.append(
+                    {"x": int(x), "y": int(y), "width": int(w), "height": int(h)}
+                )
 
             # Optionally return image with faces marked
             if request.params.get("mark_faces", False):
-                for (x, y, w, h) in faces:
+                for x, y, w, h in faces:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-                ret, buffer = cv2.imencode('.jpg', frame)
+                ret, buffer = cv2.imencode(".jpg", frame)
                 if ret:
-                    image_base64 = base64.b64encode(buffer).decode('utf-8')
+                    image_base64 = base64.b64encode(buffer).decode("utf-8")
                 else:
                     image_base64 = None
             else:
@@ -633,14 +605,12 @@ class CameraServer(MCPServer):
                     "status": "success",
                     "faces": face_list,
                     "count": len(face_list),
-                    "marked_image": image_base64
-                }
+                    "marked_image": image_base64,
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to detect faces: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to detect faces: {e}"
             )
 
     async def detect_motion(self, request: MCPRequest) -> MCPResponse:
@@ -651,7 +621,7 @@ class CameraServer(MCPServer):
             return self.create_error_response(
                 request.id,
                 MCPErrorCode.INVALID_PARAMS,
-                f"Camera {device_name} not found"
+                f"Camera {device_name} not found",
             )
 
         try:
@@ -664,9 +634,7 @@ class CameraServer(MCPServer):
 
             if not (ret1 and ret2):
                 return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    "Failed to capture frames"
+                    request.id, MCPErrorCode.HARDWARE_ERROR, "Failed to capture frames"
                 )
 
             # Convert to grayscale
@@ -682,9 +650,7 @@ class CameraServer(MCPServer):
 
             # Find contours
             contours, _ = cv2.findContours(
-                thresh,
-                cv2.RETR_EXTERNAL,
-                cv2.CHAIN_APPROX_SIMPLE
+                thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
             )
 
             # Filter significant motion
@@ -695,13 +661,15 @@ class CameraServer(MCPServer):
                 area = cv2.contourArea(contour)
                 if area > min_area:
                     x, y, w, h = cv2.boundingRect(contour)
-                    motion_areas.append({
-                        "x": int(x),
-                        "y": int(y),
-                        "width": int(w),
-                        "height": int(h),
-                        "area": int(area)
-                    })
+                    motion_areas.append(
+                        {
+                            "x": int(x),
+                            "y": int(y),
+                            "width": int(w),
+                            "height": int(h),
+                            "area": int(area),
+                        }
+                    )
 
             # Optionally return image with motion highlighted
             if request.params.get("mark_motion", False):
@@ -709,9 +677,9 @@ class CameraServer(MCPServer):
                     x, y, w, h = area["x"], area["y"], area["width"], area["height"]
                     cv2.rectangle(frame2, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-                ret, buffer = cv2.imencode('.jpg', frame2)
+                ret, buffer = cv2.imencode(".jpg", frame2)
                 if ret:
-                    image_base64 = base64.b64encode(buffer).decode('utf-8')
+                    image_base64 = base64.b64encode(buffer).decode("utf-8")
                 else:
                     image_base64 = None
             else:
@@ -724,14 +692,12 @@ class CameraServer(MCPServer):
                     "motion_detected": len(motion_areas) > 0,
                     "motion_areas": motion_areas,
                     "count": len(motion_areas),
-                    "marked_image": image_base64
-                }
+                    "marked_image": image_base64,
+                },
             )
         except Exception as e:
             return self.create_error_response(
-                request.id,
-                MCPErrorCode.HARDWARE_ERROR,
-                f"Failed to detect motion: {e}"
+                request.id, MCPErrorCode.HARDWARE_ERROR, f"Failed to detect motion: {e}"
             )
 
     def __del__(self):

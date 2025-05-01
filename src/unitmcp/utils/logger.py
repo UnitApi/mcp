@@ -6,14 +6,29 @@ logger.py
 
 import logging
 import sys
+import json
 from typing import Optional
-from pythonjsonlogger import jsonlogger
+from datetime import datetime
+
+
+class JsonFormatter(logging.Formatter):
+    """
+    A simple JSON formatter for logging.
+    """
+    def format(self, record):
+        log_record = {
+            "timestamp": datetime.now().isoformat(),
+            "name": record.name,
+            "levelname": record.levelname,
+            "message": record.getMessage()
+        }
+        if hasattr(record, "exc_info") and record.exc_info:
+            log_record["exc_info"] = self.formatException(record.exc_info)
+        return json.dumps(log_record)
 
 
 def get_logger(
-        name: str,
-        level: int = logging.INFO,
-        json_format: bool = False
+    name: str, level: int = logging.INFO, json_format: bool = False
 ) -> logging.Logger:
     """Get a configured logger instance."""
     logger = logging.getLogger(name)
@@ -28,13 +43,10 @@ def get_logger(
 
         # Set formatter
         if json_format:
-            formatter = jsonlogger.JsonFormatter(
-                '%(timestamp)s %(name)s %(levelname)s %(message)s',
-                timestamp=True
-            )
+            formatter = JsonFormatter()
         else:
             formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
 
         handler.setFormatter(formatter)
@@ -44,9 +56,7 @@ def get_logger(
 
 
 def setup_logging(
-        level: int = logging.INFO,
-        json_format: bool = False,
-        log_file: Optional[str] = None
+    level: int = logging.INFO, json_format: bool = False, log_file: Optional[str] = None
 ):
     """Setup logging configuration for the entire application."""
     root_logger = logging.getLogger()
@@ -68,13 +78,10 @@ def setup_logging(
 
     # Set formatter
     if json_format:
-        formatter = jsonlogger.JsonFormatter(
-            '%(timestamp)s %(name)s %(levelname)s %(message)s',
-            timestamp=True
-        )
+        formatter = JsonFormatter()
     else:
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
 
     console_handler.setFormatter(formatter)

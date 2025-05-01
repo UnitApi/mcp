@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 @dataclass
 class PermissionRule:
     """Permission rule definition."""
+
     client_pattern: str
     resource: str
     allowed: bool = True
@@ -19,7 +20,7 @@ class PermissionRule:
     def matches_client(self, client_id: str) -> bool:
         """Check if client ID matches pattern."""
         # Convert wildcard pattern to regex
-        pattern = self.client_pattern.replace('*', '.*')
+        pattern = self.client_pattern.replace("*", ".*")
         return bool(re.match(f"^{pattern}$", client_id))
 
 
@@ -94,7 +95,7 @@ class PermissionManager:
                 {
                     "client_pattern": rule.client_pattern,
                     "resource": rule.resource,
-                    "allowed": rule.allowed
+                    "allowed": rule.allowed,
                 }
                 for rule in self.rules
             ]

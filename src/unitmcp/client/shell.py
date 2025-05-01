@@ -99,9 +99,7 @@ class MCPShell(cmd.Cmd):
         mode = parts[1] if len(parts) > 1 else "OUT"
 
         try:
-            result = self.loop.run_until_complete(
-                self.client.setup_pin(pin, mode)
-            )
+            result = self.loop.run_until_complete(self.client.setup_pin(pin, mode))
             self.last_result = result
             print(f"Pin {pin} configured as {mode}")
         except Exception as e:
@@ -115,12 +113,10 @@ class MCPShell(cmd.Cmd):
             return
 
         pin = int(parts[0])
-        value = parts[1].lower() in ['1', 'true', 'high']
+        value = parts[1].lower() in ["1", "true", "high"]
 
         try:
-            result = self.loop.run_until_complete(
-                self.client.write_pin(pin, value)
-            )
+            result = self.loop.run_until_complete(self.client.write_pin(pin, value))
             self.last_result = result
             print(f"Pin {pin} set to {value}")
         except Exception as e:
@@ -136,9 +132,7 @@ class MCPShell(cmd.Cmd):
         pin = int(parts[0])
 
         try:
-            result = self.loop.run_until_complete(
-                self.client.read_pin(pin)
-            )
+            result = self.loop.run_until_complete(self.client.read_pin(pin))
             self.last_result = result
             print(f"Pin {pin} value: {result.get('value')}")
         except Exception as e:
@@ -155,9 +149,7 @@ class MCPShell(cmd.Cmd):
         pin = int(parts[1])
 
         try:
-            result = self.loop.run_until_complete(
-                self.client.setup_led(device_id, pin)
-            )
+            result = self.loop.run_until_complete(self.client.setup_led(device_id, pin))
             self.last_result = result
             print(f"LED {device_id} setup on pin {pin}")
         except Exception as e:
@@ -196,9 +188,7 @@ class MCPShell(cmd.Cmd):
             return
 
         try:
-            result = self.loop.run_until_complete(
-                self.client.type_text(arg)
-            )
+            result = self.loop.run_until_complete(self.client.type_text(arg))
             self.last_result = result
             print(f"Typed: {arg}")
         except Exception as e:
@@ -213,7 +203,7 @@ class MCPShell(cmd.Cmd):
 
         x = int(parts[0])
         y = int(parts[1])
-        relative = len(parts) > 2 and parts[2].lower() == 'relative'
+        relative = len(parts) > 2 and parts[2].lower() == "relative"
 
         try:
             result = self.loop.run_until_complete(
@@ -232,9 +222,7 @@ class MCPShell(cmd.Cmd):
         y = int(parts[2]) if len(parts) > 2 else None
 
         try:
-            result = self.loop.run_until_complete(
-                self.client.click(button, x=x, y=y)
-            )
+            result = self.loop.run_until_complete(self.client.click(button, x=x, y=y))
             self.last_result = result
             print(f"Clicked {button}")
         except Exception as e:
@@ -248,9 +236,7 @@ class MCPShell(cmd.Cmd):
             region = tuple(map(int, parts[:4]))
 
         try:
-            result = self.loop.run_until_complete(
-                self.client.screenshot(region=region)
-            )
+            result = self.loop.run_until_complete(self.client.screenshot(region=region))
             self.last_result = result
             print(f"Screenshot taken")
         except Exception as e:
@@ -281,10 +267,7 @@ class MCPShell(cmd.Cmd):
             print(f"Pipeline '{name}' not found")
             return
 
-        self.pipelines[name].append({
-            "command": command,
-            "args": args
-        })
+        self.pipelines[name].append({"command": command, "args": args})
         print(f"Added step to pipeline '{name}'")
 
     def do_pipeline_list(self, arg):
@@ -339,7 +322,7 @@ class MCPShell(cmd.Cmd):
             return
 
         try:
-            with open(filename, 'w') as f:
+            with open(filename, "w") as f:
                 json.dump(self.pipelines[name], f, indent=2)
             print(f"Pipeline '{name}' saved to {filename}")
         except Exception as e:
@@ -356,7 +339,7 @@ class MCPShell(cmd.Cmd):
         filename = parts[1]
 
         try:
-            with open(filename, 'r') as f:
+            with open(filename, "r") as f:
                 self.pipelines[name] = json.load(f)
             print(f"Pipeline '{name}' loaded from {filename}")
         except Exception as e:
@@ -371,7 +354,7 @@ class MCPShell(cmd.Cmd):
             return
 
         name = parts[0]
-        value = ' '.join(parts[1:])
+        value = " ".join(parts[1:])
 
         # Try to parse as JSON
         try:

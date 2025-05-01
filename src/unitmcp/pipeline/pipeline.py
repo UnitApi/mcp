@@ -18,6 +18,7 @@ from ..utils.logger import get_logger
 
 class ExpectationType(Enum):
     """Types of expectations for pipeline steps."""
+
     VALUE_EQUALS = "equals"
     VALUE_CONTAINS = "contains"
     VALUE_GREATER = "greater"
@@ -30,6 +31,7 @@ class ExpectationType(Enum):
 @dataclass
 class Expectation:
     """Expectation for a pipeline step result."""
+
     type: ExpectationType
     field: str
     value: Any
@@ -43,7 +45,7 @@ class Expectation:
 
         # Get the field value from result
         field_value = result
-        for part in self.field.split('.'):
+        for part in self.field.split("."):
             if isinstance(field_value, dict) and part in field_value:
                 field_value = field_value[part]
             else:
@@ -63,6 +65,7 @@ class Expectation:
             return float(min_val) <= float(field_value) <= float(max_val)
         elif self.type == ExpectationType.VALUE_REGEX:
             import re
+
             return bool(re.match(self.value, str(field_value)))
 
         return False
@@ -71,6 +74,7 @@ class Expectation:
 @dataclass
 class PipelineStep:
     """Single step in a pipeline."""
+
     command: str
     method: str
     params: Dict[str, Any] = field(default_factory=dict)
@@ -86,6 +90,7 @@ class PipelineStep:
 @dataclass
 class PipelineResult:
     """Result of a pipeline execution."""
+
     success: bool
     steps_executed: int
     results: List[Dict[str, Any]]
@@ -98,10 +103,7 @@ class Pipeline:
     """Pipeline for executing sequences of hardware commands."""
 
     def __init__(
-            self,
-            name: str,
-            steps: List[PipelineStep],
-            description: Optional[str] = None
+        self, name: str, steps: List[PipelineStep], description: Optional[str] = None
     ):
         self.name = name
         self.steps = steps
@@ -122,7 +124,8 @@ class Pipeline:
         if isinstance(value, str):
             # Replace ${var} with variable values
             import re
-            pattern = r'\$\{([^}]+)\}'
+
+            pattern = r"\$\{([^}]+)\}"
 
             def replace(match):
                 var_name = match.group(1)
@@ -136,10 +139,7 @@ class Pipeline:
         return value
 
     async def execute_step(
-            self,
-            client: MCPHardwareClient,
-            step: PipelineStep,
-            context: Dict[str, Any]
+        self, client: MCPHardwareClient, step: PipelineStep, context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Execute a single pipeline step."""
         # Substitute variables in parameters
@@ -151,8 +151,7 @@ class Pipeline:
             try:
                 # Execute the command
                 result = await asyncio.wait_for(
-                    client.send_request(step.method, params),
-                    timeout=step.timeout
+                    client.send_request(step.method, params), timeout=step.timeout
                 )
 
                 # Check expectations
@@ -160,7 +159,10 @@ class Pipeline:
                 for expectation in step.expectations:
                     if not expectation.check(result):
                         expectations_met = False
-                        error_msg = expectation.message or f"Expectation failed: {expectation.field}"
+                        error_msg = (
+                            expectation.message
+                            or f"Expectation failed: {expectation.field}"
+                        )
                         self.logger.warning(error_msg)
                         last_error = error_msg
 
@@ -180,9 +182,7 @@ class Pipeline:
         return {"success": False, "error": last_error}
 
     async def execute(
-            self,
-            client: MCPHardwareClient,
-            context: Optional[Dict[str, Any]] = None
+        self, client: MCPHardwareClient, context: Optional[Dict[str, Any]] = None
     ) -> PipelineResult:
         """Execute the pipeline."""
         start_time = time.time()
@@ -214,7 +214,9 @@ class Pipeline:
                     if next_step is not None:
                         current_step_idx = next_step
                     else:
-                        self.logger.warning(f"On_success step not found: {step.on_success}")
+                        self.logger.warning(
+                            f"On_success step not found: {step.on_success}"
+                        )
                         current_step_idx += 1
                 else:
                     current_step_idx += 1
@@ -229,7 +231,9 @@ class Pipeline:
                     if next_step is not None:
                         current_step_idx = next_step
                     else:
-                        self.logger.warning(f"On_failure step not found: {step.on_failure}")
+                        self.logger.warning(
+                            f"On_failure step not found: {step.on_failure}"
+                        )
                         break
                 else:
                     break
@@ -245,7 +249,7 @@ class Pipeline:
             results=results,
             errors=errors,
             duration=duration,
-            metadata={"variables": self.variables, "context": context}
+            metadata={"variables": self.variables, "context": context},
         )
 
     def _find_step(self, identifier: str) -> Optional[int]:
@@ -280,7 +284,7 @@ class Pipeline:
                             "type": exp.type.value,
                             "field": exp.field,
                             "value": exp.value,
-                            "message": exp.message
+                            "message": exp.message,
                         }
                         for exp in step.expectations
                     ],
@@ -289,11 +293,11 @@ class Pipeline:
                     "retry_count": step.retry_count,
                     "retry_delay": step.retry_delay,
                     "timeout": step.timeout,
-                    "description": step.description
+                    "description": step.description,
                 }
                 for step in self.steps
             ],
-            "variables": self.variables
+            "variables": self.variables,
         }
 
     @classmethod
@@ -303,43 +307,45 @@ class Pipeline:
         for step_data in data.get("steps", []):
             expectations = []
             for exp_data in step_data.get("expectations", []):
-                expectations.append(Expectation(
-                    type=ExpectationType(exp_data["type"]),
-                    field=exp_data["field"],
-                    value=exp_data["value"],
-                    message=exp_data.get("message")
-                ))
+                expectations.append(
+                    Expectation(
+                        type=ExpectationType(exp_data["type"]),
+                        field=exp_data["field"],
+                        value=exp_data["value"],
+                        message=exp_data.get("message"),
+                    )
+                )
 
-            steps.append(PipelineStep(
-                command=step_data["command"],
-                method=step_data["method"],
-                params=step_data.get("params", {}),
-                expectations=expectations,
-                on_success=step_data.get("on_success"),
-                on_failure=step_data.get("on_failure"),
-                retry_count=step_data.get("retry_count", 0),
-                retry_delay=step_data.get("retry_delay", 1.0),
-                timeout=step_data.get("timeout", 30.0),
-                description=step_data.get("description")
-            ))
+            steps.append(
+                PipelineStep(
+                    command=step_data["command"],
+                    method=step_data["method"],
+                    params=step_data.get("params", {}),
+                    expectations=expectations,
+                    on_success=step_data.get("on_success"),
+                    on_failure=step_data.get("on_failure"),
+                    retry_count=step_data.get("retry_count", 0),
+                    retry_delay=step_data.get("retry_delay", 1.0),
+                    timeout=step_data.get("timeout", 30.0),
+                    description=step_data.get("description"),
+                )
+            )
 
         pipeline = cls(
-            name=data["name"],
-            steps=steps,
-            description=data.get("description")
+            name=data["name"], steps=steps, description=data.get("description")
         )
         pipeline.variables = data.get("variables", {})
         return pipeline
 
     def save(self, filepath: Union[str, Path]):
         """Save pipeline to file."""
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(self.to_dict(), f, indent=2)
 
     @classmethod
     def load(cls, filepath: Union[str, Path]) -> "Pipeline":
         """Load pipeline from file."""
-        with open(filepath, 'r') as f:
+        with open(filepath, "r") as f:
             data = json.load(f)
         return cls.from_dict(data)
 
@@ -373,10 +379,10 @@ class PipelineManager:
         return list(self.pipelines.keys())
 
     async def execute_pipeline(
-            self,
-            name: str,
-            client: MCPHardwareClient,
-            context: Optional[Dict[str, Any]] = None
+        self,
+        name: str,
+        client: MCPHardwareClient,
+        context: Optional[Dict[str, Any]] = None,
     ) -> PipelineResult:
         """Execute a pipeline by name."""
         pipeline = self.get_pipeline(name)
@@ -415,7 +421,7 @@ class PipelineManager:
             "led_blink": self._create_led_blink_template,
             "keyboard_test": self._create_keyboard_test_template,
             "camera_monitor": self._create_camera_monitor_template,
-            "system_check": self._create_system_check_template
+            "system_check": self._create_system_check_template,
         }
 
         if template_name not in templates:
@@ -424,11 +430,11 @@ class PipelineManager:
         return templates[template_name](**kwargs)
 
     def _create_led_blink_template(
-            self,
-            led_pin: int = 17,
-            blink_count: int = 5,
-            on_time: float = 0.5,
-            off_time: float = 0.5
+        self,
+        led_pin: int = 17,
+        blink_count: int = 5,
+        on_time: float = 0.5,
+        off_time: float = 0.5,
     ) -> Pipeline:
         """Create a LED blink pipeline template."""
         steps = [
@@ -441,10 +447,10 @@ class PipelineManager:
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
                         value="success",
-                        message="LED setup failed"
+                        message="LED setup failed",
                     )
                 ],
-                description="Setup LED on specified pin"
+                description="Setup LED on specified pin",
             ),
             PipelineStep(
                 command="blink_led",
@@ -453,22 +459,22 @@ class PipelineManager:
                     "device_id": "led1",
                     "action": "blink",
                     "on_time": on_time,
-                    "off_time": off_time
+                    "off_time": off_time,
                 },
                 expectations=[
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description=f"Blink LED {blink_count} times"
+                description=f"Blink LED {blink_count} times",
             ),
             PipelineStep(
                 command="wait",
                 method="system.sleep",
                 params={"duration": (on_time + off_time) * blink_count},
-                description="Wait for blinking to complete"
+                description="Wait for blinking to complete",
             ),
             PipelineStep(
                 command="turn_off",
@@ -478,22 +484,21 @@ class PipelineManager:
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description="Turn off LED"
-            )
+                description="Turn off LED",
+            ),
         ]
 
         return Pipeline(
             name="led_blink",
             steps=steps,
-            description=f"Blink LED on pin {led_pin} for {blink_count} times"
+            description=f"Blink LED on pin {led_pin} for {blink_count} times",
         )
 
     def _create_keyboard_test_template(
-            self,
-            test_text: str = "Hello, World!"
+        self, test_text: str = "Hello, World!"
     ) -> Pipeline:
         """Create a keyboard test pipeline template."""
         steps = [
@@ -505,47 +510,45 @@ class PipelineManager:
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description="Type test text"
+                description="Type test text",
             ),
             PipelineStep(
                 command="select_all",
                 method="input.hotkey",
                 params={"keys": ["ctrl", "a"]},
-                description="Select all text"
+                description="Select all text",
             ),
             PipelineStep(
                 command="copy_text",
                 method="input.hotkey",
                 params={"keys": ["ctrl", "c"]},
-                description="Copy selected text"
+                description="Copy selected text",
             ),
             PipelineStep(
                 command="new_line",
                 method="input.pressKey",
                 params={"key": "enter"},
-                description="Press Enter key"
+                description="Press Enter key",
             ),
             PipelineStep(
                 command="paste_text",
                 method="input.hotkey",
                 params={"keys": ["ctrl", "v"]},
-                description="Paste copied text"
-            )
+                description="Paste copied text",
+            ),
         ]
 
         return Pipeline(
             name="keyboard_test",
             steps=steps,
-            description="Test keyboard input functionality"
+            description="Test keyboard input functionality",
         )
 
     def _create_camera_monitor_template(
-            self,
-            duration: int = 60,
-            threshold: int = 25
+        self, duration: int = 60, threshold: int = 25
     ) -> Pipeline:
         """Create a camera monitoring pipeline template."""
         steps = [
@@ -557,10 +560,10 @@ class PipelineManager:
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description="Open camera for monitoring"
+                description="Open camera for monitoring",
             ),
             PipelineStep(
                 command="check_motion",
@@ -568,32 +571,32 @@ class PipelineManager:
                 params={
                     "device_name": "monitor_cam",
                     "threshold": threshold,
-                    "mark_motion": True
+                    "mark_motion": True,
                 },
                 expectations=[
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
                 retry_count=duration,  # Check every second for duration
                 retry_delay=1.0,
                 on_success="check_motion",  # Loop back to itself
-                description="Monitor for motion"
+                description="Monitor for motion",
             ),
             PipelineStep(
                 command="close_camera",
                 method="camera.closeCamera",
                 params={"device_name": "monitor_cam"},
-                description="Close camera"
-            )
+                description="Close camera",
+            ),
         ]
 
         return Pipeline(
             name="camera_monitor",
             steps=steps,
-            description=f"Monitor camera for motion for {duration} seconds"
+            description=f"Monitor camera for motion for {duration} seconds",
         )
 
     def _create_system_check_template(self) -> Pipeline:
@@ -607,10 +610,10 @@ class PipelineManager:
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description="List GPIO devices"
+                description="List GPIO devices",
             ),
             PipelineStep(
                 command="list_audio_devices",
@@ -620,10 +623,10 @@ class PipelineManager:
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description="List audio devices"
+                description="List audio devices",
             ),
             PipelineStep(
                 command="list_cameras",
@@ -633,10 +636,10 @@ class PipelineManager:
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description="List camera devices"
+                description="List camera devices",
             ),
             PipelineStep(
                 command="get_mouse_position",
@@ -646,17 +649,17 @@ class PipelineManager:
                     Expectation(
                         type=ExpectationType.VALUE_EQUALS,
                         field="status",
-                        value="success"
+                        value="success",
                     )
                 ],
-                description="Get current mouse position"
-            )
+                description="Get current mouse position",
+            ),
         ]
 
         return Pipeline(
             name="system_check",
             steps=steps,
-            description="Check system hardware availability"
+            description="Check system hardware availability",
         )
 
     def validate_pipeline(self, pipeline: Pipeline) -> List[str]:
@@ -677,8 +680,12 @@ class PipelineManager:
 
             # Check on_success/on_failure references
             if step.on_success and not pipeline._find_step(step.on_success):
-                errors.append(f"Step {i + 1}: Invalid on_success reference: {step.on_success}")
+                errors.append(
+                    f"Step {i + 1}: Invalid on_success reference: {step.on_success}"
+                )
             if step.on_failure and not pipeline._find_step(step.on_failure):
-                errors.append(f"Step {i + 1}: Invalid on_failure reference: {step.on_failure}")
+                errors.append(
+                    f"Step {i + 1}: Invalid on_failure reference: {step.on_failure}"
+                )
 
         return errors

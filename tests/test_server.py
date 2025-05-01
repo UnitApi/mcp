@@ -25,10 +25,7 @@ class TestMCPServer:
 
         class MockServer(MCPServer):
             async def handle_request(self, request):
-                return MCPResponse(
-                    id=request.id,
-                    result={"echo": request.params}
-                )
+                return MCPResponse(id=request.id, result={"echo": request.params})
 
         return MockServer()
 
@@ -47,9 +44,7 @@ class TestMCPServer:
     async def test_handle_request(self, mock_server):
         """Test request handling."""
         request = MCPRequest(
-            id="test123",
-            method="test.echo",
-            params={"message": "hello"}
+            id="test123", method="test.echo", params={"message": "hello"}
         )
 
         response = await mock_server.handle_request(request)
@@ -79,8 +74,7 @@ class TestMCPHardwareServer:
         # Register a mock server
         mock_server = Mock(spec=MCPServer)
         mock_server.handle_request.return_value = MCPResponse(
-            id="test123",
-            result={"status": "success"}
+            id="test123", result={"status": "success"}
         )
         hardware_server.register_server("test", mock_server)
 
@@ -89,11 +83,13 @@ class TestMCPHardwareServer:
 
         # Mock reader and writer
         reader = Mock()
-        reader.read.return_value = json.dumps({
-            "id": "test123",
-            "method": "test.action",
-            "params": {"client_id": "client1"}
-        }).encode()
+        reader.read.return_value = json.dumps(
+            {
+                "id": "test123",
+                "method": "test.action",
+                "params": {"client_id": "client1"},
+            }
+        ).encode()
 
         writer = Mock()
         writer.get_extra_info.return_value = "127.0.0.1:12345"
@@ -118,12 +114,10 @@ class TestGPIOServer:
     async def test_setup_pin(self, gpio_server):
         """Test GPIO pin setup."""
         request = MCPRequest(
-            id="test123",
-            method="gpio.setupPin",
-            params={"pin": 17, "mode": "OUT"}
+            id="test123", method="gpio.setupPin", params={"pin": 17, "mode": "OUT"}
         )
 
-        with patch('unitmcp.server.gpio.GPIO') as mock_gpio:
+        with patch("unitmcp.server.gpio.GPIO") as mock_gpio:
             response = await gpio_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -134,12 +128,10 @@ class TestGPIOServer:
     async def test_write_pin(self, gpio_server):
         """Test GPIO pin write."""
         request = MCPRequest(
-            id="test123",
-            method="gpio.writePin",
-            params={"pin": 17, "value": True}
+            id="test123", method="gpio.writePin", params={"pin": 17, "value": True}
         )
 
-        with patch('unitmcp.server.gpio.GPIO') as mock_gpio:
+        with patch("unitmcp.server.gpio.GPIO") as mock_gpio:
             response = await gpio_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -151,10 +143,10 @@ class TestGPIOServer:
         request = MCPRequest(
             id="test123",
             method="gpio.setupLED",
-            params={"device_id": "led1", "pin": 17}
+            params={"device_id": "led1", "pin": 17},
         )
 
-        with patch('unitmcp.server.gpio.LED') as mock_led:
+        with patch("unitmcp.server.gpio.LED") as mock_led:
             response = await gpio_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -174,12 +166,10 @@ class TestInputServer:
     async def test_type_text(self, input_server):
         """Test typing text."""
         request = MCPRequest(
-            id="test123",
-            method="input.typeText",
-            params={"text": "Hello World"}
+            id="test123", method="input.typeText", params={"text": "Hello World"}
         )
 
-        with patch('unitmcp.server.input.pyautogui') as mock_pyautogui:
+        with patch("unitmcp.server.input.pyautogui") as mock_pyautogui:
             response = await input_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -192,10 +182,10 @@ class TestInputServer:
         request = MCPRequest(
             id="test123",
             method="input.moveMouse",
-            params={"x": 100, "y": 200, "duration": 0.1}
+            params={"x": 100, "y": 200, "duration": 0.1},
         )
 
-        with patch('unitmcp.server.input.pyautogui') as mock_pyautogui:
+        with patch("unitmcp.server.input.pyautogui") as mock_pyautogui:
             response = await input_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -209,10 +199,10 @@ class TestInputServer:
         request = MCPRequest(
             id="test123",
             method="input.click",
-            params={"button": "left", "x": 100, "y": 200}
+            params={"button": "left", "x": 100, "y": 200},
         )
 
-        with patch('unitmcp.server.input.pyautogui') as mock_pyautogui:
+        with patch("unitmcp.server.input.pyautogui") as mock_pyautogui:
             response = await input_server.handle_request(request)
 
             assert response.result["status"] == "success"
