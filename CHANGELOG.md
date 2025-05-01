@@ -2,6 +2,72 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.24] - 2025-05-01
+
+### Added
+- Changes in audio/README.md
+- Changes in audio/pyaudio.sh
+- Changes in audio/pyaudio2.sh
+- Changes in audio/pyaudio3.sh
+- Changes in hardware/README.md
+- Changes in hardware/configure_hardware.ps1
+- Changes in hardware/configure_hardware.sh
+- Changes in install/install.sh
+- Changes in install/install_models.sh
+- Changes in install/install_windows.ps1
+- Changes in misc/README.md
+- Changes in misc/README_ssh_tools.md
+- Changes in nlp/README.md
+- Changes in nlp/spacy.sh
+- Changes in python/README.md
+- Changes in python/pip.sh
+- Changes in python/python.sh
+- Changes in python/requirements.sh
+- Changes in rpi/optimize_rpi.sh
+- Changes in scripts/audio/README.md
+- Changes in scripts/audio/pyaudio.sh
+- Changes in scripts/audio/pyaudio2.sh
+- Changes in scripts/audio/pyaudio3.sh
+- Changes in scripts/duplicated/README.md
+- Changes in scripts/duplicated/duplicated.sh
+- Changes in scripts/hardware/README.md
+- Changes in scripts/hardware/configure_hardware.ps1
+- Changes in scripts/hardware/configure_hardware.sh
+- Changes in scripts/install/README.md
+- Changes in scripts/install/install.sh
+- Changes in scripts/install/install_models.sh
+- Changes in scripts/install/install_windows.ps1
+- Changes in scripts/misc/README.md
+- Changes in scripts/misc/README_ssh_tools.md
+- Changes in scripts/nlp/README.md
+- Changes in scripts/nlp/spacy.sh
+- Changes in scripts/python/README.md
+- Changes in scripts/python/pip.sh
+- Changes in scripts/python/python.sh
+- Changes in scripts/python/requirements.sh
+- Changes in scripts/rpi/README.md
+- Changes in scripts/rpi/optimize_rpi.sh
+- Changes in scripts/service/README.md
+- Changes in scripts/service/setup_service.sh
+- Changes in scripts/ssh/README.md
+- Changes in scripts/ssh/ssh.sh
+- Changes in scripts/ssh/ssh_connect.py
+- Changes in scripts/ssh/ssh_connect_wrapper.sh
+- Changes in scripts/test/README.md
+- Changes in scripts/test/debug_imports.py
+- Changes in scripts/test/test_imports.py
+- Changes in scripts/upgrade/README.md
+- Changes in scripts/upgrade/upgrade.sh
+- Changes in service/README.md
+- Changes in service/setup_service.sh
+- Changes in ssh/README.md
+- Changes in test/README.md
+- Changes in test/debug_imports.py
+- Changes in test/test_imports.py
+- Changes in update/duplicated.sh
+- Changes in update/package.sh
+- Changes in update/upgrade.sh
+
 ## [0.1.23] - 2025-05-01
 
 ### Added

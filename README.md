@@ -80,6 +80,18 @@ await pipeline.execute(client)
 
 ```
 mcp-hardware/
+├── audio/                 # Audio-related scripts
+├── build/                 # Build-related files
+├── hardware/              # Hardware configuration scripts
+├── install/               # Installation scripts and utilities
+├── misc/                  # Miscellaneous utilities
+├── nlp/                   # Natural Language Processing scripts
+├── python/                # Python-related utilities
+├── rpi/                   # Raspberry Pi specific scripts
+├── service/               # Service setup scripts
+├── ssh/                   # SSH connection utilities
+├── test/                  # Testing utilities
+├── update/                # Update and upgrade scripts
 ├── src/unitmcp/           # Main package
 │   ├── client/                 # Client implementations
 │   ├── server/                 # Hardware servers
