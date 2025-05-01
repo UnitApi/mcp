@@ -1,0 +1,89 @@
+Przeprowadzenie całościowego audytu projektu unitmcp, obejmującego:
+1. Weryfikację struktury projektu
+2. Sprawdzenie kompletności plików
+3. Uruchomienie testów jednostkowych
+4. Weryfikację przykładów w folderze `examples`
+5. Przegląd dokumentacji
+6. Weryfikację zależności
+7. Próbę instalacji pakietu
+
+## Szczegółowy Plan Weryfikacji
+
+### 1. Struktura Projektu
+- [ ] Sprawdź kompletność katalogów
+- [ ] Potwierdź obecność wszystkich wymaganych plików
+- [ ] Zweryfikuj nazewnictwo i rozmieszczenie plików
+
+### 2. Weryfikacja Plików Konfiguracyjnych
+- [ ] `pyproject.toml`: Poprawność konfiguracji budowania
+- [ ] `setup.py`: Kompletność metadanych
+- [ ] `requirements.txt`: Aktualne zależności
+- [ ] `requirements-dev.txt`: Narzędzia deweloperskie
+
+### 3. Testy Jednostkowe
+- [ ] Zainstaluj zależności testowe
+- [ ] Uruchom pytest dla wszystkich testów
+- [ ] Raportuj pokrycie kodu
+- [ ] Zidentyfikuj potencjalne błędy lub braki
+
+### 4. Przykłady (`examples/`)
+- [ ] Sprawdź kompilację każdego przykładu
+- [ ] Uruchom przykłady
+- [ ] Zweryfikuj obsługę błędów
+- [ ] Potwierdź zgodność z dokumentacją
+
+### 5. Dokumentacja
+- [ ] Przejrzyj `docs/installation.md`
+- [ ] Sprawdź `docs/usage.md`
+- [ ] Potwierdź aktualność i czytelność
+- [ ] Zweryfikuj przykłady kodu
+
+### 6. Zależności
+- [ ] Sprawdź kompatybilność wersji bibliotek
+- [ ] Zweryfikuj minimalne wymagania systemowe
+- [ ] Potwierdź instalację opcjonalnych modułów
+
+### 7. Instalacja Pakietu
+- [ ] Stwórz czyste środowisko wirtualne
+- [ ] Zainstaluj pakiet w trybie edytowalnym
+- [ ] Sprawdź import modułów
+
+## Raportowanie
+
+Dla każdego znalezionego problemu:
+- Określ kategorię (Krytyczny/Wysoki/Średni/Niski)
+- Podaj szczegółowy opis
+- Zaproponuj rozwiązanie
+- Wskaż plik/lokalizację
+
+## Dodatkowe Wskazówki
+- Używaj `pytest` do testów
+- Sprawdzaj typ Python 3.8+
+- Zwracaj uwagę na async/await
+- Weryfikuj obsługę błędów
+- Sprawdzaj type hinting
+
+
+## Raport Końcowy
+Dostarcz podsumowanie:
+- Liczba znalezionych problemów
+- Ogólna ocena jakości projektu
+- Kluczowe rekomendacje
+
+
+- Implementacja bardziej zaawansowanego skanowania i wspoldzielenia zasobow
+
+
+
+
+przebuduj strukture w examples/dsl/
+kazdy format jako folder examples/dsl/* a w nim plik README.md z opisem i example.* test.py
+np.
+examples/dsl/ua
+examples/dsl/ua/example.ua
+examples/dsl/ua/test.py
+
+
+jak kolorwac skladnie dla formatu .ua? do jakiego fomatu jest najbardziej podobny?
+
+stworz i opisz sposob uruchomienia, przyklady dsl w formacie .ua na PC1 i PC2 aby np wyslac text do klawiatury z pc1 do pc1?

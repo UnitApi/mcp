@@ -77,7 +77,7 @@ await pipeline.execute(client)
 
 ```
 mcp-hardware/
-├── src/mcp_hardware/           # Main package
+├── src/unitmcp/           # Main package
 │   ├── client/                 # Client implementations
 │   ├── server/                 # Hardware servers
 │   ├── pipeline/               # Pipeline system
@@ -112,11 +112,13 @@ python examples/start_server.py
 python examples/led_control.py
 
 # Interactive shell
-python -m mcp_hardware.client.shell
+python -m unitmcp.client.shell
 
 # Pipeline automation
 python examples/pipeline_demo.py
 ```
+
+AI Agent <-> MCP Client <-> MCP Servers <-> Hardware Drivers
 
 ## 📚 Example Applications
 
@@ -167,7 +169,7 @@ python examples/pipeline_demo.py
 
 ### Python Applications
 ```python
-from mcp_hardware import MCPHardwareClient
+from unitmcp import MCPHardwareClient
 
 async with MCPHardwareClient() as client:
     await client.control_led("led1", "on")
@@ -176,13 +178,13 @@ async with MCPHardwareClient() as client:
 ### Shell Scripts
 ```bash
 #!/bin/bash
-echo "led_setup led1 17" | python -m mcp_hardware.client.shell
-echo "led led1 on" | python -m mcp_hardware.client.shell
+echo "led_setup led1 17" | python -m unitmcp.client.shell
+echo "led led1 on" | python -m unitmcp.client.shell
 ```
 
 ### AI Agents
 ```python
-from mcp_hardware.examples.ollama_integration import OllamaHardwareAgent
+from unitmcp.examples.ollama_integration import OllamaHardwareAgent
 
 agent = OllamaHardwareAgent()
 await agent.process_command("Turn on the lights")

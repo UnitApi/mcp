@@ -1,0 +1,11 @@
+title: "unitmcp: Universal Hardware Interface as Network Devices"
+description: "unitmcp (Unit Hardware API) is a comprehensive Python framework for managing and interacting with network-connected hardware devices across different platforms and protocols. It provides a unified, flexible, and secure approach to device communication and control."
+mermaid:
+  src: "mermaid.js"
+plugins:
+  - "jekyll-github-metadata"  
+  - "jekyll-readme-index"
+readme_index:
+  enabled:          true
+  remove_originals: false
+  with_frontmatter: false

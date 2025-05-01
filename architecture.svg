@@ -1,0 +1,110 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8f9fa"/>
+
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="24" font-weight="bold" fill="#333">MCP Hardware Access Architecture</text>
+
+  <!-- AI Agent -->
+  <rect x="50" y="250" width="120" height="80" rx="10" fill="#4285f4" stroke="#1967d2" stroke-width="2"/>
+  <text x="110" y="295" text-anchor="middle" font-family="Arial" font-size="16" fill="white">AI Agent</text>
+
+  <!-- MCP Client -->
+  <rect x="220" y="250" width="120" height="80" rx="10" fill="#34a853" stroke="#188038" stroke-width="2"/>
+  <text x="280" y="295" text-anchor="middle" font-family="Arial" font-size="16" fill="white">MCP Client</text>
+
+  <!-- MCP Server -->
+  <rect x="390" y="200" width="140" height="180" rx="10" fill="#fbbc04" stroke="#ea8600" stroke-width="2"/>
+  <text x="460" y="230" text-anchor="middle" font-family="Arial" font-size="16" fill="black">MCP Server</text>
+
+  <!-- Permission Manager -->
+  <rect x="405" y="250" width="110" height="40" rx="5" fill="#fff" stroke="#ea8600" stroke-width="1"/>
+  <text x="460" y="275" text-anchor="middle" font-family="Arial" font-size="12" fill="black">Permission</text>
+  <text x="460" y="285" text-anchor="middle" font-family="Arial" font-size="12" fill="black">Manager</text>
+
+  <!-- Router -->
+  <rect x="405" y="310" width="110" height="40" rx="5" fill="#fff" stroke="#ea8600" stroke-width="1"/>
+  <text x="460" y="335" text-anchor="middle" font-family="Arial" font-size="12" fill="black">Request Router</text>
+
+  <!-- Hardware Servers -->
+  <g transform="translate(580, 100)">
+    <!-- Audio Server -->
+    <rect x="0" y="0" width="120" height="60" rx="10" fill="#ea4335" stroke="#c5221f" stroke-width="2"/>
+    <text x="60" y="25" text-anchor="middle" font-family="Arial" font-size="14" fill="white">Audio Server</text>
+    <text x="60" y="45" text-anchor="middle" font-family="Arial" font-size="10" fill="white">Mic/Speaker</text>
+
+    <!-- Input Server -->
+    <rect x="0" y="80" width="120" height="60" rx="10" fill="#ea4335" stroke="#c5221f" stroke-width="2"/>
+    <text x="60" y="105" text-anchor="middle" font-family="Arial" font-size="14" fill="white">Input Server</text>
+    <text x="60" y="125" text-anchor="middle" font-family="Arial" font-size="10" fill="white">Keyboard/Mouse</text>
+
+    <!-- USB/Video Server -->
+    <rect x="0" y="160" width="120" height="60" rx="10" fill="#ea4335" stroke="#c5221f" stroke-width="2"/>
+    <text x="60" y="185" text-anchor="middle" font-family="Arial" font-size="14" fill="white">USB/Video</text>
+    <text x="60" y="205" text-anchor="middle" font-family="Arial" font-size="10" fill="white">Camera/USB</text>
+  </g>
+
+  <!-- Hardware Drivers -->
+  <rect x="720" y="200" width="70" height="180" rx="10" fill="#5f6368" stroke="#3c4043" stroke-width="2"/>
+  <text x="755" y="230" text-anchor="middle" font-family="Arial" font-size="14" fill="white" transform="rotate(90, 755, 230)">Hardware Drivers</text>
+
+  <!-- Arrows -->
+  <!-- AI Agent to MCP Client -->
+  <path d="M170 290 L220 290" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- MCP Client to MCP Server -->
+  <path d="M340 290 L390 290" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- MCP Server to Hardware Servers -->
+  <path d="M530 230 L580 130" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M530 290 L580 170" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M530 350 L580 290" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Hardware Servers to Drivers -->
+  <path d="M700 130 L720 240" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M700 210 L720 290" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M700 290 L720 340" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+    </marker>
+  </defs>
+
+  <!-- Data Flow Labels -->
+  <text x="195" y="280" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">Requests</text>
+  <text x="365" y="280" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">JSON-RPC</text>
+  <text x="555" y="180" text-anchor="middle" font-family="Arial" font-size="10" fill="#666">Route</text>
+  <text x="710" y="290" text-anchor="middle" font-family="Arial" font-size="10" fill="#666" transform="rotate(90, 710, 290)">Hardware</text>
+
+  <!-- Security Box -->
+  <rect x="50" y="430" width="700" height="130" rx="10" fill="#fff" stroke="#5f6368" stroke-width="2" stroke-dasharray="5,5"/>
+  <text x="60" y="455" font-family="Arial" font-size="16" font-weight="bold" fill="#333">Security Features</text>
+
+  <!-- Security Items -->
+  <g transform="translate(70, 470)">
+    <rect x="0" y="0" width="150" height="30" rx="5" fill="#e8f0fe" stroke="#4285f4"/>
+    <text x="75" y="20" text-anchor="middle" font-family="Arial" font-size="12" fill="#1967d2">User Consent</text>
+
+    <rect x="170" y="0" width="150" height="30" rx="5" fill="#e6f4ea" stroke="#34a853"/>
+    <text x="245" y="20" text-anchor="middle" font-family="Arial" font-size="12" fill="#188038">Fine-grained Permissions</text>
+
+    <rect x="340" y="0" width="150" height="30" rx="5" fill="#fef7e0" stroke="#fbbc04"/>
+    <text x="415" y="20" text-anchor="middle" font-family="Arial" font-size="12" fill="#ea8600">Audit Logging</text>
+
+    <rect x="510" y="0" width="150" height="30" rx="5" fill="#fce8e6" stroke="#ea4335"/>
+    <text x="585" y="20" text-anchor="middle" font-family="Arial" font-size="12" fill="#c5221f">Input Validation</text>
+  </g>
+
+  <!-- Example Operations -->
+  <g transform="translate(70, 520)">
+    <text font-family="Arial" font-size="14" fill="#333">Example Operations:</text>
+    <text x="0" y="20" font-family="Arial" font-size="12" fill="#666">• audio.startRecording</text>
+    <text x="200" y="20" font-family="Arial" font-size="12" fill="#666">• input.sendKeys</text>
+    <text x="400" y="20" font-family="Arial" font-size="12" fill="#666">• video.captureFrame</text>
+  </g>
+
+  <!-- Copyright -->
+  <text x="400" y="590" text-anchor="middle" font-family="Arial" font-size="10" fill="#999">MCP Hardware Access System - Secure AI Hardware Integration</text>
+</svg>
