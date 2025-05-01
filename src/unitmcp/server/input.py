@@ -11,7 +11,25 @@ from typing import Dict, List
 from .base import MCPServer
 from ..protocols.mcp import MCPRequest, MCPResponse, MCPErrorCode
 
+# Check if tkinter is available
 try:
+    import tkinter
+    HAS_TKINTER = True
+except ImportError:
+    HAS_TKINTER = False
+
+# Try to import input libraries
+try:
+    # If tkinter is not available, we need to handle the mouseinfo import error
+    if not HAS_TKINTER:
+        import sys
+        import types
+        
+        # Create a mock mouseinfo module to prevent pyautogui from failing
+        mock_mouseinfo = types.ModuleType('mouseinfo')
+        mock_mouseinfo.MouseInfo = lambda: None
+        sys.modules['mouseinfo'] = mock_mouseinfo
+    
     import pyautogui
     from pynput import keyboard, mouse
     from pynput.keyboard import Key, Controller as KeyboardController
