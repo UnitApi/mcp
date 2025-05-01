@@ -73,9 +73,9 @@ class TestMCPHardwareServer:
         """Test client request handling."""
         # Register a mock server
         mock_server = Mock(spec=MCPServer)
-        mock_server.handle_request = AsyncMock(return_value=MCPResponse(
-            id="test123", result={"status": "success"}
-        ))
+        mock_server.handle_request = AsyncMock(
+            return_value=MCPResponse(id="test123", result={"status": "success"})
+        )
         hardware_server.register_server("test", mock_server)
 
         # Grant permission
