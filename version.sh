@@ -4,6 +4,7 @@
 echo "Starting publication process..."
 #flatedit
 
+
 python -m venv venv
 source venv/bin/activate
 

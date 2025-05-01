@@ -9,8 +9,8 @@ import asyncio
 import json
 from unittest.mock import Mock, patch, AsyncMock
 
-from mcp_hardware.client.client import MCPHardwareClient
-from mcp_hardware.protocols.mcp import MCPRequest, MCPResponse
+from unitmcp.client.client import MCPHardwareClient
+from unitmcp.protocols.mcp import MCPRequest, MCPResponse
 
 
 class TestMCPHardwareClient:

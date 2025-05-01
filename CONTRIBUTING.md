@@ -42,6 +42,11 @@ venv\Scripts\activate  # Windows
 pip install -e ".[dev]"
 ```
 
+4. Sprawdz potrzebne i niezbędne pakiety
+```bash
+pipreqs --force .
+```
+
 
 ## Standardy kodowania
 

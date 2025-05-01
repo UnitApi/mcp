@@ -1,13 +1,11 @@
-"""MCP Hardware Access Library."""
+"""MCP Protocol definitions."""
 
 __version__ = "0.1.0"
 
-from .client.client import MCPHardwareClient
-from .server.base import MCPServer
-from .security.permissions import PermissionManager
+from .mcp import MCPRequest, MCPResponse, MCPErrorCode
 
 __all__ = [
-    "MCPHardwareClient",
-    "MCPServer",
-    "PermissionManager",
+    "MCPRequest",
+    "MCPResponse",
+    "MCPErrorCode",
 ]

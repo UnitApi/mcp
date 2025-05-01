@@ -9,11 +9,11 @@ import asyncio
 import json
 from unittest.mock import Mock, patch
 
-from mcp_hardware.protocols.mcp import MCPRequest, MCPResponse
-from mcp_hardware.server.base import MCPServer, MCPHardwareServer
-from mcp_hardware.server.gpio import GPIOServer
-from mcp_hardware.server.input import InputServer
-from mcp_hardware.security.permissions import PermissionManager
+from unitmcp.protocols.mcp import MCPRequest, MCPResponse
+from unitmcp.server.base import MCPServer, MCPHardwareServer
+from unitmcp.server.gpio import GPIOServer
+from unitmcp.server.input import InputServer
+from unitmcp.security.permissions import PermissionManager
 
 
 class TestMCPServer:
@@ -123,7 +123,7 @@ class TestGPIOServer:
             params={"pin": 17, "mode": "OUT"}
         )
 
-        with patch('mcp_hardware.server.gpio.GPIO') as mock_gpio:
+        with patch('unitmcp.server.gpio.GPIO') as mock_gpio:
             response = await gpio_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -139,7 +139,7 @@ class TestGPIOServer:
             params={"pin": 17, "value": True}
         )
 
-        with patch('mcp_hardware.server.gpio.GPIO') as mock_gpio:
+        with patch('unitmcp.server.gpio.GPIO') as mock_gpio:
             response = await gpio_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -154,7 +154,7 @@ class TestGPIOServer:
             params={"device_id": "led1", "pin": 17}
         )
 
-        with patch('mcp_hardware.server.gpio.LED') as mock_led:
+        with patch('unitmcp.server.gpio.LED') as mock_led:
             response = await gpio_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -179,7 +179,7 @@ class TestInputServer:
             params={"text": "Hello World"}
         )
 
-        with patch('mcp_hardware.server.input.pyautogui') as mock_pyautogui:
+        with patch('unitmcp.server.input.pyautogui') as mock_pyautogui:
             response = await input_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -195,7 +195,7 @@ class TestInputServer:
             params={"x": 100, "y": 200, "duration": 0.1}
         )
 
-        with patch('mcp_hardware.server.input.pyautogui') as mock_pyautogui:
+        with patch('unitmcp.server.input.pyautogui') as mock_pyautogui:
             response = await input_server.handle_request(request)
 
             assert response.result["status"] == "success"
@@ -212,7 +212,7 @@ class TestInputServer:
             params={"button": "left", "x": 100, "y": 200}
         )
 
-        with patch('mcp_hardware.server.input.pyautogui') as mock_pyautogui:
+        with patch('unitmcp.server.input.pyautogui') as mock_pyautogui:
             response = await input_server.handle_request(request)
 
             assert response.result["status"] == "success"

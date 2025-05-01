@@ -210,337 +210,331 @@ class GPIOServer(MCPServer):
                 MCPErrorCode.HARDWARE_ERROR,
                 f"Failed to cleanup GPIO: {e}"
             )
-            setup
-            pin: {e}
-            "
+
+    async def write_pin(self, request: MCPRequest) -> MCPResponse:
+        """Write to a GPIO pin."""
+        pin = request.params.get("pin")
+        value = request.params.get("value")
+
+        if pin is None or value is None:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing pin or value parameter"
             )
 
-            async
+        try:
+            GPIO.output(pin, GPIO.HIGH if value else GPIO.LOW)
 
-            def write_pin(self, request: MCPRequest) -> MCPResponse:
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "pin": pin,
+                    "value": value
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to write pin: {e}"
+            )
 
-                """Write to a GPIO pin."""
-            pin = request.params.get("pin")
-            value = request.params.get("value")
+    async def read_pin(self, request: MCPRequest) -> MCPResponse:
+        """Read from a GPIO pin."""
+        pin = request.params.get("pin")
 
-            if pin is None or value is None:
+        if pin is None:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing pin parameter"
+            )
+
+        try:
+            value = GPIO.input(pin)
+
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "pin": pin,
+                    "value": bool(value)
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to read pin: {e}"
+            )
+
+    async def setup_led(self, request: MCPRequest) -> MCPResponse:
+        """Setup an LED device."""
+        device_id = request.params.get("device_id")
+        pin = request.params.get("pin")
+
+        if not device_id or pin is None:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing device_id or pin parameter"
+            )
+
+        try:
+            led = LED(pin)
+            self.devices[device_id] = led
+            self.pins_in_use.add(pin)
+
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "device_id": device_id,
+                    "pin": pin
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to setup LED: {e}"
+            )
+
+    async def control_led(self, request: MCPRequest) -> MCPResponse:
+        """Control an LED device."""
+        device_id = request.params.get("device_id")
+        action = request.params.get("action")
+
+        if not device_id or not action:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing device_id or action parameter"
+            )
+
+        led = self.devices.get(device_id)
+        if not led or not isinstance(led, LED):
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                f"Invalid LED device: {device_id}"
+            )
+
+        try:
+            if action == "on":
+                led.on()
+            elif action == "off":
+                led.off()
+            elif action == "toggle":
+                led.toggle()
+            elif action == "blink":
+                on_time = request.params.get("on_time", 1)
+                off_time = request.params.get("off_time", 1)
+                led.blink(on_time=on_time, off_time=off_time)
+            else:
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.INVALID_PARAMS,
-                    "Missing pin or value parameter"
+                    f"Invalid action: {action}"
                 )
 
-            try:
-                GPIO.output(pin, GPIO.HIGH if value else GPIO.LOW)
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "device_id": device_id,
+                    "action": action,
+                    "state": "on" if led.is_lit else "off"
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to control LED: {e}"
+            )
 
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "pin": pin,
-                        "value": value
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to write pin: {e}"
-                )
+    async def setup_button(self, request: MCPRequest) -> MCPResponse:
+        """Setup a button device."""
+        device_id = request.params.get("device_id")
+        pin = request.params.get("pin")
 
-        async def read_pin(self, request: MCPRequest) -> MCPResponse:
-            """Read from a GPIO pin."""
-            pin = request.params.get("pin")
+        if not device_id or pin is None:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing device_id or pin parameter"
+            )
 
-            if pin is None:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    "Missing pin parameter"
-                )
+        try:
+            button = Button(pin)
+            self.devices[device_id] = button
+            self.pins_in_use.add(pin)
 
-            try:
-                value = GPIO.input(pin)
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "device_id": device_id,
+                    "pin": pin
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to setup button: {e}"
+            )
 
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "pin": pin,
-                        "value": bool(value)
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to read pin: {e}"
-                )
+    async def read_button(self, request: MCPRequest) -> MCPResponse:
+        """Read button state."""
+        device_id = request.params.get("device_id")
 
-        async def setup_led(self, request: MCPRequest) -> MCPResponse:
-            """Setup an LED device."""
-            device_id = request.params.get("device_id")
-            pin = request.params.get("pin")
+        if not device_id:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing device_id parameter"
+            )
 
-            if not device_id or pin is None:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    "Missing device_id or pin parameter"
-                )
+        button = self.devices.get(device_id)
+        if not button or not isinstance(button, Button):
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                f"Invalid button device: {device_id}"
+            )
 
-            try:
-                led = LED(pin)
-                self.devices[device_id] = led
-                self.pins_in_use.add(pin)
+        try:
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "device_id": device_id,
+                    "is_pressed": button.is_pressed
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to read button: {e}"
+            )
 
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "device_id": device_id,
-                        "pin": pin
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to setup LED: {e}"
-                )
+    async def setup_buzzer(self, request: MCPRequest) -> MCPResponse:
+        """Setup a buzzer device."""
+        device_id = request.params.get("device_id")
+        pin = request.params.get("pin")
 
-        async def control_led(self, request: MCPRequest) -> MCPResponse:
-            """Control an LED device."""
-            device_id = request.params.get("device_id")
-            action = request.params.get("action")
+        if not device_id or pin is None:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing device_id or pin parameter"
+            )
 
-            if not device_id or not action:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    "Missing device_id or action parameter"
-                )
+        try:
+            buzzer = Buzzer(pin)
+            self.devices[device_id] = buzzer
+            self.pins_in_use.add(pin)
 
-            led = self.devices.get(device_id)
-            if not led or not isinstance(led, LED):
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    f"Invalid LED device: {device_id}"
-                )
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "device_id": device_id,
+                    "pin": pin
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to setup buzzer: {e}"
+            )
 
-            try:
-                if action == "on":
-                    led.on()
-                elif action == "off":
-                    led.off()
-                elif action == "toggle":
-                    led.toggle()
-                elif action == "blink":
-                    on_time = request.params.get("on_time", 1)
-                    off_time = request.params.get("off_time", 1)
-                    led.blink(on_time=on_time, off_time=off_time)
-                else:
-                    return self.create_error_response(
-                        request.id,
-                        MCPErrorCode.INVALID_PARAMS,
-                        f"Invalid action: {action}"
-                    )
+    async def control_buzzer(self, request: MCPRequest) -> MCPResponse:
+        """Control a buzzer device."""
+        device_id = request.params.get("device_id")
+        action = request.params.get("action")
 
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "device_id": device_id,
-                        "action": action,
-                        "state": "on" if led.is_lit else "off"
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to control LED: {e}"
-                )
+        if not device_id or not action:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing device_id or action parameter"
+            )
 
-        async def setup_button(self, request: MCPRequest) -> MCPResponse:
-            """Setup a button device."""
-            device_id = request.params.get("device_id")
-            pin = request.params.get("pin")
+        buzzer = self.devices.get(device_id)
+        if not buzzer or not isinstance(buzzer, Buzzer):
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                f"Invalid buzzer device: {device_id}"
+            )
 
-            if not device_id or pin is None:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    "Missing device_id or pin parameter"
-                )
-
-            try:
-                button = Button(pin)
-                self.devices[device_id] = button
-                self.pins_in_use.add(pin)
-
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "device_id": device_id,
-                        "pin": pin
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to setup button: {e}"
-                )
-
-        async def read_button(self, request: MCPRequest) -> MCPResponse:
-            """Read button state."""
-            device_id = request.params.get("device_id")
-
-            if not device_id:
+        try:
+            if action == "on":
+                buzzer.on()
+            elif action == "off":
+                buzzer.off()
+            elif action == "beep":
+                on_time = request.params.get("on_time", 0.1)
+                off_time = request.params.get("off_time", 0.1)
+                count = request.params.get("count", 1)
+                buzzer.beep(on_time=on_time, off_time=off_time, n=count)
+            else:
                 return self.create_error_response(
                     request.id,
                     MCPErrorCode.INVALID_PARAMS,
-                    "Missing device_id parameter"
+                    f"Invalid action: {action}"
                 )
 
-            button = self.devices.get(device_id)
-            if not button or not isinstance(button, Button):
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    f"Invalid button device: {device_id}"
-                )
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "device_id": device_id,
+                    "action": action
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to control buzzer: {e}"
+            )
 
-            try:
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "device_id": device_id,
-                        "is_pressed": button.is_pressed
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to read button: {e}"
-                )
+    async def setup_motion_sensor(self, request: MCPRequest) -> MCPResponse:
+        """Setup a motion sensor device."""
+        device_id = request.params.get("device_id")
+        pin = request.params.get("pin")
 
-        async def setup_buzzer(self, request: MCPRequest) -> MCPResponse:
-            """Setup a buzzer device."""
-            device_id = request.params.get("device_id")
-            pin = request.params.get("pin")
+        if not device_id or pin is None:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.INVALID_PARAMS,
+                "Missing device_id or pin parameter"
+            )
 
-            if not device_id or pin is None:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    "Missing device_id or pin parameter"
-                )
+        try:
+            sensor = MotionSensor(pin)
+            self.devices[device_id] = sensor
+            self.pins_in_use.add(pin)
 
-            try:
-                buzzer = Buzzer(pin)
-                self.devices[device_id] = buzzer
-                self.pins_in_use.add(pin)
-
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "device_id": device_id,
-                        "pin": pin
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to setup buzzer: {e}"
-                )
-
-        async def control_buzzer(self, request: MCPRequest) -> MCPResponse:
-            """Control a buzzer device."""
-            device_id = request.params.get("device_id")
-            action = request.params.get("action")
-
-            if not device_id or not action:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    "Missing device_id or action parameter"
-                )
-
-            buzzer = self.devices.get(device_id)
-            if not buzzer or not isinstance(buzzer, Buzzer):
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    f"Invalid buzzer device: {device_id}"
-                )
-
-            try:
-                if action == "on":
-                    buzzer.on()
-                elif action == "off":
-                    buzzer.off()
-                elif action == "beep":
-                    on_time = request.params.get("on_time", 0.1)
-                    off_time = request.params.get("off_time", 0.1)
-                    count = request.params.get("count", 1)
-                    buzzer.beep(on_time=on_time, off_time=off_time, n=count)
-                else:
-                    return self.create_error_response(
-                        request.id,
-                        MCPErrorCode.INVALID_PARAMS,
-                        f"Invalid action: {action}"
-                    )
-
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "device_id": device_id,
-                        "action": action
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to control buzzer: {e}"
-                )
-
-        async def setup_motion_sensor(self, request: MCPRequest) -> MCPResponse:
-            """Setup a motion sensor device."""
-            device_id = request.params.get("device_id")
-            pin = request.params.get("pin")
-
-            if not device_id or pin is None:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.INVALID_PARAMS,
-                    "Missing device_id or pin parameter"
-                )
-
-            try:
-                sensor = MotionSensor(pin)
-                self.devices[device_id] = sensor
-                self.pins_in_use.add(pin)
-
-                return MCPResponse(
-                    id=request.id,
-                    result={
-                        "status": "success",
-                        "device_id": device_id,
-                        "pin": pin
-                    }
-                )
-            except Exception as e:
-                return self.create_error_response(
-                    request.id,
-                    MCPErrorCode.HARDWARE_ERROR,
-                    f"Failed to
+            return MCPResponse(
+                id=request.id,
+                result={
+                    "status": "success",
+                    "device_id": device_id,
+                    "pin": pin
+                }
+            )
+        except Exception as e:
+            return self.create_error_response(
+                request.id,
+                MCPErrorCode.HARDWARE_ERROR,
+                f"Failed to setup motion sensor: {e}"
+            )
