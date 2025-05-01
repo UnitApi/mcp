@@ -19,3 +19,15 @@ setuptools==78.1.0
 sounddevice==0.4.6
 speechrecognition==3.14.2
 python-json-logger
+
+# Hardware control
+pyautogui>=0.9.50
+pynput>=1.7.0
+pyaudio>=0.2.11
+sounddevice>=0.4.0
+numpy>=1.19.0
+opencv-python>=4.5.0
+# Device discovery and protocols
+upnpclient>=1.0.3
+zeroconf>=0.38.1
+wsdiscovery>=2.0.0

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.37] - 2025-05-01
+
+### Added
+- Changes in install.sh
+
+### Removed
+- Changes in src.md
+
 ## [0.1.36] - 2025-05-01
 
 ### Added
