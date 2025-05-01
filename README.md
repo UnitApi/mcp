@@ -1,6 +1,6 @@
 # MCP Hardware Project Summary
 
-[graph.svg](graph.svg)
+![graph.svg](graph.svg)
 
 ## 🚀 Project Overview
 
