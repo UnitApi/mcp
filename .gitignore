@@ -1,3 +1,27 @@
+.idea
+.env
+.wav
+*.wav
+.mp3
+*.mp3
+.mp4
+*.mp4
+.jpg
+*.jpg
+.png
+*.png
+storage
+test_storage
+pyproject.toml.bak
+.bak
+.log
+requirements.txt.backup
+testfile.txt
+.flatedit.logs.txt
+.logs.txt
+.logs
+.py.bak
+*.py.bak
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
