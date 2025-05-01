@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.23] - 2025-05-01
+
+### Added
+- Changes in rpi/README.md
+- Changes in rpi/fix_cert.sh
+- Changes in rpi/update.sh
+- Changes in ssh/README_ssh_tools.md
+- Changes in ssh/remote_update.sh
+- Changes in ssh/ssh.sh
+- Changes in ssh/ssh_connect.py
+- Changes in ssh/ssh_connect_wrapper.sh
+
+### Removed
+- Changes in run_examples.py
+
 ## [0.1.22] - 2025-05-01
 
 ### Added
