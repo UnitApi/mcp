@@ -23,6 +23,7 @@ testfile.txt
 .logs
 .py.bak
 *.py.bak
+mcp.code-workspace
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
