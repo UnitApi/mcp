@@ -1,5 +1,7 @@
 # MCP Hardware Project Summary
 
+[graph.svg](graph.svg)
+
 ## 🚀 Project Overview
 
 The MCP Hardware Access Library is a comprehensive Python framework that enables secure hardware control through the Model Context Protocol (MCP). It provides AI agents and automation systems with the ability to interact with physical devices across multiple platforms.
