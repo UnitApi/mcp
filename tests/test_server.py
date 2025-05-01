@@ -82,7 +82,7 @@ class TestMCPHardwareServer:
         hardware_server.permission_manager.grant_permission("client1", "test")
 
         # Mock reader and writer
-        reader = Mock()
+        reader = AsyncMock()
         reader.read.return_value = json.dumps(
             {
                 "id": "test123",

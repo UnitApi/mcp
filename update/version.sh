@@ -25,8 +25,8 @@ pip install -r requirements.txt
 pip uninstall -y unitmcp
 pip install -e .
 
-python update/src.sh -f src/unitmcp/__init__.py --version $1
-python update/src.sh -f src/unitmcp/_version.py --version $1
+python update/src.py -f src/unitmcp/__init__.py --type patch
+python update/src.py -f src/unitmcp/_version.py --type patch
 python update/project.sh
 
 python update/changelog.py
