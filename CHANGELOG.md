@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.36] - 2025-05-02
+
+### Removed
+- Changes in toolbox/.gitignore
+- Changes in toolbox/.ignore
+- Changes in toolbox/README.md
+- Changes in toolbox/batch_compare_folders.py
+- Changes in toolbox/clean_empty_dirs.py
+- Changes in toolbox/compare_equal_folders.py
+- Changes in toolbox/compare_folders.py
+- Changes in toolbox/find_big_files.py
+- Changes in toolbox/git_projects_audit.py
+- Changes in toolbox/media_deduplicate.py
+- Changes in toolbox/menu.py
+- Changes in toolbox/move_batch_duplicates.py
+- Changes in toolbox/move_duplicate_folders.py
+- Changes in toolbox/move_nonidentical_files.py
+- Changes in toolbox/requirements.txt
+- Changes in toolbox/resolve_folder_differences.py
+
 ## [0.1.35] - 2025-05-02
 
 ### Added
