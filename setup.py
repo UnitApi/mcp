@@ -39,6 +39,7 @@ setup(
     url="https://unitmcp.unitapi.com",
     install_requires=[
         # Core dependencies
+        "mcp>=0.1.0",
         "pyyaml>=6.0.1",
         "psutil>=5.9.0",
         "requests>=2.31.0",

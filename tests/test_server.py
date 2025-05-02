@@ -10,7 +10,7 @@ import asyncio
 import json
 from unittest.mock import Mock, patch, AsyncMock
 
-from unitmcp.protocols.mcp import MCPRequest, MCPResponse
+from unitmcp.protocols.hardware_protocol import MCPRequest, MCPResponse
 from unitmcp.server.base import MCPServer, MCPHardwareServer
 from unitmcp.server.gpio import GPIOServer
 from unitmcp.server.input import InputServer, HAS_INPUT_LIBS

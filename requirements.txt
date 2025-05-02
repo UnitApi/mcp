@@ -1,6 +1,7 @@
 tox
 comtypes==1.4.10
 gpiozero==2.0.1
+mcp>=0.1.0
 numpy==2.2.5
 ollama==0.4.8
 opencv_contrib_python==4.10.0.84

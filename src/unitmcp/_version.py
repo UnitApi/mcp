@@ -4,4 +4,4 @@
 Version information for the unitmcp package.
 """
 
-__version__ = "0.1.22"
+__version__ = "0.1.23"
