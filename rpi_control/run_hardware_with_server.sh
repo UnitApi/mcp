@@ -13,42 +13,6 @@ log() {
     fi
 }
 
-# Default values
-HOST="0.0.0.0"
-LOG_FILE="hardware_script.log"
-SERVER_LOG="hardware_server.log"
-CLIENT_LOG="hardware_client.log"
-
-# Load environment variables from .env file if it exists
-if [[ -f ".env" ]]; then
-    log "INFO" "Loading configuration from .env file"
-    source .env
-fi
-
-# Update default values with environment variables if available
-PORT=${RPI_PORT:-8082}  # Use RPI_PORT from .env if available, otherwise default to 8082
-COMMAND="status"
-PIN=""
-STATE=""
-ADDRESS=""
-REGISTER=""
-VALUE=""
-REMOTE_HOST=${RPI_HOST:-""}
-REMOTE_USER=${RPI_USERNAME:-""}
-REMOTE_DIR=${REMOTE_DIR:-"/tmp/hardware_server"}
-LOCAL_MODE=true
-
-# If REMOTE is set in format user@host, extract user and host
-if [[ -n "$REMOTE" && "$REMOTE" == *"@"* ]]; then
-    REMOTE_USER="${REMOTE%%@*}"
-    REMOTE_HOST="${REMOTE##*@}"
-fi
-
-# If both REMOTE_HOST and REMOTE_USER are set from .env, use remote mode
-if [[ -n "$REMOTE_HOST" && -n "$REMOTE_USER" ]]; then
-    LOCAL_MODE=false
-fi
-
 # Function to log system information
 log_system_info() {
     log "INFO" "=== SYSTEM INFORMATION ==="
@@ -109,95 +73,6 @@ show_help() {
     echo "Note: This script will use values from .env file if present."
     exit 0
 }
-
-# Parse command line arguments
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        --host)
-            HOST="$2"
-            shift 2
-            ;;
-        --port)
-            PORT="$2"
-            shift 2
-            ;;
-        --command)
-            COMMAND="$2"
-            shift 2
-            ;;
-        --pin)
-            PIN="$2"
-            shift 2
-            ;;
-        --state)
-            STATE="$2"
-            shift 2
-            ;;
-        --address)
-            ADDRESS="$2"
-            shift 2
-            ;;
-        --register)
-            REGISTER="$2"
-            shift 2
-            ;;
-        --value)
-            VALUE="$2"
-            shift 2
-            ;;
-        --remote-host)
-            REMOTE_HOST="$2"
-            LOCAL_MODE=false
-            shift 2
-            ;;
-        --remote-user)
-            REMOTE_USER="$2"
-            shift 2
-            ;;
-        --remote-dir)
-            REMOTE_DIR="$2"
-            shift 2
-            ;;
-        --local)
-            LOCAL_MODE=true
-            shift
-            ;;
-        --help)
-            show_help
-            ;;
-        *)
-            log "ERROR" "Unknown option: $1"
-            echo "Usage: $0 [--host HOST] [--port PORT] [--command COMMAND] [--remote-host HOST] [--remote-user USER] [--remote-dir DIR] [--local]"
-            exit 1
-            ;;
-    esac
-done
-
-# Check if remote host is specified but user is not
-if [[ "$LOCAL_MODE" == "false" && -z "$REMOTE_USER" ]]; then
-    log "ERROR" "Remote host specified but remote user is missing. Use --remote-user to specify."
-    exit 1
-fi
-
-# Initialize log file
-> "$LOG_FILE"
-log "INFO" "Starting run_hardware_with_server.sh script"
-
-if [[ "$LOCAL_MODE" == true ]]; then
-    log "INFO" "Running in LOCAL mode"
-    log "INFO" "Server will run on $HOST:$PORT"
-    run_local_server
-else
-    log "INFO" "Running in REMOTE mode"
-    log "INFO" "Remote host: $REMOTE_USER@$REMOTE_HOST"
-    log "INFO" "Remote directory: $REMOTE_DIR"
-    log "INFO" "Server will run on remote host at $HOST:$PORT"
-    log_system_info
-    run_remote_server
-fi
-
-log "INFO" "Script completed"
-exit 0
 
 # Function to run server on remote host
 run_remote_server() {
@@ -448,3 +323,134 @@ EOF
     log "INFO" "Remote server operation completed successfully"
     return 0
 }
+
+# Function to run server locally
+run_local_server() {
+    log "INFO" "Local server mode not fully implemented"
+    return 1
+}
+
+# Default values
+HOST="0.0.0.0"
+LOG_FILE="hardware_script.log"
+SERVER_LOG="hardware_server.log"
+CLIENT_LOG="hardware_client.log"
+
+# Load environment variables from .env file if it exists
+if [[ -f ".env" ]]; then
+    log "INFO" "Loading configuration from .env file"
+    source .env
+fi
+
+# Update default values with environment variables if available
+PORT=${RPI_PORT:-8082}  # Use RPI_PORT from .env if available, otherwise default to 8082
+COMMAND="status"
+PIN=""
+STATE=""
+ADDRESS=""
+REGISTER=""
+VALUE=""
+REMOTE_HOST=${RPI_HOST:-""}
+REMOTE_USER=${RPI_USERNAME:-""}
+REMOTE_DIR=${REMOTE_DIR:-"/tmp/hardware_server"}
+LOCAL_MODE=true
+
+# If REMOTE is set in format user@host, extract user and host
+if [[ -n "$REMOTE" && "$REMOTE" == *"@"* ]]; then
+    REMOTE_USER="${REMOTE%%@*}"
+    REMOTE_HOST="${REMOTE##*@}"
+fi
+
+# If both REMOTE_HOST and REMOTE_USER are set from .env, use remote mode
+if [[ -n "$REMOTE_HOST" && -n "$REMOTE_USER" ]]; then
+    LOCAL_MODE=false
+fi
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --host)
+            HOST="$2"
+            shift 2
+            ;;
+        --port)
+            PORT="$2"
+            shift 2
+            ;;
+        --command)
+            COMMAND="$2"
+            shift 2
+            ;;
+        --pin)
+            PIN="$2"
+            shift 2
+            ;;
+        --state)
+            STATE="$2"
+            shift 2
+            ;;
+        --address)
+            ADDRESS="$2"
+            shift 2
+            ;;
+        --register)
+            REGISTER="$2"
+            shift 2
+            ;;
+        --value)
+            VALUE="$2"
+            shift 2
+            ;;
+        --remote-host)
+            REMOTE_HOST="$2"
+            LOCAL_MODE=false
+            shift 2
+            ;;
+        --remote-user)
+            REMOTE_USER="$2"
+            shift 2
+            ;;
+        --remote-dir)
+            REMOTE_DIR="$2"
+            shift 2
+            ;;
+        --local)
+            LOCAL_MODE=true
+            shift
+            ;;
+        --help)
+            show_help
+            ;;
+        *)
+            log "ERROR" "Unknown option: $1"
+            echo "Usage: $0 [--host HOST] [--port PORT] [--command COMMAND] [--remote-host HOST] [--remote-user USER] [--remote-dir DIR] [--local]"
+            exit 1
+            ;;
+    esac
+done
+
+# Check if remote host is specified but user is not
+if [[ "$LOCAL_MODE" == "false" && -z "$REMOTE_USER" ]]; then
+    log "ERROR" "Remote host specified but remote user is missing. Use --remote-user to specify."
+    exit 1
+fi
+
+# Initialize log file
+> "$LOG_FILE"
+log "INFO" "Starting run_hardware_with_server.sh script"
+
+if [[ "$LOCAL_MODE" == true ]]; then
+    log "INFO" "Running in LOCAL mode"
+    log "INFO" "Server will run on $HOST:$PORT"
+    run_local_server
+else
+    log "INFO" "Running in REMOTE mode"
+    log "INFO" "Remote host: $REMOTE_USER@$REMOTE_HOST"
+    log "INFO" "Remote directory: $REMOTE_DIR"
+    log "INFO" "Server will run on remote host at $HOST:$PORT"
+    log_system_info
+    run_remote_server
+fi
+
+log "INFO" "Script completed"
+exit 0
