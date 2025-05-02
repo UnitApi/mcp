@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.44] - 2025-05-02
+
+### Added
+- Changes in rpi_control/debug_server.sh
+
 ## [0.1.43] - 2025-05-02
 
 ### Added

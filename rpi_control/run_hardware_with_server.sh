@@ -185,198 +185,19 @@ log "INFO" "Starting run_hardware_with_server.sh script"
 
 if [[ "$LOCAL_MODE" == true ]]; then
     log "INFO" "Running in LOCAL mode"
-    log "INFO" "Using server: $HOST:$PORT, client will connect to: 127.0.0.1:$PORT"
+    log "INFO" "Server will run on $HOST:$PORT"
+    run_local_server
 else
     log "INFO" "Running in REMOTE mode"
     log "INFO" "Remote host: $REMOTE_USER@$REMOTE_HOST"
     log "INFO" "Remote directory: $REMOTE_DIR"
     log "INFO" "Server will run on remote host at $HOST:$PORT"
+    log_system_info
+    run_remote_server
 fi
 
-# Log system information
-log_system_info
-
-# Function to check if server is running locally
-check_local_server() {
-    if command -v nc &> /dev/null; then
-        nc -z 127.0.0.1 "$PORT" &> /dev/null
-        return $?
-    elif command -v python3 &> /dev/null; then
-        python3 -c "import socket; s=socket.socket(); s.connect(('127.0.0.1', $PORT)); s.close()" &> /dev/null
-        return $?
-    else
-        log "ERROR" "Neither nc nor python3 available to check server"
-        return 1
-    fi
-}
-
-# Function to check if server is running on remote host
-check_remote_server() {
-    # Try to connect to the server on the remote host
-    TIMEOUT=2
-    ssh -o ConnectTimeout=$TIMEOUT "$REMOTE_USER@$REMOTE_HOST" "nc -z -w $TIMEOUT 127.0.0.1 $PORT" 2>/dev/null
-    return $?
-}
-
-# Function to check if it's our hardware server running on remote host
-check_hardware_server() {
-    # Try to send a ping command to verify it's our hardware server
-    PING_RESULT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 -c \"
-import socket
-import json
-try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(2)
-    s.connect(('127.0.0.1', $PORT))
-    s.send(json.dumps({'action': 'ping'}).encode())
-    data = s.recv(1024).decode()
-    s.close()
-    print(data)
-except Exception as e:
-    print('ERROR: ' + str(e))
-\"" 2>/dev/null)
-    
-    if [[ "$PING_RESULT" == *"pong"* ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-# Function to run server locally
-run_local_server() {
-    # Check if server is already running
-    SERVER_STARTED=false
-    if check_local_server; then
-        log "INFO" "Server already running on port $PORT"
-    else
-        # Start the server
-        log "INFO" "Starting hardware server at $HOST:$PORT..."
-        
-        # Clear previous server log
-        > "$SERVER_LOG"
-        
-        # Start server in background
-        python3 examples/hardware_server.py --host "$HOST" --port "$PORT" > "$SERVER_LOG" 2>&1 &
-        SERVER_PID=$!
-        
-        # Check if server process is running
-        if ps -p $SERVER_PID > /dev/null; then
-            log "INFO" "Server started with PID $SERVER_PID, logs in $SERVER_LOG"
-            SERVER_STARTED=true
-        else
-            log "ERROR" "Failed to start server"
-            exit 1
-        fi
-        
-        # Wait for server to become ready
-        log "INFO" "Waiting for server to become ready..."
-        TIMEOUT=30
-        ELAPSED=0
-        while ! check_local_server && [[ $ELAPSED -lt $TIMEOUT ]]; do
-            sleep 1
-            ((ELAPSED++))
-            
-            # Show server log progress
-            if [[ -f "$SERVER_LOG" ]]; then
-                NEW_LOGS=$(tail -n 5 "$SERVER_LOG" | grep -v "^$")
-                if [[ ! -z "$NEW_LOGS" ]]; then
-                    log "SERVER" "Recent logs:"
-                    echo "$NEW_LOGS" | while read -r line; do
-                        log "SERVER" "  $line"
-                    done
-                fi
-            fi
-            
-            # Check if server is still running
-            if ! ps -p $SERVER_PID > /dev/null; then
-                log "ERROR" "Server process died unexpectedly"
-                if [[ -f "$SERVER_LOG" ]]; then
-                    log "ERROR" "Server log:"
-                    cat "$SERVER_LOG" | while read -r line; do
-                        log "ERROR" "  $line"
-                    done
-                fi
-                exit 1
-            fi
-        done
-        
-        if [[ $ELAPSED -ge $TIMEOUT ]]; then
-            log "ERROR" "Timeout waiting for server to become ready"
-            kill -9 $SERVER_PID 2>/dev/null
-            exit 1
-        fi
-        
-        log "INFO" "Server is ready."
-    fi
-
-    # Clear previous client log
-    > "$CLIENT_LOG"
-
-    # Send the hardware command
-    log "INFO" "Sending command '$COMMAND' to server..."
-    
-    # Build the command arguments
-    CLIENT_ARGS="--host 127.0.0.1 --port $PORT --command $COMMAND"
-    
-    # Add command-specific arguments
-    if [[ "$COMMAND" == "gpio" ]]; then
-        if [[ -z "$PIN" || -z "$STATE" ]]; then
-            log "ERROR" "GPIO command requires --pin and --state arguments"
-            exit 1
-        fi
-        CLIENT_ARGS="$CLIENT_ARGS --pin $PIN --state $STATE"
-    elif [[ "$COMMAND" == "i2c" ]]; then
-        if [[ -z "$ADDRESS" || -z "$REGISTER" ]]; then
-            log "ERROR" "I2C command requires --address and --register arguments"
-            exit 1
-        fi
-        CLIENT_ARGS="$CLIENT_ARGS --address $ADDRESS --register $REGISTER"
-        if [[ -n "$VALUE" ]]; then
-            CLIENT_ARGS="$CLIENT_ARGS --value $VALUE"
-        fi
-    fi
-    
-    # Run the client with the built arguments
-    python3 examples/hardware_client.py $CLIENT_ARGS > "$CLIENT_LOG" 2>&1
-    CLIENT_EXIT=$?
-
-    # Show client logs
-    if [[ -f "$CLIENT_LOG" ]]; then
-        log "INFO" "Client logs:"
-        cat "$CLIENT_LOG" | while read -r line; do
-            log "CLIENT" "  $line"
-        done
-    fi
-
-    # Check client exit status
-    if [[ $CLIENT_EXIT -eq 0 ]]; then
-        log "INFO" "Command request sent successfully."
-    else
-        log "ERROR" "Command request failed with exit code $CLIENT_EXIT"
-    fi
-
-    # Stop the server if we started it
-    if [[ "$SERVER_STARTED" = true ]]; then
-        log "INFO" "Stopping server (PID $SERVER_PID)"
-        kill $SERVER_PID 2>/dev/null
-        
-        # Wait for server to stop
-        TIMEOUT=10
-        ELAPSED=0
-        while ps -p $SERVER_PID > /dev/null && [[ $ELAPSED -lt $TIMEOUT ]]; do
-            sleep 1
-            ((ELAPSED++))
-        done
-        
-        if ps -p $SERVER_PID > /dev/null; then
-            log "WARNING" "Server did not stop gracefully, forcing..."
-            kill -9 $SERVER_PID 2>/dev/null
-        fi
-    fi
-
-    return $CLIENT_EXIT
-}
+log "INFO" "Script completed"
+exit 0
 
 # Function to run server on remote host
 run_remote_server() {
@@ -405,12 +226,51 @@ run_remote_server() {
     ssh "$REMOTE_USER@$REMOTE_HOST" "fuser -k $PORT/tcp 2>/dev/null || true" 
     sleep 2
     
-    # Start the server on remote host and get its PID directly
-    log "INFO" "Starting server on remote host at $HOST:$PORT"
-    REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_server.py --host '$HOST' --port '$PORT' > server.log 2>&1 & echo \$!")
+    # Create a simple startup script on the remote host
+    log "INFO" "Creating startup script on remote host"
+    cat > /tmp/start_server.sh << EOF
+#!/bin/bash
+cd $REMOTE_DIR
+python3 hardware_server.py --host '$HOST' --port '$PORT' > server.log 2>&1 &
+echo \$! > server.pid
+EOF
     
-    if [[ -z "$REMOTE_SERVER_PID" || "$REMOTE_SERVER_PID" == "0" ]]; then
-        log "ERROR" "Failed to start server on remote host"
+    # Copy the startup script to the remote host
+    scp /tmp/start_server.sh "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR/" || {
+        log "ERROR" "Failed to copy startup script"
+        exit 1
+    }
+    
+    # Make the script executable
+    ssh "$REMOTE_USER@$REMOTE_HOST" "chmod +x $REMOTE_DIR/start_server.sh" || {
+        log "ERROR" "Failed to make startup script executable"
+        exit 1
+    }
+    
+    # Start the server using the script
+    log "INFO" "Starting server on remote host at $HOST:$PORT"
+    ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
+    sleep 3  # Give the server a moment to start
+    
+    # Get the server PID from the pid file
+    REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
+    
+    if [[ -z "$REMOTE_SERVER_PID" ]]; then
+        log "ERROR" "Failed to get server PID from pid file"
+        # Show any error logs
+        REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then cat '$REMOTE_DIR/server.log'; fi")
+        if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
+            log "ERROR" "Remote server log:"
+            echo "$REMOTE_ERROR_LOGS" | while read -r line; do
+                log "ERROR" "  $line"
+            done
+        fi
+        exit 1
+    fi
+    
+    # Verify the process is actually running
+    if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
+        log "ERROR" "Server process is not running (PID: $REMOTE_SERVER_PID)"
         # Show any error logs
         REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then cat '$REMOTE_DIR/server.log'; fi")
         if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
@@ -424,69 +284,51 @@ run_remote_server() {
     
     log "INFO" "Server started on remote host with PID $REMOTE_SERVER_PID"
     
-    # Wait for server to become ready
-    log "INFO" "Waiting for server to become ready on remote host..."
+    # Check if server is listening on the port (with timeout)
+    log "INFO" "Checking if server is listening on port $PORT..."
     TIMEOUT=10
-    ELAPSED=0
-    SERVER_READY=false
-    
-    while [[ $ELAPSED -lt $TIMEOUT && "$SERVER_READY" = false ]]; do
-        # Check if server is listening on the port
+    for ((i=1; i<=TIMEOUT; i++)); do
         if ssh "$REMOTE_USER@$REMOTE_HOST" "nc -z -w 1 127.0.0.1 $PORT" 2>/dev/null; then
             log "INFO" "Server is listening on port $PORT"
-            SERVER_READY=true
-        else
-            sleep 1
-            ((ELAPSED++))
-            
-            # Show remote server log progress
-            REMOTE_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then tail -n 5 '$REMOTE_DIR/server.log' | grep -v '^$'; fi")
-            if [[ ! -z "$REMOTE_LOGS" ]]; then
-                log "REMOTE_SERVER" "Recent logs:"
-                echo "$REMOTE_LOGS" | while read -r line; do
-                    log "REMOTE_SERVER" "  $line"
+            break
+        fi
+        
+        if [[ $i -eq $TIMEOUT ]]; then
+            log "ERROR" "Timeout waiting for server to listen on port $PORT"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "kill -9 $REMOTE_SERVER_PID 2>/dev/null"
+            # Show any error logs
+            REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then cat '$REMOTE_DIR/server.log'; fi")
+            if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
+                log "ERROR" "Remote server log:"
+                echo "$REMOTE_ERROR_LOGS" | while read -r line; do
+                    log "ERROR" "  $line"
                 done
             fi
-            
-            # Check if server is still running on remote host
-            if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null"; then
-                log "ERROR" "Server process died unexpectedly on remote host"
-                REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then cat '$REMOTE_DIR/server.log'; fi")
-                if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
-                    log "ERROR" "Remote server log:"
-                    echo "$REMOTE_ERROR_LOGS" | while read -r line; do
-                        log "ERROR" "  $line"
-                    done
-                fi
-                exit 1
-            fi
+            exit 1
         fi
+        
+        log "INFO" "Waiting for server to listen on port $PORT (attempt $i/$TIMEOUT)..."
+        sleep 1
     done
     
-    if [[ "$SERVER_READY" = false ]]; then
-        log "ERROR" "Timeout waiting for server to become ready on remote host"
-        ssh "$REMOTE_USER@$REMOTE_HOST" "kill -9 $REMOTE_SERVER_PID 2>/dev/null"
-        exit 1
-    fi
+    # Execute the command
+    log "INFO" "Executing command '$COMMAND' on remote host..."
     
-    log "INFO" "Server is ready on remote host"
-    
-    # Send the hardware command on remote host
-    log "INFO" "Sending command '$COMMAND' on remote server..."
-    
-    # Build the command arguments
+    # Build command arguments
     CLIENT_ARGS="--host 127.0.0.1 --port $PORT --command $COMMAND"
     
     # Add command-specific arguments
     if [[ "$COMMAND" == "gpio" ]]; then
         if [[ -z "$PIN" || -z "$STATE" ]]; then
             log "ERROR" "GPIO command requires --pin and --state arguments"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "kill -9 $REMOTE_SERVER_PID 2>/dev/null"
             exit 1
         fi
         CLIENT_ARGS="$CLIENT_ARGS --pin $PIN --state $STATE"
     elif [[ "$COMMAND" == "i2c" ]]; then
         if [[ -z "$ADDRESS" || -z "$REGISTER" ]]; then
             log "ERROR" "I2C command requires --address and --register arguments"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "kill -9 $REMOTE_SERVER_PID 2>/dev/null"
             exit 1
         fi
         CLIENT_ARGS="$CLIENT_ARGS --address $ADDRESS --register $REGISTER"
@@ -495,97 +337,114 @@ run_remote_server() {
         fi
     fi
     
-    # Run the client with the built arguments and capture both stdout and stderr
-    log "INFO" "Running command on remote host: python3 hardware_client.py $CLIENT_ARGS"
-    REMOTE_CLIENT_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py $CLIENT_ARGS" 2>&1)
-    REMOTE_EXIT_CODE=$?
+    # Execute the command
+    log "INFO" "Running command: python3 hardware_client.py $CLIENT_ARGS"
+    COMMAND_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py $CLIENT_ARGS" 2>&1)
+    COMMAND_EXIT_CODE=$?
     
-    if [[ $REMOTE_EXIT_CODE -ne 0 ]]; then
-        log "ERROR" "Failed to run client on remote host (exit code: $REMOTE_EXIT_CODE)"
-        log "ERROR" "Remote output:"
-        echo "$REMOTE_CLIENT_OUTPUT" | while read -r line; do
+    if [[ $COMMAND_EXIT_CODE -ne 0 ]]; then
+        log "ERROR" "Command failed with exit code $COMMAND_EXIT_CODE"
+        log "ERROR" "Command output:"
+        echo "$COMMAND_OUTPUT" | while read -r line; do
             log "ERROR" "  $line"
         done
-        
-        # Check if Python exists on the remote host
-        log "INFO" "Checking Python on remote host..."
-        PYTHON_VERSION=$(ssh "$REMOTE_USER@$REMOTE_HOST" "python3 --version" 2>&1)
-        log "INFO" "Remote Python: $PYTHON_VERSION"
-        
-        # Check if the client script exists on the remote host
-        log "INFO" "Checking if client script exists on remote host..."
-        SCRIPT_EXISTS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "ls -la $REMOTE_DIR/hardware_client.py" 2>&1)
-        log "INFO" "Client script: $SCRIPT_EXISTS"
-        
+        ssh "$REMOTE_USER@$REMOTE_HOST" "kill -9 $REMOTE_SERVER_PID 2>/dev/null"
         exit 1
     fi
     
-    # Get client logs from remote host
-    log "INFO" "Remote client output:"
-    echo "$REMOTE_CLIENT_OUTPUT" | while read -r line; do
-        log "REMOTE_CLIENT" "  $line"
+    # Display command output
+    log "INFO" "Command output:"
+    echo "$COMMAND_OUTPUT" | while read -r line; do
+        log "COMMAND" "  $line"
     done
     
-    log "INFO" "Command request sent successfully to remote host."
+    # If command is status, toggle GPIO pin
+    if [[ "$COMMAND" == "status" && -n "$PIN" ]]; then
+        log "INFO" "Status command completed, toggling GPIO pin $PIN"
+        
+        # Verify server is still running
+        if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
+            log "ERROR" "Server process is no longer running, restarting..."
+            ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
+            sleep 3
+            REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
+            log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
+        fi
+        
+        # Verify server is listening
+        if ! ssh "$REMOTE_USER@$REMOTE_HOST" "nc -z -w 1 127.0.0.1 $PORT" 2>/dev/null; then
+            log "ERROR" "Server is not listening on port $PORT, restarting..."
+            ssh "$REMOTE_USER@$REMOTE_HOST" "kill -9 $REMOTE_SERVER_PID 2>/dev/null || true"
+            ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
+            sleep 3
+            REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
+            log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
+        fi
+        
+        # Set pin HIGH
+        log "INFO" "Setting GPIO pin $PIN to HIGH"
+        GPIO_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $PIN --state on" 2>&1)
+        GPIO_EXIT_CODE=$?
+        if [[ $GPIO_EXIT_CODE -ne 0 ]]; then
+            log "ERROR" "Failed to set GPIO pin $PIN to HIGH (exit code: $GPIO_EXIT_CODE)"
+            log "ERROR" "Output: $GPIO_OUTPUT"
+            
+            # Check server logs for any issues
+            REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then tail -n 20 '$REMOTE_DIR/server.log'; fi")
+            if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
+                log "ERROR" "Recent server logs:"
+                echo "$REMOTE_ERROR_LOGS" | while read -r line; do
+                    log "ERROR" "  $line"
+                done
+            fi
+        else
+            log "SUCCESS" "GPIO pin $PIN set to HIGH"
+            echo "$GPIO_OUTPUT" | while read -r line; do
+                log "GPIO_HIGH" "  $line"
+            done
+        fi
+        
+        sleep 1
+        
+        # Verify server is still running before setting pin LOW
+        if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
+            log "ERROR" "Server process is no longer running, restarting..."
+            ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
+            sleep 3
+            REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
+            log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
+        fi
+        
+        # Set pin LOW
+        log "INFO" "Setting GPIO pin $PIN to LOW"
+        GPIO_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $PIN --state off" 2>&1)
+        GPIO_EXIT_CODE=$?
+        if [[ $GPIO_EXIT_CODE -ne 0 ]]; then
+            log "ERROR" "Failed to set GPIO pin $PIN to LOW (exit code: $GPIO_EXIT_CODE)"
+            log "ERROR" "Output: $GPIO_OUTPUT"
+            
+            # Check server logs for any issues
+            REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then tail -n 20 '$REMOTE_DIR/server.log'; fi")
+            if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
+                log "ERROR" "Recent server logs:"
+                echo "$REMOTE_ERROR_LOGS" | while read -r line; do
+                    log "ERROR" "  $line"
+                done
+            fi
+        else
+            log "SUCCESS" "GPIO pin $PIN set to LOW"
+            echo "$GPIO_OUTPUT" | while read -r line; do
+                log "GPIO_LOW" "  $line"
+            done
+        fi
+        
+        log "INFO" "GPIO pin $PIN toggling completed"
+    fi
     
+    # Stop the server
+    log "INFO" "Stopping server on remote host (PID $REMOTE_SERVER_PID)"
+    ssh "$REMOTE_USER@$REMOTE_HOST" "kill $REMOTE_SERVER_PID 2>/dev/null || kill -9 $REMOTE_SERVER_PID 2>/dev/null"
+    
+    log "INFO" "Remote server operation completed successfully"
     return 0
 }
-
-# Function to send GPIO commands to toggle pin state
-toggle_gpio_pins() {
-    local pin="$1"
-    
-    if [[ -z "$pin" ]]; then
-        log "ERROR" "No GPIO pin specified for toggling"
-        return 1
-    fi
-    
-    log "INFO" "Toggling GPIO pin $pin state twice..."
-    
-    # First set the pin to HIGH
-    log "INFO" "Setting GPIO pin $pin to HIGH"
-    if [[ "$LOCAL_MODE" = true ]]; then
-        python3 "examples/hardware_client.py" --host "$HOST" --port "$PORT" --command "gpio" --pin "$pin" --state "on" > "$CLIENT_LOG" 2>&1
-    else
-        ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $pin --state on" 2>&1
-    fi
-    
-    # Wait a second
-    sleep 1
-    
-    # Then set the pin to LOW
-    log "INFO" "Setting GPIO pin $pin to LOW"
-    if [[ "$LOCAL_MODE" = true ]]; then
-        python3 "examples/hardware_client.py" --host "$HOST" --port "$PORT" --command "gpio" --pin "$pin" --state "off" > "$CLIENT_LOG" 2>&1
-    else
-        ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $pin --state off" 2>&1
-    fi
-    
-    log "INFO" "GPIO pin $pin toggled twice successfully"
-    return 0
-}
-
-# Run in local or remote mode
-if [[ "$LOCAL_MODE" == true ]]; then
-    log "INFO" "Running in LOCAL mode"
-    log "INFO" "Server will run on $HOST:$PORT"
-    run_local_server
-else
-    log "INFO" "Running in REMOTE mode"
-    log "INFO" "Remote host: $REMOTE_USER@$REMOTE_HOST"
-    log "INFO" "Remote directory: $REMOTE_DIR"
-    log "INFO" "Server will run on remote host at $HOST:$PORT"
-    log_system_info
-    run_remote_server
-    
-    # If command is status, also toggle GPIO pins from .env
-    if [[ "$COMMAND" == "status" ]]; then
-        # Get GPIO pin from .env or use default
-        GPIO_PIN=${GPIO_PIN:-17}
-        log "INFO" "Status command completed, now toggling GPIO pin $GPIO_PIN"
-        toggle_gpio_pins "$GPIO_PIN"
-    fi
-fi
-
-log "INFO" "Script completed"
-exit 0
