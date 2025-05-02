@@ -9,8 +9,6 @@ test_output.txt
 *.mp4
 .jpg
 *.jpg
-.png
-*.png
 storage
 test_storage
 pyproject.toml.bak

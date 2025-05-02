@@ -50,13 +50,36 @@ To play an audio file (e.g. test.wav or sample_tone.wav) on the MCP hardware ser
 ```bash
 # Make sure you are in the rpi_control directory
 chmod +x run_speaker_with_server.sh
+
+# Local execution
 ./run_speaker_with_server.sh --host 0.0.0.0 --port 8081 --file test.wav
+
+# Remote execution
+./run_speaker_with_server.sh --remote-host raspberrypi --remote-user pi --remote-dir /home/pi/audio_server --file test.wav
 ```
 
 #### Command Line Arguments
 - `--host`: The host address to bind the server to (default: 0.0.0.0)
 - `--port`: The port to use for the server (default: 8081)
 - `--file`: The audio file to play (default: test.wav)
+- `--remote-host`: Remote host to run the server on (for remote execution)
+- `--remote-user`: Username for SSH connection to remote host
+- `--remote-dir`: Directory on remote host to use (default: /tmp/audio_server)
+- `--help`: Show help message
+
+#### Local Mode
+When no remote host is specified, the script runs in local mode:
+- The server is started on the local machine
+- The client connects to the local server
+- Audio is played through the local machine's audio output
+
+#### Remote Mode
+When a remote host is specified, the script runs in remote mode:
+- The necessary files (server script, client script, audio file) are copied to the remote host
+- The server is started on the remote machine
+- The client runs on the remote machine and connects to the remote server
+- Audio is played through the remote machine's audio output
+- All logs are retrieved from the remote machine and displayed locally
 
 #### Notes
 - If you use `--file test.wav` and the file does not exist, it will be generated automatically.
@@ -130,6 +153,80 @@ The package also includes a simplified audio client (`examples/simple_client.py`
 - If the server fails to start, check the `server.log` file for error details.
 - If the client fails to connect, ensure the server is running and the host/port settings are correct.
 - For playback issues, check the `client.log` file for error messages.
+
+## Hardware Control Script
+
+Similar to the audio playback script, we've created a script to control hardware on a Raspberry Pi. This script can run both locally and remotely, and supports GPIO and I2C operations.
+
+### Usage
+
+```bash
+# Basic usage (uses .env file for configuration)
+./run_hardware_with_server.sh
+
+# Get hardware status
+./run_hardware_with_server.sh --command status
+
+# Control a GPIO pin
+./run_hardware_with_server.sh --command gpio --pin 18 --state on
+
+# Read from an I2C device
+./run_hardware_with_server.sh --command i2c --address 0x48 --register 0x00
+
+# Write to an I2C device
+./run_hardware_with_server.sh --command i2c --address 0x48 --register 0x00 --value 0x42
+
+# Run in local mode (even if remote settings exist in .env)
+./run_hardware_with_server.sh --local
+
+# Run on a specific remote host
+./run_hardware_with_server.sh --remote-host raspberrypi --remote-user pi
+```
+
+### Command-line Options
+
+- `--host HOST`: Host to bind the server to (default: 0.0.0.0)
+- `--port PORT`: Port to use for the server (default: from .env or 8082)
+- `--command COMMAND`: Hardware command to execute (default: status)
+- `--pin PIN`: GPIO pin number (for gpio command)
+- `--state STATE`: GPIO pin state (on/off, for gpio command)
+- `--address ADDRESS`: I2C device address (for i2c command)
+- `--register REGISTER`: I2C register (for i2c command)
+- `--value VALUE`: I2C value to write (for i2c command)
+- `--remote-host HOST`: Remote host to run the server on
+- `--remote-user USER`: Username for SSH connection to remote host
+- `--remote-dir DIR`: Directory on remote host to use
+- `--local`: Force local mode even if remote settings exist in .env
+- `--help`: Show help message
+
+### Hardware Commands
+
+1. **status**: Get system and hardware status
+   ```bash
+   ./run_hardware_with_server.sh --command status
+   ```
+
+2. **gpio**: Control GPIO pins
+   ```bash
+   ./run_hardware_with_server.sh --command gpio --pin 18 --state on
+   ./run_hardware_with_server.sh --command gpio --pin 18 --state off
+   ```
+
+3. **i2c**: Interact with I2C devices
+   ```bash
+   # Read from I2C device
+   ./run_hardware_with_server.sh --command i2c --address 0x48 --register 0x00
+   
+   # Write to I2C device
+   ./run_hardware_with_server.sh --command i2c --address 0x48 --register 0x00 --value 0x42
+   ```
+
+### Requirements
+
+- Python 3.6 or higher
+- For GPIO control: RPi.GPIO library (automatically detected if available)
+- For I2C control: smbus library (automatically detected if available)
+- SSH access to the remote host (for remote execution)
 
 ## Usage
 

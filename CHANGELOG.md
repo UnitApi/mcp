@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.43] - 2025-05-02
+
+### Added
+- Changes in rpi_control/examples/gpio.png
+- Changes in rpi_control/examples/hardware_client.py
+- Changes in rpi_control/examples/hardware_server.py
+- Changes in rpi_control/run_hardware_with_server.sh
+
+### Changed
+- Changes in rpi_control/.gitignore
+- Changes in rpi_control/README.md
+- Changes in rpi_control/examples/README_LLM_MCP.md
+- Changes in rpi_control/run_speaker_with_server.sh
+
 ## [0.1.42] - 2025-05-02
 
 ### Added

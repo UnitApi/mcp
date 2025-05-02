@@ -1,7 +1,7 @@
 # LLM Hardware Control with MCP
 
 This directory contains examples of using Large Language Models (LLMs) to control hardware through the Model Context Protocol (MCP).
-
+[]()
 ## Overview
 
 The integration allows you to:
