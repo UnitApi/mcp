@@ -1,30 +1,8 @@
+create a Docker setup in the rpi_control directory to simulate a Raspberry Pi environment for testing. They want three Docker containers:
 
+A container for a small LLM model that could run on a Raspberry Pi
+A container simulating a Raspberry Pi
+A client container simulating a PC that can test the Raspberry Pi with the LLM model
+Let me first check the existing Docker setup to understand what's already there, then create the new Docker files in the rpi_control directory.
 
-
-The command output is getting cut off again. Let's try running just the specific test we're interested in with tox to see if it passes.
-
-Let's run just the specific test we're interested in:
-
-cd .tox/py312/bin && python -m pytest ../../tests/test_server.py::TestMCPHardwareServer::test_handle_client_request -v
-===================================================================================================================== test session starts ======================================================================================================================
-platform linux -- Python 3.12.9, pytest-8.2.2, pluggy-1.5.0 -- /home/tom/miniconda3/bin/python
-cachedir: .pytest_cache
-rootdir: /home/tom/github/UnitApi/mcp
-configfile: setup.cfg
-collecting ...
-collected 0 items
-
-======================================================================================================================= warnings summary =======================================================================================================================
-../../../../../../.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1448
-  /home/tom/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1448: PytestConfigWarning: Unknown config option: asyncio_default_fixture_loop_scope
-
-    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
-
-../../../../../../.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1448
-  /home/tom/.local/lib/python3.12/site-packages/_pytest/config/__init__.py:1448: PytestConfigWarning: Unknown config option: asyncio_mode
-
-    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-===================================================================================================================== 2 warnings in 0.00s ======================================================================================================================
-ERROR: file or directory not found: ../../tests/test_server.py::TestMCPHardwareServer::test_handle_client_request
+I'll create a Docker setup in the rpi_control directory to simulate a Raspberry Pi environment for testing. Let's first check the existing Docker configuration to understand what's already in place.

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.33] - 2025-05-02
+
+### Added
+- Changes in clean_fedora.sh
+- Changes in rpi_control/client/Dockerfile
+- Changes in rpi_control/client/llm_client.py
+- Changes in rpi_control/docker-compose.yml
+- Changes in rpi_control/llm/Dockerfile
+- Changes in rpi_control/rpi/Dockerfile
+- Changes in rpi_control/rpi/hardware_server.py
+
 ## [0.1.32] - 2025-05-02
 
 ## [0.1.31] - 2025-05-02

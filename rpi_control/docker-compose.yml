@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  rpi-simulator:
+    build:
+      context: ../../
+      dockerfile: rpi_control/docker/rpi/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../examples:/app/examples
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HOST=0.0.0.0
+      - PORT=8080
+      - SERVER_NAME=Raspberry Pi Simulator
+    networks:
+      - rpi-network
+
+  llm-model:
+    build:
+      context: ./llm
+      dockerfile: Dockerfile
+    ports:
+      - "11434:11434"
+    volumes:
+      - llm-data:/root/.ollama
+    networks:
+      - rpi-network
+
+  test-client:
+    build:
+      context: ../../
+      dockerfile: rpi_control/docker/client/Dockerfile
+    volumes:
+      - ../examples:/app/examples
+    environment:
+      - PYTHONUNBUFFERED=1
+      - RPI_HOST=rpi-simulator
+      - RPI_PORT=8080
+      - OLLAMA_HOST=llm-model
+      - OLLAMA_PORT=11434
+      - OLLAMA_MODEL=llama2
+    depends_on:
+      - rpi-simulator
+      - llm-model
+    networks:
+      - rpi-network
+    stdin_open: true
+    tty: true
+
+networks:
+  rpi-network:
+    driver: bridge
+
+volumes:
+  llm-data:

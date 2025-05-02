@@ -306,3 +306,145 @@ For advanced automation or troubleshooting, see the comments in each script.
 ---
 
 For more info, see the MCP Hardware Project: https://github.com/UnitApi/mcp-hardware
+
+
+# Raspberry Pi Simulation Docker Environment
+
+This directory contains a Docker Compose setup for simulating a Raspberry Pi environment for testing. The setup includes three containers:
+
+1. **rpi-simulator**: A container that simulates a Raspberry Pi with GPIO, camera, audio, and other hardware capabilities
+2. **llm-model**: A container running a small LLM model (Ollama) that could run on a Raspberry Pi
+3. **test-client**: A client container that connects to both the Raspberry Pi simulator and the LLM model to enable testing
+
+## Prerequisites
+
+- Docker and Docker Compose installed on your system
+- Basic knowledge of Docker and containerization
+- Understanding of the UnitMCP hardware control system
+
+## Directory Structure
+
+```
+docker/
+├── client/                 # Test client container files
+│   ├── Dockerfile          # Client container definition
+│   └── llm_client.py       # LLM client implementation for testing
+├── llm/                    # LLM model container files
+│   └── Dockerfile          # LLM container definition
+├── rpi/                    # Raspberry Pi simulator container files
+│   ├── Dockerfile          # Raspberry Pi simulator container definition
+│   └── hardware_server.py  # Raspberry Pi hardware server implementation
+├── docker-compose.yml      # Docker Compose configuration
+└── README.md               # This file
+```
+
+
+
+## Getting Started
+
+### 1. Build and Start the Containers
+
+From the `rpi_control/docker` directory, run:
+
+```bash
+docker-compose up --build
+```
+
+This will build and start all three containers:
+- `rpi-simulator`: The Raspberry Pi simulator
+- `llm-model`: The Ollama LLM server
+- `test-client`: The client that connects to both servers for testing
+
+### 2. Interact with the System
+
+Once the containers are running, you can interact with the system through the `test-client` container. The client provides a command-line interface where you can type natural language commands to control the simulated Raspberry Pi.
+
+Example commands:
+- "Turn on the LED on pin 17"
+- "Blink the LED on pin 18"
+- "Take a picture with the camera"
+- "Record audio for 5 seconds"
+- "Read the temperature"
+- "Convert 'Hello, world!' to speech"
+
+### 3. Stop the Containers
+
+To stop the containers, press `Ctrl+C` in the terminal where you started Docker Compose, or run:
+
+```bash
+docker-compose down
+```
+
+## Configuration
+
+### Environment Variables
+
+You can configure the system using environment variables in the `docker-compose.yml` file:
+
+#### Raspberry Pi Simulator
+- `HOST`: The hostname to bind the server to (default: `0.0.0.0`)
+- `PORT`: The port to listen on (default: `8080`)
+- `SERVER_NAME`: The name of the MCP server (default: `Raspberry Pi Simulator`)
+
+#### Test Client
+- `RPI_HOST`: The hostname of the Raspberry Pi simulator (default: `rpi-simulator`)
+- `RPI_PORT`: The port of the Raspberry Pi simulator (default: `8080`)
+- `OLLAMA_HOST`: The hostname of the Ollama server (default: `llm-model`)
+- `OLLAMA_PORT`: The port of the Ollama server (default: `11434`)
+- `OLLAMA_MODEL`: The LLM model to use (default: `llama2`)
+
+## Simulated Hardware
+
+The Raspberry Pi simulator provides the following simulated hardware devices:
+
+### GPIO
+- Virtual LEDs that can be turned on, off, or blinked
+- Virtual buttons that can be pressed and released
+- General GPIO pins that can be set up as input or output
+
+### Camera
+- Virtual camera that simulates image capture
+
+### Audio
+- Virtual microphone for audio recording
+- Text-to-speech simulation
+
+### Sensors
+- Virtual temperature sensor
+
+## Extending the System
+
+### Adding New Simulated Hardware
+
+To add new simulated hardware devices, modify the `hardware_server.py` file in the `rpi` directory. You can add new tools to the LLM server by implementing them in the `_register_custom_tools` method of the `RaspberryPiSimulator` class.
+
+### Using Different LLM Models
+
+The system uses Ollama as the LLM provider, which supports various models. You can change the model by setting the `OLLAMA_MODEL` environment variable in the `docker-compose.yml` file. The default model is `llama2`.
+
+For Raspberry Pi compatibility, consider using smaller models like:
+- `llama2`
+- `orca-mini`
+- `phi`
+- `gemma:2b`
+- `tinyllama`
+
+## Troubleshooting
+
+### Connection Issues
+
+If the client cannot connect to the Raspberry Pi simulator or the Ollama server, check the following:
+- Ensure all containers are running (`docker-compose ps`)
+- Check the logs for error messages (`docker-compose logs`)
+- Verify the network configuration in `docker-compose.yml`
+
+### LLM Issues
+
+If the LLM is not responding correctly:
+- Check if the model is available (`docker exec -it llm-model ollama list`)
+- Try using a different model by setting the `OLLAMA_MODEL` environment variable
+- Increase the timeout values in the client code if needed
+
+## License
+
+This project is licensed under the Apache2 License. See the [LICENSE](LICENSE) file for details.
