@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.35] - 2025-05-02
+
+### Added
+- Changes in toolbox/.ignore
+- Changes in toolbox/compare_equal_folders.py
+- Changes in toolbox/git_projects_audit.py
+- Changes in toolbox/requirements.txt
+- Changes in toolbox/resolve_folder_differences.py
+
+### Changed
+- Changes in toolbox/move_nonidentical_files.py
+
 ## [0.1.34] - 2025-05-02
 
 ### Added

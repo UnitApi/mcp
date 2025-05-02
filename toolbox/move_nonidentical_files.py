@@ -25,8 +25,9 @@ def file_hash(path):
             h.update(chunk)
     return h.hexdigest()
 
-def compare_and_move(src_folder, tgt_folder, src_root, tgt_root, batch_limit, moved_so_far):
-    # Recursively compare all files inside src_folder and tgt_folder
+def get_different_files(src_folder, tgt_folder, src_root):
+    # Returns list of (src_file, rel_path) that differ or are missing in tgt_folder
+    diff_files = []
     for dirpath, dirs, files in os.walk(src_folder):
         rel = os.path.relpath(dirpath, src_root)
         tgt_dir = os.path.join(tgt_folder, rel)
@@ -35,23 +36,10 @@ def compare_and_move(src_folder, tgt_folder, src_root, tgt_root, batch_limit, mo
             tgt_file = os.path.join(tgt_dir, fname)
             if os.path.exists(tgt_file):
                 if file_hash(src_file) != file_hash(tgt_file):
-                    dest_dir = os.path.join(tgt_folder, 'duplicated', rel)
-                    os.makedirs(dest_dir, exist_ok=True)
-                    dest = os.path.join(dest_dir, fname)
-                    shutil.move(src_file, dest)
-                    print(f"Moved {src_file} -> {dest}")
-                    moved_so_far += 1
+                    diff_files.append((src_file, rel, fname))
             else:
-                dest_dir = os.path.join(tgt_folder, 'duplicated', rel)
-                os.makedirs(dest_dir, exist_ok=True)
-                dest = os.path.join(dest_dir, fname)
-                shutil.move(src_file, dest)
-                print(f"Moved {src_file} -> {dest}")
-                moved_so_far += 1
-            if moved_so_far >= batch_limit:
-                print(f"Batch limit {batch_limit} reached.")
-                return moved_so_far, True
-    return moved_so_far, False
+                diff_files.append((src_file, rel, fname))
+    return diff_files
 
 def main():
     dir1 = input("Enter path to the first folder: ").strip()
@@ -79,9 +67,17 @@ def main():
         src_folder = rel_to_src[rel]
         tgt_folder = rel_to_tgt[rel]
         print(f"Comparing [{idx}/{len(common)}]: {src_folder} <-> {tgt_folder}")
-        moved, stop = compare_and_move(src_folder, tgt_folder, source_root, target_root, batch_limit, moved)
-        if stop:
-            break
+        diff_files = get_different_files(src_folder, tgt_folder, source_root)
+        for src_file, rel_path, fname in diff_files:
+            dest_dir = os.path.join(tgt_folder, 'duplicated', rel_path)
+            os.makedirs(dest_dir, exist_ok=True)
+            dest = os.path.join(dest_dir, fname)
+            shutil.move(src_file, dest)
+            print(f"Moved {src_file} -> {dest}")
+            moved += 1
+            if moved >= batch_limit:
+                print(f"Batch limit {batch_limit} reached.")
+                return
     print(f"Done. Moved {moved} non-identical files from {source_root} to {target_root}/duplicated.")
 
 if __name__ == "__main__":
