@@ -31,7 +31,7 @@
   <!-- Automation -->
   <g transform="translate(420, 80)">
     <rect x="0" y="0" width="350" height="200" rx="10" fill="#e6f4ea" stroke="#34a853" stroke-width="2"/>
-    <text x="175" y="30" text-anchor="middle" font-family="Arial" font-size="20" font-weight="bold" fill="#188038">Automation & Pipelines</text>
+    <text x="175" y="30" text-anchor="middle" font-family="Arial" font-size="20" font-weight="bold" fill="#188038">Automation &amp; Pipelines</text>
     
     <!-- Simple Pipeline -->
     <rect x="20" y="50" width="150" height="40" rx="5" fill="#fff" stroke="#34a853"/>

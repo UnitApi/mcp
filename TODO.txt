@@ -5,4 +5,7 @@ A container simulating a Raspberry Pi
 A client container simulating a PC that can test the Raspberry Pi with the LLM model
 Let me first check the existing Docker setup to understand what's already there, then create the new Docker files in the rpi_control directory.
 
-I'll create a Docker setup in the rpi_control directory to simulate a Raspberry Pi environment for testing. Let's first check the existing Docker configuration to understand what's already in place.
+I'll create a Docker setup in the rpi_control directory to simulate a Raspberry Pi environmnt for testing. Let's first check the existing Docker configuration to understand what's already in place.
+
+/home/tom/dev
+/home/tom/Projects/dev

@@ -58,7 +58,7 @@ for pkg in "${PKGS[@]}"; do
     fi
     # Ograniczamy do 20 dla szybkości
     # Możesz usunąć powyższy warunek, by sprawdzić wszystkie
-fi
+done
 
 if [ ${#UNUSED_PKGS[@]} -eq 0 ]; then
     echo "Brak nieużywanych aplikacji."

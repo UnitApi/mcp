@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.34] - 2025-05-02
+
+### Added
+- Changes in toolbox/README.md
+- Changes in toolbox/batch_compare_folders.py
+- Changes in toolbox/clean_empty_dirs.py
+- Changes in toolbox/compare_folders.py
+- Changes in toolbox/find_big_files.py
+- Changes in toolbox/media_deduplicate.py
+- Changes in toolbox/menu.py
+- Changes in toolbox/move_batch_duplicates.py
+- Changes in toolbox/move_duplicate_folders.py
+- Changes in toolbox/move_nonidentical_files.py
+
 ## [0.1.33] - 2025-05-02
 
 ### Added

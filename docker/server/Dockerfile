@@ -26,8 +26,7 @@ RUN pip install --no-cache-dir \
     pillow \
     pydub \
     simpleaudio \
-    numpy \
-    mcp
+    numpy
 
 # Copy the server script
 COPY docker/server/hardware_server.py /app/

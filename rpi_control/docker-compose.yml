@@ -3,12 +3,12 @@ version: '3'
 services:
   rpi-simulator:
     build:
-      context: ../../
-      dockerfile: rpi_control/docker/rpi/Dockerfile
+      context: .
+      dockerfile: rpi/Dockerfile
     ports:
       - "8080:8080"
     volumes:
-      - ../examples:/app/examples
+      - ./examples:/app/examples
     environment:
       - PYTHONUNBUFFERED=1
       - HOST=0.0.0.0
@@ -30,10 +30,10 @@ services:
 
   test-client:
     build:
-      context: ../../
-      dockerfile: rpi_control/docker/client/Dockerfile
+      context: .
+      dockerfile: client/Dockerfile
     volumes:
-      - ../examples:/app/examples
+      - ./examples:/app/examples
     environment:
       - PYTHONUNBUFFERED=1
       - RPI_HOST=rpi-simulator
