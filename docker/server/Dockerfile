@@ -8,16 +8,15 @@ RUN apt-get update && apt-get install -y \
     g++ \
     make \
     python3-dev \
-    libasound2-dev \
     portaudio19-dev \
-    libportaudio2 \
-    libportaudiocpp0 \
+    libasound2-dev \
+    linux-headers-amd64 \
+    linux-libc-dev \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the source code

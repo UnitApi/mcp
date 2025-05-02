@@ -14,8 +14,9 @@ import sys
 from typing import Dict, Any, List, Optional
 
 import httpx
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+import unitmcp
+from unitmcp import ClientSession, StdioServerParameters
+from unitmcp.client.stdio import stdio_client
 
 # Configure logging
 logging.basicConfig(
@@ -160,7 +161,7 @@ class MCPRaspberryPiController:
         """
         self.host = host
         self.port = port
-        self.session: Optional[ClientSession] = None
+        self.session: Optional[unitmcp.ClientSession] = None
         self.tools_info = []
     
     async def connect(self):
@@ -206,15 +207,15 @@ async def main():
 asyncio.run(main())
 """]
         
-        server_params = StdioServerParameters(
+        server_params = unitmcp.StdioServerParameters(
             command=server_command,
             args=server_args,
             env=os.environ
         )
         
         try:
-            read_stream, write_stream = await stdio_client(server_params)
-            self.session = ClientSession(read_stream, write_stream)
+            read_stream, write_stream = await unitmcp.stdio_client(server_params)
+            self.session = unitmcp.ClientSession(read_stream, write_stream)
             await self.session.initialize()
             logger.info(f"Connected to MCP server at {self.host}:{self.port}")
             
@@ -371,94 +372,99 @@ async def ensure_model_available(client: OllamaClient, model_name: str) -> bool:
 
 async def main():
     """Main function."""
-    # Create Ollama client
-    ollama_client = OllamaClient(OLLAMA_HOST, OLLAMA_PORT, OLLAMA_MODEL)
-    
-    # Ensure model is available
-    model_available = await ensure_model_available(ollama_client, OLLAMA_MODEL)
-    if not model_available:
-        logger.error(f"Model {OLLAMA_MODEL} is not available")
-        sys.exit(1)
-    
-    # Create MCP Raspberry Pi controller
-    controller = MCPRaspberryPiController(RPI_HOST, RPI_PORT)
-    
     try:
-        # Connect to MCP server
-        await controller.connect()
+        # Create Ollama client
+        ollama_client = OllamaClient(OLLAMA_HOST, OLLAMA_PORT, OLLAMA_MODEL)
         
-        # Get tools description
-        tools_description = controller.get_tools_description()
+        # Ensure model is available
+        model_available = await ensure_model_available(ollama_client, OLLAMA_MODEL)
+        if not model_available:
+            logger.error(f"Model {OLLAMA_MODEL} is not available")
+            sys.exit(1)
         
-        # Create system message with tools description
-        system_message = (
-            "You are a helpful assistant that controls a Raspberry Pi through an MCP server. "
-            "You have access to the following tools to control the Raspberry Pi hardware:\n\n"
-            f"{tools_description}\n\n"
-            "When you need to control the Raspberry Pi hardware, respond with a JSON object in this format:\n"
-            "```json\n"
-            "{\n"
-            '  "tool": "tool_name",\n'
-            '  "arguments": {\n'
-            '    "arg1": "value1",\n'
-            '    "arg2": "value2"\n'
-            "  }\n"
-            "}\n"
-            "```\n\n"
-            "If you don't need to control hardware, respond conversationally. "
-            "Always be helpful, clear, and concise."
-        )
+        # Create MCP Raspberry Pi controller
+        controller = MCPRaspberryPiController(RPI_HOST, RPI_PORT)
         
-        # Start conversation
-        messages = [{"role": "system", "content": system_message}]
-        
-        print("\nRaspberry Pi Control Assistant\n")
-        print("Type 'exit' or 'quit' to end the conversation.")
-        print("Type your commands in natural language to control the Raspberry Pi.\n")
-        
-        while True:
-            # Get user input
-            user_input = input("You: ")
+        try:
+            # Connect to MCP server
+            await controller.connect()
             
-            if user_input.lower() in ["exit", "quit"]:
-                break
+            # Get tools description
+            tools_description = controller.get_tools_description()
             
-            # Add user message
-            messages.append({"role": "user", "content": user_input})
+            # Create system message with tools description
+            system_message = (
+                "You are a helpful assistant that controls a Raspberry Pi through an MCP server. "
+                "You have access to the following tools to control the Raspberry Pi hardware:\n\n"
+                f"{tools_description}\n\n"
+                "When you need to control the Raspberry Pi hardware, respond with a JSON object in this format:\n"
+                "```json\n"
+                "{\n"
+                '  "tool": "tool_name",\n'
+                '  "arguments": {\n'
+                '    "arg1": "value1",\n'
+                '    "arg2": "value2"\n'
+                "  }\n"
+                "}\n"
+                "```\n\n"
+                "If you don't need to control hardware, respond conversationally. "
+                "Always be helpful, clear, and concise."
+            )
             
-            # Get LLM response
-            print("Assistant: ", end="", flush=True)
-            llm_response = await ollama_client.get_response(messages)
-            print(llm_response)
+            # Start conversation
+            messages = [{"role": "system", "content": system_message}]
             
-            # Process LLM response
-            result = await process_llm_response(llm_response, controller)
+            print("\nRaspberry Pi Control Assistant\n")
+            print("Type 'exit' or 'quit' to end the conversation.")
+            print("Type your commands in natural language to control the Raspberry Pi.\n")
             
-            if result != llm_response:
-                # Add assistant message
-                messages.append({"role": "assistant", "content": llm_response})
+            while True:
+                # Get user input
+                user_input = input("You: ")
                 
-                # Add system message with tool result
-                messages.append({"role": "system", "content": result})
+                if user_input.lower() in ["exit", "quit"]:
+                    break
                 
-                # Get final response
+                # Add user message
+                messages.append({"role": "user", "content": user_input})
+                
+                # Get LLM response
                 print("Assistant: ", end="", flush=True)
-                final_response = await ollama_client.get_response(messages)
-                print(final_response)
+                llm_response = await ollama_client.get_response(messages)
+                print(llm_response)
                 
-                # Add final response
-                messages.append({"role": "assistant", "content": final_response})
-            else:
-                # Add assistant message
-                messages.append({"role": "assistant", "content": llm_response})
+                # Process LLM response
+                result = await process_llm_response(llm_response, controller)
+                
+                if result != llm_response:
+                    # Add assistant message
+                    messages.append({"role": "assistant", "content": llm_response})
+                    
+                    # Add system message with tool result
+                    messages.append({"role": "system", "content": result})
+                    
+                    # Get final response
+                    print("Assistant: ", end="", flush=True)
+                    final_response = await ollama_client.get_response(messages)
+                    print(final_response)
+                    
+                    # Add final response
+                    messages.append({"role": "assistant", "content": final_response})
+                else:
+                    # Add assistant message
+                    messages.append({"role": "assistant", "content": llm_response})
+        
+        except ConnectionRefusedError as e:
+            print(f"Could not connect to MCP server: {e}")
+        
+        finally:
+            # Disconnect from MCP server
+            await controller.disconnect()
     
     except Exception as e:
         logger.error(f"Error: {e}")
-    
-    finally:
-        # Disconnect from MCP server
-        await controller.disconnect()
 
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())

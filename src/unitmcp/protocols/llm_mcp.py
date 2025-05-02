@@ -5,11 +5,16 @@ llm_mcp.py
 """Integration of MCP Python SDK for LLM-based hardware control."""
 
 import asyncio
-import logging
 import os
 from typing import Dict, Any, Optional, List, Callable, Awaitable
 
-from mcp.server.fastmcp import FastMCP, Context
+try:
+    from mcp.server.fastmcp import FastMCP, Context
+except ImportError:
+    FastMCP = None
+    Context = None
+    import logging
+    logging.getLogger("LLM_MCP").warning("FastMCP not available. LLM MCP features will be disabled.")
 
 # Import MCPHardwareClient lazily to avoid circular imports
 from ..utils.logger import get_logger
@@ -46,8 +51,9 @@ class LLMMCPHardwareServer:
         self.rpi_host = rpi_host
         self.rpi_port = rpi_port
         self.dependencies = dependencies or []
-
-        # Create FastMCP server
+        if FastMCP is None:
+            # Do not initialize FastMCP-related features if not available
+            return
         self.mcp = FastMCP(server_name, dependencies=self.dependencies)
 
         # Hardware client instance (lazy initialization)

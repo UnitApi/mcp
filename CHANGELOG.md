@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.41] - 2025-05-02
+
+### Added
+- Changes in rpi_control/examples/port.py
+- Changes in rpi_control/examples/run_port_example.sh
+- Changes in src/unitmcp/server/server_main.py
+
 ## [0.1.40] - 2025-05-02
 
 ## [0.1.39] - 2025-05-02

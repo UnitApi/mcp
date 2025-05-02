@@ -20,7 +20,6 @@ RUN pip install --no-cache-dir -e .
 
 # Install additional dependencies for LLM client
 RUN pip install --no-cache-dir \
-    mcp \
     httpx \
     python-dotenv \
     ollama
@@ -28,12 +27,12 @@ RUN pip install --no-cache-dir \
 # Copy the client script
 COPY rpi_control/client/llm_client.py /app/
 
-# Set environment variables
-ENV RPI_HOST=rpi-simulator
-ENV RPI_PORT=8080
-ENV OLLAMA_HOST=llm-model
-ENV OLLAMA_PORT=11434
-ENV OLLAMA_MODEL=llama2
+# Remove hardcoded ENV variables to rely solely on docker-compose env_file
+# ENV RPI_HOST=rpi-simulator
+# ENV RPI_PORT=8080
+# ENV OLLAMA_HOST=llm-model
+# ENV OLLAMA_PORT=11434
+# ENV OLLAMA_MODEL=llama2
 
 # Run the client
 CMD ["python", "llm_client.py"]

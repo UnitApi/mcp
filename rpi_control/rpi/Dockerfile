@@ -27,6 +27,9 @@ COPY setup.py /app/
 COPY requirements.txt /app/
 COPY rpi_control/requirements.txt /app/rpi_requirements.txt
 
+# Ensure .env.docker is copied for docker-compose variable substitution (if needed)
+COPY rpi_control/.env.docker /app/.env.docker
+
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir -r rpi_requirements.txt
