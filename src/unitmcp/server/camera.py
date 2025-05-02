@@ -10,7 +10,7 @@ import io
 from typing import Dict, Any, Optional, List
 
 from .base import MCPServer
-from ..protocols.mcp import MCPRequest, MCPResponse, MCPErrorCode
+from ..protocols.hardware_protocol import MCPRequest, MCPResponse, MCPErrorCode
 
 try:
     import cv2

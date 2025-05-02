@@ -9,7 +9,7 @@ import platform
 from typing import Dict, List
 
 from .base import MCPServer
-from ..protocols.mcp import MCPRequest, MCPResponse, MCPErrorCode
+from ..protocols.hardware_protocol import MCPRequest, MCPResponse, MCPErrorCode
 
 # Check if tkinter is available
 try:

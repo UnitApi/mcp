@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.31] - 2025-05-02
+
+### Added
+- Changes in README_LLM_HARDWARE.md
+- Changes in docker-compose.yml
+- Changes in docker/README.md
+- Changes in docker/client/Dockerfile
+- Changes in docker/client/llm_client.py
+- Changes in docker/server/Dockerfile
+- Changes in docker/server/hardware_server.py
+- Changes in src/unitmcp/protocols/hardware_protocol.py
+
+### Changed
+- Changes in src/unitmcp/protocols/__init__.py
+- Changes in src/unitmcp/server/camera.py
+
+### Security
+- Changes in src/unitmcp/server/base.py
+
 ## [0.1.30] - 2025-05-02
 
 ### Added

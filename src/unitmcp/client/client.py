@@ -9,7 +9,7 @@ import json
 import time
 from typing import Dict, Any, Optional
 
-from ..protocols.mcp import MCPRequest, MCPResponse
+from ..protocols.hardware_protocol import MCPRequest, MCPResponse
 from ..utils.logger import get_logger
 
 

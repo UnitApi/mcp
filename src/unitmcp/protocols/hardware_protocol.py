@@ -1,8 +1,8 @@
 """
-mcp.py
+hardware_protocol.py
 """
 
-"""MCP Protocol definitions."""
+"""Hardware control protocol definitions using JSON-RPC format."""
 
 from dataclasses import dataclass
 from typing import Dict, Any, Optional
@@ -11,7 +11,7 @@ from enum import Enum
 
 
 class MCPErrorCode(Enum):
-    """Standard MCP error codes."""
+    """Standard error codes for hardware protocol."""
 
     PARSE_ERROR = -32700
     INVALID_REQUEST = -32600
@@ -24,7 +24,7 @@ class MCPErrorCode(Enum):
 
 @dataclass
 class MCPRequest:
-    """MCP request format."""
+    """Hardware control request format."""
 
     id: str
     method: str
@@ -50,7 +50,7 @@ class MCPRequest:
 
 @dataclass
 class MCPResponse:
-    """MCP response format."""
+    """Hardware control response format."""
 
     id: str
     result: Optional[Dict[str, Any]] = None

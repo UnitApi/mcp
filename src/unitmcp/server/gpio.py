@@ -8,7 +8,7 @@ from typing import Dict, Any
 import platform
 
 from .base import MCPServer
-from ..protocols.mcp import MCPRequest, MCPResponse, MCPErrorCode
+from ..protocols.hardware_protocol import MCPRequest, MCPResponse, MCPErrorCode
 
 # Check if we're on a Raspberry Pi
 IS_RPI = platform.machine() in ["armv7l", "aarch64"]

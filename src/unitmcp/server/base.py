@@ -10,7 +10,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional
 
-from ..protocols.mcp import MCPRequest, MCPResponse, MCPErrorCode
+from ..protocols.hardware_protocol import MCPRequest, MCPResponse, MCPErrorCode
 from ..security.permissions import PermissionManager
 from ..utils.logger import get_logger
 

@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  hardware-server:
+    build:
+      context: .
+      dockerfile: docker/server/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./docker/server:/app/docker/server
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - hardware-network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - hardware-network
+
+  hardware-client:
+    build:
+      context: .
+      dockerfile: docker/client/Dockerfile
+    volumes:
+      - ./docker/client:/app/docker/client
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HARDWARE_SERVER_HOST=hardware-server
+      - HARDWARE_SERVER_PORT=8080
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+    depends_on:
+      - hardware-server
+      - ollama
+    networks:
+      - hardware-network
+    stdin_open: true
+    tty: true
+
+networks:
+  hardware-network:
+    driver: bridge
+
+volumes:
+  ollama-data:
