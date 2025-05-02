@@ -4,11 +4,16 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    gcc \
+    libasound2-dev \
+    python3-dev \
+    linux-headers-amd64 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
+    portaudio19-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the source code

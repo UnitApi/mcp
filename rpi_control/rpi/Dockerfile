@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir \
     mcp
 
 # Copy the hardware server script
-COPY rpi_control/docker/rpi/hardware_server.py /app/
+COPY rpi_control/rpi/hardware_server.py /app/
 
 # Expose the port for the hardware server
 EXPOSE 8080

@@ -5,6 +5,10 @@ WORKDIR /app
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     curl \
+    gcc \
+    portaudio19-dev \
+    linux-headers-amd64 \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the source code

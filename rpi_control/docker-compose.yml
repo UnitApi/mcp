@@ -3,8 +3,8 @@ version: '3'
 services:
   rpi-simulator:
     build:
-      context: .
-      dockerfile: rpi/Dockerfile
+      context: ..
+      dockerfile: rpi_control/rpi/Dockerfile
     ports:
       - "8080:8080"
     volumes:
@@ -30,8 +30,8 @@ services:
 
   test-client:
     build:
-      context: .
-      dockerfile: client/Dockerfile
+      context: ..
+      dockerfile: rpi_control/client/Dockerfile
     volumes:
       - ./examples:/app/examples
     environment:

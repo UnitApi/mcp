@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.37] - 2025-05-02
+
 ## [0.1.36] - 2025-05-02
 
 ### Removed

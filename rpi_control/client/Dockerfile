@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir \
     ollama
 
 # Copy the client script
-COPY rpi_control/docker/client/llm_client.py /app/
+COPY rpi_control/client/llm_client.py /app/
 
 # Set environment variables
 ENV RPI_HOST=rpi-simulator
