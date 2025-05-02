@@ -17,8 +17,11 @@ if [ ! -f "$SAMPLE_WAV" ]; then
     ffmpeg -f lavfi -i "sine=frequency=440:duration=3" -c:a pcm_s16le -ar 44100 "$SAMPLE_WAV"
 fi
 
+SCRIPT_DIR="$(dirname "$0")"
+EXAMPLES_DIR="$SCRIPT_DIR"
+
 # Play the sample audio file
 echo "Playing sample audio file using speaker_control.py..."
-python speaker_control.py --file "$SAMPLE_WAV"
+python "$EXAMPLES_DIR/speaker_control.py" "$SAMPLE_WAV"
 
 echo "Done!"

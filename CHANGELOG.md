@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.42] - 2025-05-02
+
+### Added
+- Changes in rpi_control/examples/simple_client.py
+- Changes in rpi_control/examples/simple_server.py
+- Changes in rpi_control/prepare_audio_files.sh
+- Changes in rpi_control/run_all_examples.sh
+- Changes in rpi_control/run_example.sh
+- Changes in rpi_control/run_speaker_with_server.sh
+- Changes in rpi_control/start_mcp_server.sh
+
+### Changed
+- Changes in rpi_control/README.md
+- Changes in rpi_control/examples/play_sample_audio.sh
+- Changes in rpi_control/examples/speaker_control.py
+
+### Fixed
+- Changes in rpi_control/examples/llm_hardware_control.py
+
 ## [0.1.41] - 2025-05-02
 
 ### Added

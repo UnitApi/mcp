@@ -13,18 +13,28 @@ import json
 import argparse
 from typing import Dict, Any, List
 
-from dotenv import load_dotenv
 from unitmcp.protocols import get_llm_mcp_hardware_server
 
 # Get the LLMMCPHardwareServer class
 LLMMCPHardwareServer = get_llm_mcp_hardware_server()
 
-# Load environment variables
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
+# Get environment variables with command line overrides
+def parse_args():
+    parser = argparse.ArgumentParser(description='LLM Hardware Control Example')
+    parser.add_argument('--host', type=str, default=os.getenv('RPI_HOST', 'localhost'),
+                        help='Host to bind to (default: from RPI_HOST env var or localhost)')
+    parser.add_argument('--port', type=int, default=int(os.getenv('RPI_PORT', '8080')),
+                        help='Port to bind to (default: from RPI_PORT env var or 8080)')
+    parser.add_argument(
+        "--server-name",
+        default="Hardware Control",
+        help="Name of the MCP server (default: Hardware Control)"
+    )
+    return parser.parse_args()
 
-# Get environment variables
-RPI_HOST = os.getenv('RPI_HOST', 'localhost')
-RPI_PORT = int(os.getenv('RPI_PORT', '8080'))
+args = parse_args()
+RPI_HOST = args.host
+RPI_PORT = args.port
 
 # Configure logging
 logging.basicConfig(
@@ -34,29 +44,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def parse_args():
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(description="LLM Hardware Control Example")
-    parser.add_argument(
-        "--host", 
-        default=RPI_HOST,
-        help=f"Raspberry Pi hostname or IP address (default: {RPI_HOST})"
-    )
-    parser.add_argument(
-        "--port", 
-        type=int, 
-        default=RPI_PORT,
-        help=f"Raspberry Pi port (default: {RPI_PORT})"
-    )
-    parser.add_argument(
-        "--server-name",
-        default="Hardware Control",
-        help="Name of the MCP server (default: Hardware Control)"
-    )
-    return parser.parse_args()
-
-
-async def custom_tool_example(server: LLMMCPHardwareServer):
+def custom_tool_example(server: LLMMCPHardwareServer):
     """Example of adding a custom tool to the server."""
     
     @server.register_tool
@@ -133,8 +121,16 @@ async def custom_tool_example(server: LLMMCPHardwareServer):
 
 def main():
     """Main function."""
-    args = parse_args()
     
+    # DEBUG: Print env and args for troubleshooting
+    print(f"[DEBUG] RPI_HOST from env: {os.getenv('RPI_HOST', 'localhost')}")
+    print(f"[DEBUG] RPI_PORT from env: {os.getenv('RPI_PORT', '8080')}")
+    print(f"[DEBUG] Args.host: {args.host}")
+    print(f"[DEBUG] Args.port: {args.port}")
+
+    # Log server binding
+    logger.info(f"[DEBUG] MCP server will bind to {args.host}:{args.port}")
+
     # Create LLM MCP Hardware Server
     server = LLMMCPHardwareServer(
         server_name=args.server_name,

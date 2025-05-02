@@ -41,6 +41,96 @@ sudo apt-get update
 sudo apt-get install -y libasound2-dev ffmpeg
 ```
 
+## Running Speaker Example with MCP Server and Client
+
+To play an audio file (e.g. test.wav or sample_tone.wav) on the MCP hardware server using the speaker example, you can use the provided script to automatically start the server (if not already running), run the client, and stop the server when done.
+
+### Usage
+
+```bash
+# Make sure you are in the rpi_control directory
+chmod +x run_speaker_with_server.sh
+./run_speaker_with_server.sh --host 0.0.0.0 --port 8081 --file test.wav
+```
+
+#### Command Line Arguments
+- `--host`: The host address to bind the server to (default: 0.0.0.0)
+- `--port`: The port to use for the server (default: 8081)
+- `--file`: The audio file to play (default: test.wav)
+
+#### Notes
+- If you use `--file test.wav` and the file does not exist, it will be generated automatically.
+- The script checks if a server is already running at the specified host/port. If not, it starts a new server, waits for it to become ready, and then runs the client with the audio file.
+- When the client finishes, the server is stopped if it was started by the script.
+
+### Example Output
+```
+[LOG] Using server: 0.0.0.0:8081, client will connect to: 127.0.0.1:8081
+[LOG] Starting simplified server at 0.0.0.0:8081...
+[LOG] Server started with PID 371118, logs in server.log
+[LOG] Waiting for server to become ready...
+[LOG] Server is ready.
+[LOG] Playing test.wav on server...
+[LOG] Playback request sent successfully.
+```
+
+### Enhanced Logging
+
+The script now provides comprehensive logging to help diagnose issues across both local and remote machines:
+
+#### Log Files
+- `speaker_script.log`: Main script log with timestamped entries
+- `server.log`: Detailed server logs including system information and connection details
+- `client.log`: Detailed client logs including playback attempts and results
+
+#### System Information Logging
+The script automatically logs detailed system information including:
+- Hostname and OS details
+- Available IP addresses
+- Audio devices detected via `aplay -l`
+- Python version
+- Available disk space
+
+#### Server Logs
+Server logs include:
+- Detailed startup information
+- System environment details
+- Connection tracking (client connects/disconnects)
+- Audio playback attempts and results
+- Error details with full stack traces when available
+
+#### Client Logs
+Client logs include:
+- Connection attempts and results
+- Command details sent to the server
+- Responses received from the server
+- Local playback details when applicable
+
+This enhanced logging makes it much easier to diagnose issues, especially when running on remote Raspberry Pi devices or in distributed environments.
+
+### Simplified Audio Server
+
+The package includes a simplified audio server (`examples/simple_server.py`) that doesn't require complex dependencies. This server:
+
+- Listens on the specified host/port
+- Accepts JSON commands for audio playback
+- Provides detailed logging
+- Can be run directly or via the `run_speaker_with_server.sh` script
+
+### Simplified Audio Client
+
+The package also includes a simplified audio client (`examples/simple_client.py`) that:
+
+- Connects to the server
+- Sends commands to play audio files
+- Can play audio locally or request remote playback
+- Provides detailed error reporting
+
+### Troubleshooting
+- If the server fails to start, check the `server.log` file for error details.
+- If the client fails to connect, ensure the server is running and the host/port settings are correct.
+- For playback issues, check the `client.log` file for error messages.
+
 ## Usage
 
 To install and start a demo client in one step:
@@ -182,7 +272,7 @@ For troubleshooting, see script output and comments in each script.
   cd remote
   bash install.sh
   ```
-  This will install all required system and Python dependencies in a virtual environment (`venv`).
+  This will install all required system and Python dependencies in a Python virtual environment (`venv`).
 - To use the environment later, activate it with:
   ```bash
   source venv/bin/activate
