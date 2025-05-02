@@ -106,8 +106,26 @@ run_remote_server() {
     cat > /tmp/start_server.sh << EOF
 #!/bin/bash
 cd $REMOTE_DIR
-python3 hardware_server.py --host '$HOST' --port '$PORT' > server.log 2>&1 &
+# Use nohup to ensure the server keeps running even if the SSH session ends
+nohup python3 hardware_server.py --host '$HOST' --port '$PORT' > server.log 2>&1 &
 echo \$! > server.pid
+# Give the server a moment to start
+sleep 2
+# Verify the server is running
+if ! ps -p \$(cat server.pid) > /dev/null; then
+  echo "Server failed to start" >&2
+  exit 1
+fi
+# Verify the server is listening on the port
+for i in {1..5}; do
+  if nc -z -w 1 127.0.0.1 $PORT; then
+    echo "Server is listening on port $PORT"
+    exit 0
+  fi
+  sleep 1
+done
+echo "Server is not listening on port $PORT after 5 seconds" >&2
+exit 1
 EOF
     
     # Copy the startup script to the remote host
@@ -124,28 +142,28 @@ EOF
     
     # Start the server using the script
     log "INFO" "Starting server on remote host at $HOST:$PORT"
-    ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
-    sleep 3  # Give the server a moment to start
+    SERVER_START_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh" 2>&1)
+    SERVER_START_EXIT_CODE=$?
+    
+    if [[ $SERVER_START_EXIT_CODE -ne 0 ]]; then
+        log "ERROR" "Failed to start server (exit code: $SERVER_START_EXIT_CODE)"
+        log "ERROR" "Server startup output:"
+        echo "$SERVER_START_OUTPUT" | while read -r line; do
+            log "ERROR" "  $line"
+        done
+        exit 1
+    else
+        log "INFO" "Server startup output:"
+        echo "$SERVER_START_OUTPUT" | while read -r line; do
+            log "INFO" "  $line"
+        done
+    fi
     
     # Get the server PID from the pid file
     REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
     
     if [[ -z "$REMOTE_SERVER_PID" ]]; then
         log "ERROR" "Failed to get server PID from pid file"
-        # Show any error logs
-        REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then cat '$REMOTE_DIR/server.log'; fi")
-        if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
-            log "ERROR" "Remote server log:"
-            echo "$REMOTE_ERROR_LOGS" | while read -r line; do
-                log "ERROR" "  $line"
-            done
-        fi
-        exit 1
-    fi
-    
-    # Verify the process is actually running
-    if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
-        log "ERROR" "Server process is not running (PID: $REMOTE_SERVER_PID)"
         # Show any error logs
         REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then cat '$REMOTE_DIR/server.log'; fi")
         if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
@@ -240,78 +258,106 @@ EOF
         # Verify server is still running
         if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
             log "ERROR" "Server process is no longer running, restarting..."
-            ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
-            sleep 3
-            REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
-            log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
-        fi
-        
-        # Verify server is listening
-        if ! ssh "$REMOTE_USER@$REMOTE_HOST" "nc -z -w 1 127.0.0.1 $PORT" 2>/dev/null; then
-            log "ERROR" "Server is not listening on port $PORT, restarting..."
-            ssh "$REMOTE_USER@$REMOTE_HOST" "kill -9 $REMOTE_SERVER_PID 2>/dev/null || true"
-            ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
-            sleep 3
-            REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
-            log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
-        fi
-        
-        # Set pin HIGH
-        log "INFO" "Setting GPIO pin $PIN to HIGH"
-        GPIO_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $PIN --state on" 2>&1)
-        GPIO_EXIT_CODE=$?
-        if [[ $GPIO_EXIT_CODE -ne 0 ]]; then
-            log "ERROR" "Failed to set GPIO pin $PIN to HIGH (exit code: $GPIO_EXIT_CODE)"
-            log "ERROR" "Output: $GPIO_OUTPUT"
+            SERVER_START_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh" 2>&1)
+            SERVER_START_EXIT_CODE=$?
             
-            # Check server logs for any issues
-            REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then tail -n 20 '$REMOTE_DIR/server.log'; fi")
-            if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
-                log "ERROR" "Recent server logs:"
-                echo "$REMOTE_ERROR_LOGS" | while read -r line; do
+            if [[ $SERVER_START_EXIT_CODE -ne 0 ]]; then
+                log "ERROR" "Failed to restart server (exit code: $SERVER_START_EXIT_CODE)"
+                log "ERROR" "Server restart output:"
+                echo "$SERVER_START_OUTPUT" | while read -r line; do
                     log "ERROR" "  $line"
                 done
+                exit 1
             fi
-        else
-            log "SUCCESS" "GPIO pin $PIN set to HIGH"
-            echo "$GPIO_OUTPUT" | while read -r line; do
-                log "GPIO_HIGH" "  $line"
-            done
+            
+            REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
+            log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
         fi
+        
+        # Set pin HIGH with retry mechanism
+        log "INFO" "Setting GPIO pin $PIN to HIGH"
+        MAX_RETRIES=3
+        for ((retry=1; retry<=MAX_RETRIES; retry++)); do
+            GPIO_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $PIN --state on" 2>&1)
+            GPIO_EXIT_CODE=$?
+            
+            if [[ $GPIO_EXIT_CODE -eq 0 ]]; then
+                log "SUCCESS" "GPIO pin $PIN set to HIGH"
+                echo "$GPIO_OUTPUT" | while read -r line; do
+                    log "GPIO_HIGH" "  $line"
+                done
+                break
+            else
+                log "WARNING" "Attempt $retry/$MAX_RETRIES: Failed to set GPIO pin $PIN to HIGH (exit code: $GPIO_EXIT_CODE)"
+                
+                if [[ $retry -eq $MAX_RETRIES ]]; then
+                    log "ERROR" "All attempts to set GPIO pin $PIN to HIGH failed"
+                    log "ERROR" "Last output: $GPIO_OUTPUT"
+                    
+                    # Check server logs for any issues
+                    REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then tail -n 20 '$REMOTE_DIR/server.log'; fi")
+                    if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
+                        log "ERROR" "Recent server logs:"
+                        echo "$REMOTE_ERROR_LOGS" | while read -r line; do
+                            log "ERROR" "  $line"
+                        done
+                    fi
+                else
+                    # Verify server is still running before retry
+                    if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
+                        log "WARNING" "Server process died, restarting before retry..."
+                        ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh" > /dev/null 2>&1
+                        REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
+                        log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
+                    fi
+                    log "INFO" "Retrying in 2 seconds..."
+                    sleep 2
+                fi
+            fi
+        done
         
         sleep 1
         
-        # Verify server is still running before setting pin LOW
-        if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
-            log "ERROR" "Server process is no longer running, restarting..."
-            ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh"
-            sleep 3
-            REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
-            log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
-        fi
-        
-        # Set pin LOW
+        # Set pin LOW with retry mechanism
         log "INFO" "Setting GPIO pin $PIN to LOW"
-        GPIO_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $PIN --state off" 2>&1)
-        GPIO_EXIT_CODE=$?
-        if [[ $GPIO_EXIT_CODE -ne 0 ]]; then
-            log "ERROR" "Failed to set GPIO pin $PIN to LOW (exit code: $GPIO_EXIT_CODE)"
-            log "ERROR" "Output: $GPIO_OUTPUT"
+        for ((retry=1; retry<=MAX_RETRIES; retry++)); do
+            GPIO_OUTPUT=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cd $REMOTE_DIR && python3 hardware_client.py --host 127.0.0.1 --port $PORT --command gpio --pin $PIN --state off" 2>&1)
+            GPIO_EXIT_CODE=$?
             
-            # Check server logs for any issues
-            REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then tail -n 20 '$REMOTE_DIR/server.log'; fi")
-            if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
-                log "ERROR" "Recent server logs:"
-                echo "$REMOTE_ERROR_LOGS" | while read -r line; do
-                    log "ERROR" "  $line"
+            if [[ $GPIO_EXIT_CODE -eq 0 ]]; then
+                log "SUCCESS" "GPIO pin $PIN set to LOW"
+                echo "$GPIO_OUTPUT" | while read -r line; do
+                    log "GPIO_LOW" "  $line"
                 done
+                break
+            else
+                log "WARNING" "Attempt $retry/$MAX_RETRIES: Failed to set GPIO pin $PIN to LOW (exit code: $GPIO_EXIT_CODE)"
+                
+                if [[ $retry -eq $MAX_RETRIES ]]; then
+                    log "ERROR" "All attempts to set GPIO pin $PIN to LOW failed"
+                    log "ERROR" "Last output: $GPIO_OUTPUT"
+                    
+                    # Check server logs for any issues
+                    REMOTE_ERROR_LOGS=$(ssh "$REMOTE_USER@$REMOTE_HOST" "if [[ -f '$REMOTE_DIR/server.log' ]]; then tail -n 20 '$REMOTE_DIR/server.log'; fi")
+                    if [[ ! -z "$REMOTE_ERROR_LOGS" ]]; then
+                        log "ERROR" "Recent server logs:"
+                        echo "$REMOTE_ERROR_LOGS" | while read -r line; do
+                            log "ERROR" "  $line"
+                        done
+                    fi
+                else
+                    # Verify server is still running before retry
+                    if ! ssh "$REMOTE_USER@$REMOTE_HOST" "ps -p $REMOTE_SERVER_PID > /dev/null 2>&1"; then
+                        log "WARNING" "Server process died, restarting before retry..."
+                        ssh "$REMOTE_USER@$REMOTE_HOST" "$REMOTE_DIR/start_server.sh" > /dev/null 2>&1
+                        REMOTE_SERVER_PID=$(ssh "$REMOTE_USER@$REMOTE_HOST" "cat $REMOTE_DIR/server.pid 2>/dev/null")
+                        log "INFO" "Server restarted with PID $REMOTE_SERVER_PID"
+                    fi
+                    log "INFO" "Retrying in 2 seconds..."
+                    sleep 2
+                fi
             fi
-        else
-            log "SUCCESS" "GPIO pin $PIN set to LOW"
-            echo "$GPIO_OUTPUT" | while read -r line; do
-                log "GPIO_LOW" "  $line"
-            done
-        fi
+        done
         
         log "INFO" "GPIO pin $PIN toggling completed"
     fi

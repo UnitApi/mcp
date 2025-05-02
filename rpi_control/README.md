@@ -156,7 +156,15 @@ The package also includes a simplified audio client (`examples/simple_client.py`
 
 ## Hardware Control Script
 
-Similar to the audio playback script, we've created a script to control hardware on a Raspberry Pi. This script can run both locally and remotely, and supports GPIO and I2C operations.
+The `run_hardware_with_server.sh` script provides a robust way to control hardware on a Raspberry Pi. This script can run both locally and remotely, and supports GPIO and I2C operations with enhanced reliability features.
+
+### Key Features
+
+- **Robust Server Management**: Automatically starts, verifies, and manages the hardware server
+- **Reliable GPIO Control**: Includes retry mechanisms and comprehensive error handling
+- **Detailed Logging**: Provides extensive logging for troubleshooting
+- **Remote Execution**: Can run on a remote Raspberry Pi via SSH
+- **Configurable**: Uses environment variables (.env file) or command-line options
 
 ### Usage
 
@@ -199,34 +207,81 @@ Similar to the audio playback script, we've created a script to control hardware
 - `--local`: Force local mode even if remote settings exist in .env
 - `--help`: Show help message
 
-### Hardware Commands
+### Environment Variables
 
-1. **status**: Get system and hardware status
-   ```bash
-   ./run_hardware_with_server.sh --command status
-   ```
+The script can be configured using a `.env` file with the following variables:
 
-2. **gpio**: Control GPIO pins
-   ```bash
-   ./run_hardware_with_server.sh --command gpio --pin 18 --state on
-   ./run_hardware_with_server.sh --command gpio --pin 18 --state off
-   ```
+```
+# Remote host configuration
+RPI_HOST=192.168.1.100
+RPI_USERNAME=pi
+RPI_PORT=8082
 
-3. **i2c**: Interact with I2C devices
-   ```bash
-   # Read from I2C device
-   ./run_hardware_with_server.sh --command i2c --address 0x48 --register 0x00
-   
-   # Write to I2C device
-   ./run_hardware_with_server.sh --command i2c --address 0x48 --register 0x00 --value 0x42
-   ```
+# GPIO configuration
+GPIO_PIN=17
 
-### Requirements
+# I2C configuration
+I2C_ADDRESS=0x48
+I2C_REGISTER=0x00
+I2C_VALUE=0x42
+```
 
-- Python 3.6 or higher
-- For GPIO control: RPi.GPIO library (automatically detected if available)
-- For I2C control: smbus library (automatically detected if available)
-- SSH access to the remote host (for remote execution)
+### Special GPIO Status Command
+
+When running the status command with a PIN specified, the script will:
+1. Execute the status command to get hardware information
+2. Toggle the specified GPIO pin (HIGH then LOW)
+3. Provide detailed logs of the GPIO state changes
+
+Example:
+```bash
+./run_hardware_with_server.sh --command status --pin 18
+```
+
+### Reliability Features
+
+The script includes several reliability enhancements:
+
+1. **Server Startup Verification**:
+   - Uses `nohup` to ensure the server keeps running after SSH disconnects
+   - Verifies the server is listening on the specified port
+   - Implements timeout mechanisms to prevent hanging
+
+2. **GPIO Command Retry Mechanism**:
+   - Automatically retries failed GPIO commands
+   - Verifies server status before each GPIO operation
+   - Restarts the server if it's not running
+
+3. **Comprehensive Error Handling**:
+   - Detailed error messages for all operations
+   - Server log retrieval for troubleshooting
+   - Exit codes that reflect the success or failure of operations
+
+4. **Detailed Logging**:
+   - Timestamped logs for all operations
+   - System information logging
+   - Command execution and response logging
+
+### Troubleshooting
+
+If you encounter issues with the hardware control script:
+
+1. **Check the Logs**:
+   - The script creates a `hardware_script.log` file with detailed information
+   - Server logs are available in `hardware_server.log`
+   - Client logs are available in `hardware_client.log`
+
+2. **Verify Connectivity**:
+   - Ensure you can SSH to the remote host without password (using SSH keys)
+   - Check that the specified port is not blocked by a firewall
+
+3. **Check GPIO Access**:
+   - Ensure the user has permission to access GPIO pins (usually requires being in the 'gpio' group)
+   - Verify that the GPIO library is installed correctly
+
+4. **Server Issues**:
+   - If the server fails to start, check for port conflicts
+   - Ensure Python and required libraries are installed on the remote host
 
 ## Usage
 
@@ -250,7 +305,9 @@ All Python and shell scripts in this project use a `.env` file for configuration
 - Copy `env.sample` to `.env` and edit as needed:
   ```bash
   cp env.sample .env
+  # Edit .env to set REMOTE, REMOTE_PATH, RPI_USERNAME, etc.
   ```
+
 - Set variables such as:
   - `RPI_HOST`, `RPI_USERNAME`, `RPI_PORT`: Raspberry Pi connection info for Python examples
   - `REMOTE`, `REMOTE_PATH`: Used by `install_remote.sh` for remote installation
