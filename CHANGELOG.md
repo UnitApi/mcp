@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.46] - 2025-05-02
+
+### Added
+- Changes in rpi_control/examples/diagnose_and_setup.py
+- Changes in rpi_control/examples/enhanced_hardware_client.py
+- Changes in rpi_control/examples/enhanced_hardware_server.py
+- Changes in rpi_control/examples/setup_lcd.py
+- Changes in rpi_control/examples/test_lcd.py
+- Changes in rpi_control/examples/test_simulation_mode.py
+- Changes in rpi_control/run_enhanced_hardware.sh
+- Changes in rpi_control/setup/README.md
+- Changes in rpi_control/setup/gpio/setup_gpio.py
+- Changes in rpi_control/setup/i2c/setup_i2c.py
+- Changes in rpi_control/setup/lcd/setup_lcd.py
+- Changes in rpi_control/setup/remote_setup.py
+- Changes in rpi_control/setup/setup_all.py
+- Changes in rpi_control/setup/spi/setup_spi.py
+
+### Fixed
+- Changes in rpi_control/README.md
+
 ## [0.1.45] - 2025-05-02
 
 ## [0.1.44] - 2025-05-02

@@ -283,6 +283,164 @@ If you encounter issues with the hardware control script:
    - If the server fails to start, check for port conflicts
    - Ensure Python and required libraries are installed on the remote host
 
+## Enhanced Hardware Control Script
+
+The `run_enhanced_hardware.sh` script provides a comprehensive solution for controlling various hardware components on a Raspberry Pi, including:
+
+- GPIO pins (digital inputs/outputs)
+- I2C devices (sensors, displays, etc.)
+- LCD displays (character-based displays, typically I2C)
+- Speakers (audio playback and text-to-speech)
+- LED matrices (for visual indicators and displays)
+
+This script works in both local and remote modes, allowing you to control hardware components directly on the Raspberry Pi or from another machine.
+
+### Key Features
+
+- **Multiple Component Support**: Control GPIO pins, I2C devices, LCD displays, speakers, and LED matrices with a unified interface
+- **Remote Execution**: Run the hardware server on a remote Raspberry Pi and control it from another machine
+- **Comprehensive Logging**: Detailed logs of all operations for debugging and monitoring
+- **Automatic Server Management**: Starts, verifies, and stops the hardware server automatically
+- **Error Handling**: Robust error handling with retry mechanisms for failed commands
+- **Flexible Configuration**: Configure via command-line arguments or environment variables in a `.env` file
+
+### Environment Variables
+
+The script can be configured using environment variables in a `.env` file:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `RPI_HOST` | IP address of the Raspberry Pi | None |
+| `RPI_USERNAME` | Username for SSH access | None |
+| `RPI_PORT` | Port for the server | 8082 |
+| `GPIO_PIN` | Default GPIO pin for toggling | None |
+| `I2C_ADDRESS` | Default I2C device address | None |
+| `I2C_REGISTER` | Default I2C register | None |
+| `I2C_VALUE` | Default I2C value to write | None |
+| `LCD_TEXT` | Default text to display on LCD | None |
+| `LCD_LINE` | Default LCD line number | 0 |
+| `AUDIO_FILE` | Default audio file to play | None |
+| `REMOTE_PATH` | Base directory on remote host | /tmp |
+
+### Usage Examples
+
+#### GPIO Control
+
+Toggle a GPIO pin on or off:
+
+```bash
+./run_enhanced_hardware.sh --command gpio --pin 18 --state on
+```
+
+#### I2C Communication
+
+Read from an I2C device:
+
+```bash
+./run_enhanced_hardware.sh --command i2c --address 0x48 --register 0x00
+```
+
+Write to an I2C device:
+
+```bash
+./run_enhanced_hardware.sh --command i2c --address 0x48 --register 0x00 --value 0x42
+```
+
+#### LCD Display Control
+
+Display text on an LCD:
+
+```bash
+./run_enhanced_hardware.sh --command lcd --text "Hello World" --line 0
+```
+
+Clear the LCD display:
+
+```bash
+./run_enhanced_hardware.sh --command lcd --clear
+```
+
+#### Speaker Control
+
+Play a tone:
+
+```bash
+./run_enhanced_hardware.sh --command speaker --sub-action play_tone
+```
+
+Play an audio file:
+
+```bash
+./run_enhanced_hardware.sh --command speaker --sub-action play_file --audio-file /path/to/sound.wav
+```
+
+Text-to-speech:
+
+```bash
+./run_enhanced_hardware.sh --command speaker --sub-action speak --text "Hello, I am your Raspberry Pi"
+```
+
+#### LED Matrix Control
+
+Display text on an LED matrix:
+
+```bash
+./run_enhanced_hardware.sh --command led_matrix --led-action text --text "Hi" --x 0 --y 0
+```
+
+Set a specific pixel:
+
+```bash
+./run_enhanced_hardware.sh --command led_matrix --led-action pixel --x 3 --y 4
+```
+
+Clear the LED matrix:
+
+```bash
+./run_enhanced_hardware.sh --command led_matrix --led-action clear
+```
+
+#### Remote Execution
+
+Control hardware on a remote Raspberry Pi:
+
+```bash
+./run_enhanced_hardware.sh --remote-host 192.168.1.100 --remote-user pi --command gpio --pin 17 --state on
+```
+
+### Reliability Features
+
+- **Server Verification**: Ensures the server is listening on the specified port before sending commands
+- **Automatic Restart**: Restarts the server if it crashes or becomes unresponsive
+- **Timeout Handling**: Implements timeouts to prevent hanging during server startup or command execution
+- **Retry Mechanism**: Automatically retries failed commands with appropriate delays
+
+### Troubleshooting
+
+If you encounter issues:
+
+1. Check the log files (`hardware_script.log`, `hardware_server.log`, and `hardware_client.log`) for error messages
+2. Verify that the required Python libraries are installed on the Raspberry Pi:
+   - `RPi.GPIO` for GPIO control
+   - `smbus` for I2C communication
+   - `RPLCD` for LCD display control
+   - `pygame` or `pydub` for audio playback
+   - `luma.led_matrix` for LED matrix control
+3. Ensure that the Raspberry Pi has the necessary hardware interfaces enabled:
+   - Enable I2C: `sudo raspi-config` → Interfacing Options → I2C → Yes
+   - Enable SPI: `sudo raspi-config` → Interfacing Options → SPI → Yes
+4. For remote execution, ensure SSH access is properly configured
+
+### Dependencies
+
+To use all features, install the following dependencies on the Raspberry Pi:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y python3-pip python3-dev i2c-tools
+sudo pip3 install RPi.GPIO smbus RPLCD pygame pydub luma.led_matrix
+```
+
 ## Usage
 
 To install and start a demo client in one step:
@@ -405,11 +563,12 @@ For troubleshooting, see script output and comments in each script.
 
 ### 1. Configure Environment
 
-- Copy `env.sample` to `.env` in the project root and edit as needed:
-  ```bash
-  cp env.sample .env
-  # Edit .env to set REMOTE, REMOTE_PATH, RPI_USERNAME, etc.
-  ```
+- Copy `env.sample` to `.env` and edit as needed. Important variables:
+  - `RPI_USERNAME` and `RPI_HOST`: Remote SSH credentials
+  - `EXAMPLE`: Example script to run as a service (e.g. `full_demo.py`)
+  - `EXAMPLES_DIR`: Directory on the remote where examples are stored
+  - `PORT`: Port used by the example (for freeing up with `fuser`)
+  - `LOGFILE`: Log file name for the service output
 
 ### 2. Sync Files to Remote (Manual)
 
@@ -426,11 +585,7 @@ For troubleshooting, see script output and comments in each script.
   cd remote
   bash install.sh
   ```
-  This will install all required system and Python dependencies in a Python virtual environment (`venv`).
-- To use the environment later, activate it with:
-  ```bash
-  source venv/bin/activate
-  ```
+  This will install all required system and Python dependencies in a Python virtual environment. The `install_rpi.sh` script specifically avoids dependency conflicts with the `unitmcp` package on Raspberry Pi.
 
 ---
 
