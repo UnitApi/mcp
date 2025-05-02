@@ -1,0 +1,6 @@
+unitmcp
+paho-mqtt
+simpleaudio
+pydub
+# System dependency for simpleaudio (required on Raspberry Pi):
+# sudo apt-get install -y libasound2-dev

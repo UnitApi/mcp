@@ -76,6 +76,9 @@ class MCPHardwareClient:
             if response.error:
                 raise Exception(response.error.get("message", "Unknown error"))
 
+            if response.result is None:
+                raise Exception("Invalid response: missing both result and error.")
+
             return response.result
 
         except Exception as e:

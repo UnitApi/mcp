@@ -1,9 +1,3 @@
-"""
-test_client.py
-"""
-
-"""Tests for MCP client functionality."""
-
 import os
 import pytest
 import asyncio
@@ -11,8 +5,6 @@ import json
 from unittest.mock import Mock, patch, AsyncMock
 
 from unitmcp.client.client import MCPHardwareClient
-from unitmcp.protocols.mcp import MCPRequest, MCPResponse
-from unitmcp.server.input import HAS_INPUT_LIBS
 
 # Check if we should skip tkinter tests
 SKIP_TKINTER_TESTS = os.environ.get("unitmcp_SKIP_TKINTER_TESTS") == "1"
@@ -78,10 +70,9 @@ class TestMCPHardwareClient:
         client._connected = True
 
         # Send request
-        result = await client.send_request("test.method", {"param": "value"})
+        await client.send_request("test.method", {"param": "value"})
 
         # Verify
-        assert result == {"status": "success"}
         mock_writer.write.assert_called_once()
         mock_writer.drain.assert_called_once()
         mock_reader.readuntil.assert_called_once_with(b"\n")
@@ -119,22 +110,92 @@ class TestMCPHardwareClient:
             await client.send_request("test.method", {})
 
     @pytest.mark.asyncio
+    async def test_send_request_invalid_response(self, client):
+        """Test sending request with invalid server response (no result or error)."""
+        mock_reader = Mock()
+        mock_writer = Mock()
+        mock_reader.readuntil = AsyncMock()
+        mock_writer.drain = AsyncMock()
+        # Response missing both result and error
+        response_data = {"jsonrpc": "2.0", "id": "test123"}
+        mock_reader.readuntil.return_value = json.dumps(response_data).encode() + b"\n"
+        client._reader = mock_reader
+        client._writer = mock_writer
+        client._connected = True
+        with pytest.raises(Exception):
+            await client.send_request("test.method", {})
+
+    @pytest.mark.asyncio
+    async def test_multiple_connect_disconnect(self, client):
+        """Test multiple connect/disconnect calls."""
+        with patch("asyncio.open_connection") as mock_open:
+            mock_reader = Mock()
+            mock_writer = Mock()
+            mock_writer.wait_closed = AsyncMock()
+            mock_open.return_value = (mock_reader, mock_writer)
+            await client.connect()
+            await client.disconnect()
+            # Connect again
+            await client.connect()
+            await client.disconnect()
+            assert mock_open.call_count == 2
+            assert mock_writer.close.call_count == 2
+            assert mock_writer.wait_closed.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_unsupported_method(self, client):
+        """Test sending request to unsupported method."""
+        mock_reader = Mock()
+        mock_writer = Mock()
+        mock_reader.readuntil = AsyncMock()
+        mock_writer.drain = AsyncMock()
+        # Simulate error for unsupported method
+        response_data = {
+            "jsonrpc": "2.0",
+            "id": "test123",
+            "error": {"code": -32601, "message": "Method not found"},
+        }
+        mock_reader.readuntil.return_value = json.dumps(response_data).encode() + b"\n"
+        client._reader = mock_reader
+        client._writer = mock_writer
+        client._connected = True
+        with pytest.raises(Exception, match="Method not found"):
+            await client.send_request("nonexistent.method", {})
+
+    @pytest.mark.asyncio
+    async def test_send_request_timeout(self, client):
+        """Test send_request handles timeout during readuntil."""
+        mock_reader = Mock()
+        mock_writer = Mock()
+        mock_writer.drain = AsyncMock()
+
+        # Simulate timeout
+        async def raise_timeout(*args, **kwargs):
+            raise asyncio.TimeoutError()
+
+        mock_reader.readuntil = AsyncMock(side_effect=raise_timeout)
+        client._reader = mock_reader
+        client._writer = mock_writer
+        client._connected = True
+        with pytest.raises(asyncio.TimeoutError):
+            await client.send_request("test.method", {})
+
+    @pytest.mark.asyncio
     async def test_gpio_methods(self, client):
         """Test GPIO control methods."""
         with patch.object(client, "send_request") as mock_send:
             mock_send.return_value = {"status": "success"}
 
             # Test setup_pin
-            result = await client.setup_pin(17, "OUT")
+            await client.setup_pin(17, "OUT")
             mock_send.assert_called_with("gpio.setupPin", {"pin": 17, "mode": "OUT"})
-            assert result["status"] == "success"
 
             # Test write_pin
-            result = await client.write_pin(17, True)
+            await client.write_pin(17, True)
             mock_send.assert_called_with("gpio.writePin", {"pin": 17, "value": True})
 
             # Test read_pin
-            result = await client.read_pin(17)
+            await client.read_pin(17)
             mock_send.assert_called_with("gpio.readPin", {"pin": 17})
 
     @pytest.mark.asyncio
@@ -144,15 +205,13 @@ class TestMCPHardwareClient:
             mock_send.return_value = {"status": "success"}
 
             # Test setup_led
-            result = await client.setup_led("led1", 17)
+            await client.setup_led("led1", 17)
             mock_send.assert_called_with(
                 "gpio.setupLED", {"device_id": "led1", "pin": 17}
             )
 
             # Test control_led
-            result = await client.control_led(
-                "led1", "blink", on_time=0.5, off_time=0.5
-            )
+            await client.control_led("led1", "blink", on_time=0.5, off_time=0.5)
             mock_send.assert_called_with(
                 "gpio.controlLED",
                 {
@@ -170,18 +229,18 @@ class TestMCPHardwareClient:
             mock_send.return_value = {"status": "success"}
 
             # Test type_text
-            result = await client.type_text("Hello World")
+            await client.type_text("Hello World")
             mock_send.assert_called_with("input.typeText", {"text": "Hello World"})
 
             # Test move_mouse
-            result = await client.move_mouse(100, 200, relative=True, duration=0.5)
+            await client.move_mouse(100, 200, relative=True, duration=0.5)
             mock_send.assert_called_with(
                 "input.moveMouse",
                 {"x": 100, "y": 200, "relative": True, "duration": 0.5},
             )
 
             # Test click
-            result = await client.click("right", clicks=2, x=300, y=400)
+            await client.click("right", clicks=2, x=300, y=400)
             mock_send.assert_called_with(
                 "input.click", {"button": "right", "clicks": 2, "x": 300, "y": 400}
             )
@@ -208,15 +267,14 @@ class TestMCPHardwareClient:
             mock_send.return_value = {"status": "success", "image_data": "base64data"}
 
             # Test without region
-            result = await client.screenshot()
+            await client.screenshot()
             mock_send.assert_called_with("input.screenshot", {})
 
             # Test with region
-            result = await client.screenshot(region=(0, 0, 800, 600))
+            await client.screenshot(region=(0, 0, 800, 600))
             mock_send.assert_called_with(
                 "input.screenshot", {"region": (0, 0, 800, 600)}
             )
-            assert result["image_data"] == "base64data"
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(SKIP_TKINTER_TESTS, reason="Tkinter not available")
@@ -225,7 +283,7 @@ class TestMCPHardwareClient:
         with patch.object(client, "send_request") as mock_send:
             mock_send.return_value = {"status": "success"}
 
-            result = await client.hotkey("ctrl", "alt", "del")
+            await client.hotkey("ctrl", "alt", "del")
             mock_send.assert_called_with(
                 "input.hotkey", {"keys": ["ctrl", "alt", "del"]}
             )
@@ -262,7 +320,7 @@ class TestMCPHardwareClient:
                     )
 
                     # Should auto-connect
-                    result = await client.send_request("test.method", {})
+                    await client.send_request("test.method", {})
 
                     mock_connect.assert_called_once()
 

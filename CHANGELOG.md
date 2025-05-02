@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.26] - 2025-05-02
+
+### Added
+- Changes in rpi_control/.gitignore
+- Changes in rpi_control/README.md
+- Changes in rpi_control/client.sh
+- Changes in rpi_control/env.sample
+- Changes in rpi_control/examples/audio_record.py
+- Changes in rpi_control/examples/full_demo.py
+- Changes in rpi_control/examples/hello_world.py
+- Changes in rpi_control/examples/led_control.py
+- Changes in rpi_control/examples/mqtt_example.py
+- Changes in rpi_control/examples/play_audio_unitmcp.py
+- Changes in rpi_control/examples/rpi_control.py
+- Changes in rpi_control/examples/speaker_control.py
+- Changes in rpi_control/install.sh
+- Changes in rpi_control/remote/files.sh
+- Changes in rpi_control/remote/install.sh
+- Changes in rpi_control/remote/requirements.txt
+- Changes in rpi_control/remote/scp.sh
+- Changes in rpi_control/remote/start.sh
+- Changes in rpi_control/requirements.txt
+- Changes in rpi_control/start.sh
+- Changes in rpi_control/tox.ini
+
 ## [0.1.25] - 2025-05-01
 
 ### Added
