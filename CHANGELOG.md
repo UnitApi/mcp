@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.47] - 2025-05-03
+
+### Added
+- Changes in rpi_control/setup/neopixel/setup_neopixel.py
+- Changes in rpi_control/setup/oled/setup_oled.py
+
+### Changed
+- Changes in rpi_control/setup/README.md
+- Changes in rpi_control/setup/remote_setup.py
+- Changes in rpi_control/setup/setup_all.py
+
+### Fixed
+- Changes in rpi_control/setup/lcd/setup_lcd.py
+
 ## [0.1.46] - 2025-05-02
 
 ### Added

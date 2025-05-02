@@ -9,6 +9,7 @@ and testing of components.
 Usage:
   python3 remote_setup.py --host HOSTNAME [--port PORT] [--user USERNAME] 
                          [--component COMPONENT] [--all] [--force-reboot]
+                         [--simulation]
 
 Options:
   --host HOSTNAME       Hostname or IP address of the Raspberry Pi
@@ -17,6 +18,7 @@ Options:
   --component COMPONENT Set up a specific component (lcd, gpio, i2c, spi, etc.)
   --all                 Set up all components
   --force-reboot        Reboot the Pi if configuration changes require it
+  --simulation          Run in simulation mode without requiring physical hardware or sudo privileges
 """
 
 import os
@@ -39,14 +41,44 @@ logger = logging.getLogger(__name__)
 
 # Define available components
 AVAILABLE_COMPONENTS = [
-    "lcd",
-    "gpio",
-    "audio",
+    # Basic interfaces
     "i2c",
     "spi",
+    "gpio",
+    "uart",
+    "pwm",
+    
+    # Display components
+    "lcd",
+    "oled",
     "led_matrix",
+    
+    # Input/Output devices
+    "servo",
+    "stepper",
+    "relay",
+    "neopixel",
+    
+    # Sensors
+    "temperature",
+    "pressure",
+    "humidity",
+    "motion",
+    "distance",
+    "accelerometer",
+    "gyroscope",
+    "rfid",
+    
+    # Other peripherals
     "camera",
-    "sensors"
+    "audio",
+    "adc",
+    "dac",
+    "rtc",
+    
+    # Wireless interfaces
+    "bluetooth",
+    "wifi"
 ]
 
 def run_command(cmd: List[str], check: bool = True) -> Tuple[int, str, str]:
@@ -162,7 +194,7 @@ def copy_setup_files(host: str, port: int, user: str, component: Optional[str] =
     logger.info("Successfully copied setup files to the remote host")
     return True
 
-def run_remote_setup(host: str, port: int, user: str, component: Optional[str] = None, all_components: bool = False, force_reboot: bool = False) -> bool:
+def run_remote_setup(host: str, port: int, user: str, component: Optional[str] = None, all_components: bool = False, force_reboot: bool = False, simulation: bool = False) -> bool:
     """Run the setup script on the remote host."""
     logger.info("Running setup script on the remote host...")
     
@@ -182,6 +214,15 @@ def run_remote_setup(host: str, port: int, user: str, component: Optional[str] =
     # Add force-reboot option if specified
     if force_reboot:
         remote_cmd += " --force-reboot"
+    
+    # Add simulation mode if specified
+    if simulation:
+        remote_cmd += " --simulation"
+        logger.info("Running in simulation mode - no physical hardware or sudo privileges required")
+    
+    # Set AUTO_YES environment variable to automatically continue without sudo
+    # Use proper SSH syntax for setting environment variables
+    remote_cmd = f"cd ~/rpi_setup && AUTO_YES=1 python3 {remote_cmd.replace('cd ~/rpi_setup && python3 ', '')}"
     
     # Run the command on the remote host
     cmd = create_ssh_command(host, port, user, remote_cmd)
@@ -223,6 +264,7 @@ def main():
     parser.add_argument("--component", choices=AVAILABLE_COMPONENTS, help="Set up a specific component")
     parser.add_argument("--all", action="store_true", help="Set up all components")
     parser.add_argument("--force-reboot", action="store_true", help="Reboot the Pi if configuration changes require it")
+    parser.add_argument("--simulation", action="store_true", help="Run in simulation mode without requiring physical hardware or sudo privileges")
     args = parser.parse_args()
     
     # Check if component or --all is specified
@@ -244,7 +286,7 @@ def main():
         return 1
     
     # Run remote setup
-    if not run_remote_setup(args.host, args.port, args.user, args.component, args.all, args.force_reboot):
+    if not run_remote_setup(args.host, args.port, args.user, args.component, args.all, args.force_reboot, args.simulation):
         return 1
     
     logger.info("Remote setup completed")

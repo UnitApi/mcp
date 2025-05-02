@@ -51,12 +51,18 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
 - **Camera Control**: Image capture, face detection, motion detection
 - **USB Devices**: Device enumeration and management
 
-### 2. AI Integration
+### 2. Remote Hardware Setup
+- **Automated Setup Scripts**: Configure and test hardware components remotely
+- **Component-specific Setup**: Individual scripts for OLED, LCD, sensors, etc.
+- **Simulation Mode**: Test setup scripts without physical hardware or sudo privileges
+- **Remote Deployment**: SSH-based installation and configuration
+
+### 3. AI Integration
 - **Ollama LLM Support**: Natural language hardware control
 - **Voice Assistant**: Speech recognition and synthesis
 - **Automated Agents**: AI-driven hardware automation
 
-### 3. Interactive Shell
+### 4. Interactive Shell
 ```bash
 mcp> led_setup led1 17
 mcp> led led1 on
@@ -65,7 +71,7 @@ mcp> pipeline_create automation
 mcp> pipeline_run automation
 ```
 
-### 4. Pipeline Automation
+### 5. Pipeline Automation
 ```python
 steps = [
     PipelineStep("setup", "gpio.setupLED", {"pin": 17}),
@@ -114,6 +120,18 @@ mcp-hardware/
 git clone https://github.com/example/mcp-hardware.git
 cd mcp-hardware
 pip install -e .
+```
+
+### Hardware Setup
+```bash
+# Set up hardware components on a local Raspberry Pi
+python rpi_control/setup/setup_all.py --component oled
+
+# Set up hardware components on a remote Raspberry Pi
+python rpi_control/setup/remote_setup.py --host raspberrypi.local --component oled
+
+# Run setup in simulation mode (no physical hardware or sudo required)
+python rpi_control/setup/remote_setup.py --host raspberrypi.local --component oled --simulation
 ```
 
 ### Start Server

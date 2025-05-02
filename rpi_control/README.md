@@ -41,6 +41,52 @@ sudo apt-get update
 sudo apt-get install -y libasound2-dev ffmpeg
 ```
 
+## Hardware Setup Scripts
+
+The `setup/` directory contains scripts for configuring and testing various hardware components on a Raspberry Pi. These scripts handle all the necessary system configuration, package installation, and testing for each component.
+
+### Local Setup
+
+To set up hardware components on the local Raspberry Pi:
+
+```bash
+# Set up a specific component (e.g., OLED display)
+python3 setup/setup_all.py --component oled
+
+# Set up all components
+python3 setup/setup_all.py --all
+```
+
+### Remote Setup
+
+You can also set up hardware on a remote Raspberry Pi using the remote setup script:
+
+```bash
+# Set up OLED display on a remote Raspberry Pi
+python3 setup/remote_setup.py --host raspberrypi.local --component oled
+
+# Set up all components on a remote Raspberry Pi
+python3 setup/remote_setup.py --host raspberrypi.local --all
+```
+
+### Simulation Mode
+
+The setup scripts now support a simulation mode that allows you to run the setup process without requiring physical hardware or sudo privileges:
+
+```bash
+# Run setup in simulation mode (no physical hardware or sudo required)
+python3 setup/remote_setup.py --host raspberrypi.local --component oled --simulation
+```
+
+When running in simulation mode:
+- System package installation is skipped
+- Python package installation is skipped
+- Hardware interface enabling is simulated
+- Hardware tests are simulated to succeed
+- Example scripts are still created (in /tmp instead of /usr/local/bin)
+
+This is useful for testing the setup scripts in a development environment or verifying script functionality without modifying the system.
+
 ## Running Speaker Example with MCP Server and Client
 
 To play an audio file (e.g. test.wav or sample_tone.wav) on the MCP hardware server using the speaker example, you can use the provided script to automatically start the server (if not already running), run the client, and stop the server when done.
@@ -209,7 +255,7 @@ The `run_hardware_with_server.sh` script provides a robust way to control hardwa
 
 ### Environment Variables
 
-The script can be configured using a `.env` file with the following variables:
+The script can be configured using environment variables in a `.env` file:
 
 ```
 # Remote host configuration
@@ -467,9 +513,11 @@ All Python and shell scripts in this project use a `.env` file for configuration
   ```
 
 - Set variables such as:
-  - `RPI_HOST`, `RPI_USERNAME`, `RPI_PORT`: Raspberry Pi connection info for Python examples
-  - `REMOTE`, `REMOTE_PATH`: Used by `install_remote.sh` for remote installation
-  - `SCRIPT_DIR`: Used by `start.sh` and `client.sh` to set the working directory
+  - `RPI_USERNAME` and `RPI_HOST`: Remote SSH credentials
+  - `EXAMPLE`: Example script to run as a service (e.g. `full_demo.py`)
+  - `EXAMPLES_DIR`: Directory on the remote where examples are stored
+  - `PORT`: Port used by the example (for freeing up with `fuser`)
+  - `LOGFILE`: Log file name for the service output
 
 **Example .env:**
 ```ini
@@ -569,92 +617,6 @@ For troubleshooting, see script output and comments in each script.
   - `EXAMPLES_DIR`: Directory on the remote where examples are stored
   - `PORT`: Port used by the example (for freeing up with `fuser`)
   - `LOGFILE`: Log file name for the service output
-
-### 2. Sync Files to Remote (Manual)
-
-- You can use `scp` or `rsync` to copy files from your local machine to the Pi, or use the provided scripts in `remote/` (e.g., `scp.sh`, `files.sh`).
-
-### 3. Install on the Raspberry Pi
-
-- SSH into your Raspberry Pi:
-  ```bash
-  ssh pi@<your_rpi_ip>
-  ```
-- Go to the `remote` directory and run:
-  ```bash
-  cd remote
-  bash install.sh
-  ```
-  This will install all required system and Python dependencies in a Python virtual environment. The `install_rpi.sh` script specifically avoids dependency conflicts with the `unitmcp` package on Raspberry Pi.
-
----
-
-**Note:**
-- Keep `.env` in the project root (not in `remote/`).
-- The `local/` folder is not present by default; you may create it for your own sync scripts if desired.
-
-## Examples
-
-- `examples/full_demo.py`: Complete workflow demo (LED control + audio recording)
-- `examples/audio_record.py`: Record audio using MCP Hardware Client
-- `examples/led_control.py`: Control an LED using MCP Hardware Client
-- `examples/mqtt_example.py`: Use MQTT bridge for MCP hardware access
-- `examples/rpi_control.py`: Advanced GPIO and hardware control (multiple demos)
-- `examples/hello_world.py`: Minimal test example
-- `examples/play_audio_unitmcp.py`: Play a .wav or .mp3 file on the remote device using MCP Hardware Client
-- `examples/play_sample_audio.sh`: Shell script to generate and play a sample audio tone (useful for testing audio setup)
-
----
-
-For more details, see comments in each script and the `.env` file.
-
-## Audio Playback on Remote Device
-
-You can play audio files on the remote Raspberry Pi using the MCP Hardware Client:
-
-```bash
-python3 examples/play_audio_unitmcp.py --file examples/test.wav
-```
-
-If you do not specify `--file`, the script will use the defaults set in your `.env` file (`DEFAULT_WAV` or `DEFAULT_MP3`).
-
-Example `.env` entries:
-```
-DEFAULT_MP3=test.mp3
-DEFAULT_WAV=test.wav
-```
-
-To play audio locally (on the device running the script) instead, use:
-
-```bash
-python3 examples/speaker_control.py --file examples/test.wav
-```
-
-### Sample Audio Script
-
-For a quick test of audio playback, use the provided sample script:
-
-```bash
-cd examples
-bash play_sample_audio.sh
-```
-
-This script will:
-1. Check if ffmpeg is installed and install it if needed
-2. Create a sample audio file (3-second 440Hz tone)
-3. Play the sample audio using speaker_control.py
-
-## Remote Deployment and Service Management
-
-This project supports fully automated remote deployment and example service management via SSH.
-
-### 1. Configure `.env`
-Copy `env.sample` to `.env` and edit as needed. Important variables:
-- `RPI_USERNAME` and `RPI_HOST`: Remote SSH credentials
-- `EXAMPLE`: Example script to run as a service (e.g. `full_demo.py`)
-- `EXAMPLES_DIR`: Directory on the remote where examples are stored
-- `PORT`: Port used by the example (for freeing up with `fuser`)
-- `LOGFILE`: Log file name for the service output
 
 ### 2. Install/Update Code and Dependencies Remotely
 From your project root, run:
