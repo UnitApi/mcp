@@ -201,6 +201,43 @@ To play audio locally (on the device running the script) instead, use:
 python3 examples/speaker_control.py --file examples/test.wav
 ```
 
+## Remote Deployment and Service Management
+
+This project supports fully automated remote deployment and example service management via SSH.
+
+### 1. Configure `.env`
+Copy `env.sample` to `.env` and edit as needed. Important variables:
+- `RPI_USERNAME` and `RPI_HOST`: Remote SSH credentials
+- `EXAMPLE`: Example script to run as a service (e.g. `full_demo.py`)
+- `EXAMPLES_DIR`: Directory on the remote where examples are stored
+- `PORT`: Port used by the example (for freeing up with `fuser`)
+- `LOGFILE`: Log file name for the service output
+
+### 2. Install/Update Code and Dependencies Remotely
+From your project root, run:
+```bash
+bash rpi_control/remote/install.sh
+```
+This will sync your project to the remote host and install all dependencies in a Python virtual environment.
+
+### 3. Start Example Service Remotely
+```bash
+bash rpi_control/remote/start_service.sh
+```
+This will SSH to the remote, free the specified port, and start the selected example as a background service. Output is logged to `$LOGFILE` in `$EXAMPLES_DIR`.
+
+### 4. Show Service Logs
+```bash
+bash rpi_control/remote/show_log.sh
+```
+This will SSH to the remote and show the last 50 lines of the log file for your running service.
+
+---
+
+**Tip:** All scripts use `.env` for configuration, so you can easily switch examples, ports, and log files by editing `.env`.
+
+For advanced automation or troubleshooting, see the comments in each script.
+
 ## File Overview
 
 - `install.sh`: Install all dependencies (Python/system)

@@ -1,18 +1,36 @@
 #!/bin/bash
 set -e
 
-# System dependencies
-sudo apt-get update && sudo apt-get install -y python3-pip python3-dev python3-rpi.gpio libasound2-dev
-
-# Python venv setup
-if [ ! -d "venv" ]; then
-  echo "[rpi_control] Creating Python virtual environment..."
-  python3 -m venv venv
+# Load .env from parent directory
+if [ -f .env ]; then
+  set -a
+  . .env
+  set +a
 fi
 
-# Activate venv and install Python dependencies
+if [ -z "$RPI_USERNAME" ] || [ -z "$RPI_HOST" ]; then
+    echo "RPI_USERNAME or RPI_HOST not set in .env"
+    exit 1
+fi
+
+REMOTE="$RPI_USERNAME@$RPI_HOST"
+REMOTE_PATH="/home/$RPI_USERNAME/mcp_deploy"
+
+echo "[rpi_control] Syncing project files to $REMOTE:$REMOTE_PATH ..."
+rsync -av --exclude 'venv' --exclude '*.pyc' --exclude '__pycache__' ../../ $REMOTE:$REMOTE_PATH
+
+echo "[rpi_control] Installing dependencies on remote ..."
+ssh $REMOTE bash -c "'
+set -e
+cd $REMOTE_PATH/rpi_control
+sudo apt-get update && sudo apt-get install -y python3-pip python3-dev python3-rpi.gpio libasound2-dev
+if [ ! -d \"venv\" ]; then
+  python3 -m venv venv
+fi
 source venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+echo \"[rpi_control] Remote installation complete. To use, run: source venv/bin/activate\"
+'"
 
-echo "[rpi_control] Installation complete. To use, run: source venv/bin/activate"
+echo "[rpi_control] Remote update and install complete."

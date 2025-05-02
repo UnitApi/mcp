@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.27] - 2025-05-02
+
+### Added
+- Changes in rpi_control/remote/log.sh
+- Changes in rpi_control/remote/start_service.sh
+- Changes in rpi_control/start_service.sh
+
 ## [0.1.26] - 2025-05-02
 
 ### Added

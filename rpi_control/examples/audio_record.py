@@ -6,7 +6,7 @@ This example demonstrates how to record audio using the MCP Hardware Client.
 """
 
 import logging
-import time
+import asyncio
 import argparse
 import os
 from unitmcp import MCPHardwareClient
@@ -25,7 +25,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def main():
+async def main():
     """
     Main function to demonstrate audio recording.
     """
@@ -38,31 +38,41 @@ def main():
     args = parser.parse_args()
     
     # Create and connect to the MCP hardware client
-    client_config = {
-        "server": RPI_HOST,
-        "port": RPI_PORT,
-        "protocol": "http"
-    }
-    client = MCPHardwareClient(client_config)
+    client = MCPHardwareClient(RPI_HOST, RPI_PORT)
     
-    # Connect to the server
-    if not client.connect():
-        logger.error(f"Failed to connect to the MCP server at {RPI_HOST} as {RPI_USERNAME}")
+    try:
+        await client.connect()
+    except Exception as e:
+        logger.error(f"Failed to connect to the MCP server at {RPI_HOST} as {RPI_USERNAME}: {e}")
         return
     try:
         logger.info(f"Starting audio recording for {args.duration} seconds...")
-        result = client.start_audio_record(duration=args.duration, sample_rate=args.sample_rate, channels=args.channels, output=args.output)
+        params = {
+            "duration": args.duration,
+            "sample_rate": args.sample_rate,
+            "channels": args.channels,
+        }
+        result = await client.send_request("audio.record", params)
         if result.get("success", True):
             logger.info(f"Recording completed successfully")
             logger.info(f"Saving to {args.output}")
-            logger.info(f"Audio saved to {args.output}")
+            # Save audio data if present
+            audio_data = result.get("audio_data")
+            if audio_data:
+                import base64
+                audio_bytes = base64.b64decode(audio_data)
+                with open(args.output, "wb") as f:
+                    f.write(audio_bytes)
+                logger.info(f"Audio saved to {args.output}")
+            else:
+                logger.warning("No audio data returned from server.")
         else:
             logger.error(f"Recording failed: {result.get('message', 'Unknown error')}")
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
     finally:
-        client.disconnect()
+        await client.disconnect()
         logger.info("Example completed")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

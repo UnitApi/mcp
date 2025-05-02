@@ -6,7 +6,7 @@ This example demonstrates how to control an LED using the MCP Hardware Client.
 """
 
 import logging
-import time
+import asyncio
 import os
 from unitmcp import MCPHardwareClient
 from dotenv import load_dotenv
@@ -23,60 +23,43 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def main():
+async def main():
     """
     Main function to demonstrate LED control.
     """
-    # Create and connect to the MCP hardware client
-    client_config = {
-        "server": RPI_HOST,
-        "port": RPI_PORT,
-        "protocol": "http"
-    }
-    client = MCPHardwareClient(client_config)
-    
-    # Connect to the server
-    if not client.connect():
-        logger.error("Failed to connect to the MCP server")
-        return
-    
+    client = MCPHardwareClient(RPI_HOST, RPI_PORT)
     try:
-        # Set up the GPIO pin for the LED
+        await client.connect()
+    except Exception as e:
+        logger.error(f"Failed to connect to the MCP server: {e}")
+        return
+    try:
         pin = 17
         logger.info(f"Setting up GPIO pin {pin} as output")
-        result = client.setup_pin(pin, "output")
+        result = await client.setup_pin(pin, "output")
         logger.info(f"Setup result: {result}")
-        
-        # Turn on the LED
+
         logger.info("Turning on the LED")
-        result = client.control_led("led1", "on")
+        result = await client.control_led("led1", "on")
         logger.info(f"Control result: {result}")
-        
-        # Wait for a moment
-        time.sleep(2)
-        
-        # Blink the LED
+
+        await asyncio.sleep(2)
+
         logger.info("Blinking the LED")
         for _ in range(5):
-            # Turn on
-            client.write_pin(pin, 1)
-            time.sleep(0.5)
-            
-            # Turn off
-            client.write_pin(pin, 0)
-            time.sleep(0.5)
-        
-        # Turn off the LED
+            await client.write_pin(pin, 1)
+            await asyncio.sleep(0.5)
+            await client.write_pin(pin, 0)
+            await asyncio.sleep(0.5)
+
         logger.info("Turning off the LED")
-        result = client.control_led("led1", "off")
+        result = await client.control_led("led1", "off")
         logger.info(f"Control result: {result}")
-        
     except KeyboardInterrupt:
         logger.info("Interrupted by user")
     finally:
-        # Disconnect from the server
-        client.disconnect()
+        await client.disconnect()
         logger.info("Example completed")
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
