@@ -1,0 +1,69 @@
+# UnitMCP Environment-based Automation Configuration
+# This file demonstrates using environment variables in configurations
+
+settings:
+  name: Environment Variable Example
+  description: Demonstrates how to use environment variables in configurations
+  log_level: ${LOG_LEVEL}
+
+triggers:
+  time_trigger_1:
+    type: time
+    interval: 10.0
+    max_count: 3
+  
+  button_trigger:
+    type: gpio
+    pin: ${DEFAULT_BUTTON_PIN}
+    edge: rising
+    debounce: 0.2
+
+actions:
+  log_start:
+    type: log
+    message: Starting automation sequence
+    level: info
+  
+  led_on:
+    type: led
+    device_id: led_${DEFAULT_LED_PIN}
+    action: on
+  
+  wait_2s:
+    type: delay
+    delay: 2.0
+  
+  led_off:
+    type: led
+    device_id: led_${DEFAULT_LED_PIN}
+    action: off
+  
+  play_sound:
+    type: audio
+    action_type: play
+    file_path: ${DEFAULT_AUDIO_DIR}/notification.wav
+  
+  log_end:
+    type: log
+    message: Automation sequence completed on ${RPI_HOST}
+    level: info
+
+sequences:
+  time_sequence:
+    trigger: time_trigger_1
+    actions:
+      - log_start
+      - led_on
+      - wait_2s
+      - led_off
+      - log_end
+  
+  button_sequence:
+    trigger: button_trigger
+    actions:
+      - log_start
+      - play_sound
+      - led_on
+      - wait_2s
+      - led_off
+      - log_end

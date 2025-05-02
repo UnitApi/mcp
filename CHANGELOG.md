@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.52] - 2025-05-03
+
+### Added
+- Changes in examples/rpi_control/.env.example
+- Changes in examples/rpi_control/config_loader.py
+- Changes in examples/rpi_control/env_automation_config.yaml
+- Changes in examples/rpi_control/env_config_automation_example.py
+- Changes in examples/rpi_control/sample.env
+- Changes in examples/rpi_control/simple_config_demo.py
+- Changes in examples/rpi_control/simple_env_config_demo.py
+
 ## [0.1.51] - 2025-05-03
 
 ### Added
