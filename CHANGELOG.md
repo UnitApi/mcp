@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.38] - 2025-05-02
+
+### Added
+- Changes in restart_docker.sh
+- Changes in rpi_control/restart_docker.sh
+
+### Changed
+- Changes in rpi_control/docker-compose.yml
+- Changes in rpi_control/rpi/Dockerfile
+
 ## [0.1.37] - 2025-05-02
 
 ## [0.1.36] - 2025-05-02

@@ -22,7 +22,6 @@ RUN pip install --no-cache-dir -e .
 
 # Install additional dependencies for LLM client
 RUN pip install --no-cache-dir \
-    mcp \
     httpx \
     python-dotenv \
     ollama

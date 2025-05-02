@@ -4,6 +4,10 @@ WORKDIR /app
 
 # Install system dependencies for Raspberry Pi simulation
 RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    python3-dev \
     libasound2-dev \
     ffmpeg \
     libgl1-mesa-glx \
@@ -11,6 +15,10 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     libxrender-dev \
+    portaudio19-dev \
+    libportaudio2 \
+    libportaudiocpp0 \
+    linux-libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the source code
@@ -30,8 +38,10 @@ RUN pip install --no-cache-dir \
     pillow \
     pydub \
     simpleaudio \
-    numpy \
-    mcp
+    numpy
+
+# Set PYTHONPATH so unitmcp is importable
+ENV PYTHONPATH="/app/src:${PYTHONPATH}"
 
 # Copy the hardware server script
 COPY rpi_control/rpi/hardware_server.py /app/
