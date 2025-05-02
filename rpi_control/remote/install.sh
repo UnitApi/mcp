@@ -19,17 +19,20 @@ REMOTE_PATH="/home/$RPI_USERNAME/mcp_deploy"
 echo "[rpi_control] Syncing project files to $REMOTE:$REMOTE_PATH ..."
 rsync -av --exclude 'venv' --exclude '*.pyc' --exclude '__pycache__' ../../ $REMOTE:$REMOTE_PATH
 
-echo "[rpi_control] Installing dependencies on remote ..."
+echo "[rpi_control] Installing dependencies on remote using the Raspberry Pi specific installation script..."
 ssh $REMOTE bash -c "'
 set -e
 cd $REMOTE_PATH/rpi_control
-sudo apt-get update && sudo apt-get install -y python3-pip python3-dev python3-rpi.gpio libasound2-dev
+sudo apt-get update && sudo apt-get install -y python3-pip python3-dev python3-rpi.gpio ffmpeg
 if [ ! -d \"venv\" ]; then
   python3 -m venv venv
 fi
 source venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+
+# Use the Raspberry Pi specific installation script
+bash install_rpi.sh
+
 echo \"[rpi_control] Remote installation complete. To use, run: source venv/bin/activate\"
 '"
 

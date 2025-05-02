@@ -1,4 +1,5 @@
-unitmcp
+# Using local unitmcp installation instead of PyPI version to avoid dependency conflicts
+# unitmcp
 paho-mqtt
 simpleaudio
 pydub

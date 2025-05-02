@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.28] - 2025-05-02
+
+### Added
+- Changes in rpi_control/examples/play_sample_audio.sh
+- Changes in rpi_control/install_rpi.sh
+- Changes in rpi_control/remote/README.md
+
+### Changed
+- Changes in rpi_control/remote/install.sh
+- Changes in rpi_control/requirements.txt
+
+### Fixed
+- Changes in rpi_control/README.md
+
 ## [0.1.27] - 2025-05-02
 
 ### Added

@@ -4,6 +4,8 @@ This directory contains examples and scripts for controlling Raspberry Pi GPIO a
 
 ## Installation
 
+### Standard Installation
+
 To install all dependencies on your Raspberry Pi (or remote machine), run:
 
 ```bash
@@ -11,6 +13,33 @@ bash install.sh
 ```
 
 This will install Python dependencies and system packages required for GPIO and MCP hardware access.
+
+### Raspberry Pi Installation (Dependency Fix)
+
+If you encounter dependency conflicts with the `unitmcp` package on Raspberry Pi, use the special installation script:
+
+```bash
+bash install_rpi.sh
+```
+
+This script will:
+1. Install the required system dependencies (including ffmpeg for audio processing)
+2. Install Python dependencies from requirements.txt
+3. Install the local unitmcp package without problematic dependencies (acme, certbot, etc.)
+
+This approach avoids the "ResolutionImpossible" error related to the acme package that can occur on Raspberry Pi.
+
+#### System Dependencies
+
+The installation script will install these system dependencies:
+- libasound2-dev (required for simpleaudio)
+- ffmpeg (required for audio processing with pydub)
+
+If you're installing manually, make sure to install these dependencies:
+```bash
+sudo apt-get update
+sudo apt-get install -y libasound2-dev ffmpeg
+```
 
 ## Usage
 
@@ -174,6 +203,7 @@ For troubleshooting, see script output and comments in each script.
 - `examples/rpi_control.py`: Advanced GPIO and hardware control (multiple demos)
 - `examples/hello_world.py`: Minimal test example
 - `examples/play_audio_unitmcp.py`: Play a .wav or .mp3 file on the remote device using MCP Hardware Client
+- `examples/play_sample_audio.sh`: Shell script to generate and play a sample audio tone (useful for testing audio setup)
 
 ---
 
@@ -201,6 +231,20 @@ To play audio locally (on the device running the script) instead, use:
 python3 examples/speaker_control.py --file examples/test.wav
 ```
 
+### Sample Audio Script
+
+For a quick test of audio playback, use the provided sample script:
+
+```bash
+cd examples
+bash play_sample_audio.sh
+```
+
+This script will:
+1. Check if ffmpeg is installed and install it if needed
+2. Create a sample audio file (3-second 440Hz tone)
+3. Play the sample audio using speaker_control.py
+
 ## Remote Deployment and Service Management
 
 This project supports fully automated remote deployment and example service management via SSH.
@@ -215,10 +259,18 @@ Copy `env.sample` to `.env` and edit as needed. Important variables:
 
 ### 2. Install/Update Code and Dependencies Remotely
 From your project root, run:
+
+For standard installation:
 ```bash
 bash rpi_control/remote/install.sh
 ```
-This will sync your project to the remote host and install all dependencies in a Python virtual environment.
+
+For Raspberry Pi installation with dependency fix:
+```bash
+bash rpi_control/remote/install_rpi.sh
+```
+
+Both scripts will sync your project to the remote host and install all dependencies in a Python virtual environment. The `install_rpi.sh` script specifically avoids dependency conflicts with the `unitmcp` package on Raspberry Pi.
 
 ### 3. Start Example Service Remotely
 ```bash
