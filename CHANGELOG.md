@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.51] - 2025-05-03
+
+### Added
+- Changes in examples/rpi_control/audio_example.py
+- Changes in examples/rpi_control/automation_config.yaml
+- Changes in examples/rpi_control/automation_example.py
+- Changes in examples/rpi_control/config_automation_example.py
+- Changes in examples/rpi_control/gpio_example.py
+- Changes in examples/rpi_control/hardware_discovery_example.py
+- Changes in examples/rpi_control/installation_example.py
+- Changes in examples/rpi_control/lcd_example.py
+
+### Changed
+- Changes in TODO.md
+
 ## [0.1.50] - 2025-05-03
 
 ### Added

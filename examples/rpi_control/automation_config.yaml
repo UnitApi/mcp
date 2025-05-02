@@ -1,0 +1,95 @@
+# UnitMCP Automation Configuration
+# This file defines triggers and actions for the automation system
+
+# Global settings
+settings:
+  name: "Example Automation Configuration"
+  description: "Demonstrates YAML-based automation configuration"
+  log_level: "info"
+
+# Trigger definitions
+triggers:
+  # Time-based trigger that runs every 10 seconds
+  time_trigger_1:
+    type: "time"
+    interval: 10.0
+    max_count: 3
+    
+  # Button-based trigger on GPIO pin 17
+  button_trigger_1:
+    type: "gpio"
+    pin: 17
+    edge: "rising"
+    debounce: 0.2
+
+# Action definitions
+actions:
+  # LED actions
+  led_on:
+    type: "led"
+    device_id: "led_18"
+    action: "on"
+    
+  led_off:
+    type: "led"
+    device_id: "led_18"
+    action: "off"
+    
+  led_blink:
+    type: "led"
+    device_id: "led_18"
+    action: "blink"
+    on_time: 0.2
+    off_time: 0.2
+    
+  # Audio actions
+  play_beep:
+    type: "audio"
+    action_type: "tone"
+    frequency: 440
+    duration: 0.5
+    
+  say_hello:
+    type: "audio"
+    action_type: "speak"
+    text: "Hello, UnitMCP automation system is running!"
+    
+  # Delay action
+  wait_2s:
+    type: "delay"
+    delay: 2.0
+    
+  # Log actions
+  log_start:
+    type: "log"
+    message: "Starting automation sequence"
+    level: "info"
+    
+  log_end:
+    type: "log"
+    message: "Automation sequence completed"
+    level: "info"
+
+# Sequence definitions
+sequences:
+  # Sequence triggered by time
+  time_sequence:
+    trigger: "time_trigger_1"
+    actions:
+      - "log_start"
+      - "led_on"
+      - "wait_2s"
+      - "led_off"
+      - "play_beep"
+      - "log_end"
+      
+  # Sequence triggered by button press
+  button_sequence:
+    trigger: "button_trigger_1"
+    actions:
+      - "log_start"
+      - "say_hello"
+      - "led_blink"
+      - "wait_2s"
+      - "led_off"
+      - "log_end"

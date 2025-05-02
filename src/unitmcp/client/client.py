@@ -204,6 +204,91 @@ class MCPHardwareClient:
 
         return await self.send_request("input.screenshot", params)
 
+    # Audio control methods
+    async def list_audio_devices(self) -> Dict[str, Any]:
+        """List available audio devices."""
+        return await self.send_request("audio.listDevices")
+
+    async def get_volume(self) -> Dict[str, Any]:
+        """Get current system volume."""
+        return await self.send_request("audio.getVolume")
+
+    async def set_volume(self, volume: int) -> Dict[str, Any]:
+        """Set system volume (0-100)."""
+        return await self.send_request("audio.setVolume", {"volume": volume})
+
+    async def play_audio(self, audio_data: str, format: str = "wav") -> Dict[str, Any]:
+        """Play audio data (base64 encoded)."""
+        return await self.send_request("audio.playAudio", {
+            "audio_data": audio_data,
+            "format": format
+        })
+
+    async def text_to_speech(self, text: str, rate: int = 150, volume: float = 1.0) -> Dict[str, Any]:
+        """Convert text to speech and play it."""
+        return await self.send_request("audio.textToSpeech", {
+            "text": text,
+            "rate": rate,
+            "volume": volume
+        })
+
+    async def generate_tone(self, frequency: int, duration: float, output_file: str = None) -> Dict[str, Any]:
+        """Generate a tone with specified frequency and duration."""
+        params = {
+            "frequency": frequency,
+            "duration": duration
+        }
+        if output_file:
+            params["output_file"] = output_file
+
+        return await self.send_request("audio.generateTone", params)
+
+    # I2C control methods
+    async def setup_lcd(self, device_id: str, address: int, width: int = 16, height: int = 2) -> Dict[str, Any]:
+        """Set up an I2C LCD display."""
+        return await self.send_request("i2c.setupLCD", {
+            "device_id": device_id,
+            "address": address,
+            "width": width,
+            "height": height
+        })
+
+    async def control_lcd(self, device_id: str, action: str, **kwargs) -> Dict[str, Any]:
+        """Control an I2C LCD display."""
+        params = {"device_id": device_id, "action": action}
+        params.update(kwargs)
+        return await self.send_request("i2c.controlLCD", params)
+
+    # Hardware discovery methods
+    async def discover_hardware(self) -> Dict[str, Any]:
+        """Discover available hardware devices."""
+        return await self.send_request("system.discoverHardware")
+
+    async def get_system_info(self) -> Dict[str, Any]:
+        """Get system information."""
+        return await self.send_request("system.getInfo")
+
+    async def scan_i2c_bus(self, bus: int = 1) -> Dict[str, Any]:
+        """Scan I2C bus for devices."""
+        return await self.send_request("i2c.scanBus", {"bus": bus})
+
+    async def list_gpio_pins(self) -> Dict[str, Any]:
+        """List available GPIO pins."""
+        return await self.send_request("gpio.listPins")
+
+    # Installation and setup methods
+    async def install_dependencies(self, packages: list) -> Dict[str, Any]:
+        """Install system dependencies."""
+        return await self.send_request("system.installDependencies", {"packages": packages})
+
+    async def configure_system(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Configure system settings."""
+        return await self.send_request("system.configure", config)
+
+    async def run_self_test(self) -> Dict[str, Any]:
+        """Run system self-test."""
+        return await self.send_request("system.selfTest")
+
     # Context manager support
     async def __aenter__(self):
         await self.connect()
