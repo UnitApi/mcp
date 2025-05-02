@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.48] - 2025-05-03
+
+### Added
+- Changes in src/unitmcp/remote/__init__.py
+- Changes in src/unitmcp/remote/connection.py
+- Changes in src/unitmcp/remote/discovery.py
+- Changes in src/unitmcp/remote/protocol.py
+- Changes in src/unitmcp/sync/__init__.py
+- Changes in src/unitmcp/sync/file_sync.py
+- Changes in src/unitmcp/sync/package_manager.py
+- Changes in src/unitmcp/sync/repo_manager.py
+- Changes in tests/unitmcp/__init__.py
+- Changes in tests/unitmcp/remote/test_connection.py
+
 ## [0.1.47] - 2025-05-03
 
 ### Added
