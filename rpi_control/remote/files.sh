@@ -27,6 +27,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ssh "$REMOTE" "mkdir -p $REMOTE_PATH"
 
 # Sync all files in remote except venv, .git, __pycache__
-rsync -avz --exclude 'venv' --exclude '.git' --exclude '__pycache__' "$SCRIPT_DIR/" "$REMOTE":"$REMOTE_PATH"/
+rsync -avz --delete --exclude 'venv' --exclude '.git' --exclude '__pycache__' "$SCRIPT_DIR/" "$REMOTE:$REMOTE_PATH/"
+#rsync -avz --exclude 'venv' --exclude '.git' --exclude '__pycache__' "$SCRIPT_DIR/" "$REMOTE:$REMOTE_PATH/"
 
 echo "[update_remote.sh] Files synced to $REMOTE:$REMOTE_PATH"

@@ -14,10 +14,32 @@ if [ -z "$RPI_USERNAME" ] || [ -z "$RPI_HOST" ]; then
 fi
 
 REMOTE="$RPI_USERNAME@$RPI_HOST"
-REMOTE_PATH="/home/$RPI_USERNAME/mcp_deploy"
-
-echo "[rpi_control] Syncing project files to $REMOTE:$REMOTE_PATH ..."
-rsync -av --exclude 'venv' --exclude '*.pyc' --exclude '__pycache__' ../../ $REMOTE:$REMOTE_PATH
+REMOTE_PATH="/home/$RPI_USERNAME"
+#
+#echo "[rpi_control] Syncing project files to $REMOTE:$REMOTE_PATH ..."
+#rsync -avz \
+#  --exclude 'venv' \
+#  --exclude '.git' \
+#  --exclude '__pycache__' \
+#  --exclude '.tox' \
+#  --exclude 'dist' \
+#  --exclude 'build' \
+#  --exclude '*.egg-info' \
+#  --exclude '*.pyc' \
+#  --exclude '*.pyo' \
+#  --exclude '*.log' \
+#  --exclude '*.sqlite3' \
+#  --exclude '*.db' \
+#  --exclude 'node_modules' \
+#  --exclude '*.swp' \
+#  --exclude '.mypy_cache' \
+#  --exclude '.pytest_cache' \
+#  --exclude '.idea' \
+#  --exclude '.vscode' \
+#  --exclude '.DS_Store' \
+#  --exclude '*.bak' \
+#  --exclude '*/.ipynb_checkpoints' \
+#  ../../ "$REMOTE:$REMOTE_PATH"
 
 echo "[rpi_control] Installing dependencies on remote using the Raspberry Pi specific installation script..."
 ssh $REMOTE bash -c "'

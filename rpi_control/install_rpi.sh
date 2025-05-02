@@ -8,7 +8,7 @@ sudo apt-get update
 sudo apt-get install -y libasound2-dev ffmpeg  # Required for simpleaudio and pydub
 
 echo "Installing Python dependencies from requirements.txt..."
-python -m pip install -r requirements.txt
+python -m pip install -r requirements.txt --upgrade
 
 echo "Installing local unitmcp package without dependencies..."
 cd ..

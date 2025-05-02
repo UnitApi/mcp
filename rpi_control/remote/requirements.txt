@@ -1,4 +1,4 @@
-unitmcp==0.1.19  # Pin to a specific version to avoid dependency conflicts
+unitmcp==0.1.29  # Pin to a specific version to avoid dependency conflicts
 paho-mqtt
 simpleaudio
 pydub

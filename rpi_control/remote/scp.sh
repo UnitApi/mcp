@@ -46,7 +46,7 @@ REMOTE_PATH="${ARGS[1]:-$REMOTE_PATH}"
 # Check if RPI_USERNAME and RPI_HOST are set in environment
 if [ -z "$REMOTE" ] && [ -n "$RPI_USERNAME" ] && [ -n "$RPI_HOST" ]; then
     REMOTE="$RPI_USERNAME@$RPI_HOST"
-    REMOTE_PATH="${REMOTE_PATH:-/home/$RPI_USERNAME/mcp_deploy}"
+    REMOTE_PATH="${REMOTE_PATH:-/home/$RPI_USERNAME}"
 fi
 
 if [ -z "$REMOTE" ]; then
@@ -56,7 +56,7 @@ if [ -z "$REMOTE" ]; then
 fi
 
 # Ensure remote path is set
-REMOTE_PATH="${REMOTE_PATH:-/home/${REMOTE%%@*}/mcp_deploy}"
+REMOTE_PATH="${REMOTE_PATH:-/home/${REMOTE%%@*}}"
 
 # Get the project root directory (two levels up from this script)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -76,29 +76,29 @@ if [ "$NO_REPLACE" = true ]; then
 fi
 
 # First, copy the src directory (for unitmcp) and other dependencies
-echo "[scp.sh] Copying project dependencies..."
-rsync $RSYNC_OPTS --exclude 'venv' \
-                 --exclude '*.pyc' \
-                 --exclude '__pycache__' \
-                 --exclude '.git' \
-                 --exclude '.vscode' \
-                 --exclude '*.egg-info' \
-                 --exclude '.tox' \
-                 --exclude '.pytest_cache' \
-                 --exclude '.idea' \
-                 --exclude '*.wav' \
-                 --exclude '*.mp3' \
-                 "$PROJECT_ROOT/" "$REMOTE:$REMOTE_PATH/"
-
-# Copy setup files needed for installation
-rsync $RSYNC_OPTS "$PROJECT_ROOT/setup.py" "$PROJECT_ROOT/setup.cfg" "$PROJECT_ROOT/pyproject.toml" "$PROJECT_ROOT/MANIFEST.in" "$REMOTE:$REMOTE_PATH/" 2>/dev/null || true
-
-# Then, copy the entire rpi_control directory
-#echo "[scp.sh] Copying rpi_control directory..."
+#echo "[scp.sh] Copying project dependencies..."
 #rsync $RSYNC_OPTS --exclude 'venv' \
 #                 --exclude '*.pyc' \
 #                 --exclude '__pycache__' \
-#                 "$PROJECT_ROOT/rpi_control/" "$REMOTE:$REMOTE_PATH/rpi_control/"
+#                 --exclude '.git' \
+#                 --exclude '.vscode' \
+#                 --exclude '*.egg-info' \
+#                 --exclude '.tox' \
+#                 --exclude '.pytest_cache' \
+#                 --exclude '.idea' \
+#                 --exclude '*.wav' \
+#                 --exclude '*.mp3' \
+#                 "$PROJECT_ROOT/" "$REMOTE:$REMOTE_PATH/"
+#
+## Copy setup files needed for installation
+#rsync $RSYNC_OPTS "$PROJECT_ROOT/setup.py" "$PROJECT_ROOT/setup.cfg" "$PROJECT_ROOT/pyproject.toml" "$PROJECT_ROOT/MANIFEST.in" "$REMOTE:$REMOTE_PATH/" 2>/dev/null || true
+
+# Then, copy the entire rpi_control directory
+#echo "[scp.sh] Copying rpi_control directory..."
+rsync $RSYNC_OPTS --exclude 'venv' \
+                 --exclude '*.pyc' \
+                 --exclude '__pycache__' \
+                 "$PROJECT_ROOT/" "$REMOTE:$REMOTE_PATH/"
 
 echo "[scp.sh] File copy to $REMOTE complete."
-echo "[scp.sh] To install on the remote machine, run: ssh $REMOTE \"cd $REMOTE_PATH/rpi_control/remote && bash install.sh\""
+echo "[scp.sh] To install on the remote machine, run: ssh $REMOTE \"cd $REMOTE_PATH/remote && bash install.sh\""
