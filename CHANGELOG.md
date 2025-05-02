@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.50] - 2025-05-03
+
+### Added
+- Changes in TODO.md
+- Changes in tests/unitmcp/events/test_event_system.py
+- Changes in tests/unitmcp/hardware/test_device_factory.py
+
 ## [0.1.49] - 2025-05-03
 
 ### Added
