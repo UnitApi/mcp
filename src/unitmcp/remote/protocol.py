@@ -23,16 +23,18 @@ logger = logging.getLogger(__name__)
 class RemoteProtocol(ABC):
     """
     Abstract base class for remote communication protocols.
-    
+
     This class defines the interface that all protocol implementations must follow.
     """
     
     def __init__(self, timeout: int = 30):
         """
         Initialize a remote protocol.
-        
-        Args:
-            timeout: Protocol timeout in seconds
+
+        Parameters
+        ----------
+        timeout : int, optional
+            Protocol timeout in seconds, by default 30
         """
         self.timeout = timeout
     
@@ -40,12 +42,16 @@ class RemoteProtocol(ABC):
     async def send_message(self, message: Any) -> bool:
         """
         Send a message using the protocol.
-        
-        Args:
-            message: Message to send
+
+        Parameters
+        ----------
+        message : Any
+            Message to send
             
-        Returns:
-            bool: True if the message was sent successfully, False otherwise
+        Returns
+        -------
+        bool
+            True if the message was sent successfully, False otherwise
         """
         pass
     
@@ -53,9 +59,11 @@ class RemoteProtocol(ABC):
     async def receive_message(self) -> Optional[Any]:
         """
         Receive a message using the protocol.
-        
-        Returns:
-            Optional[Any]: Received message or None if no message is available
+
+        Returns
+        -------
+        Optional[Any]
+            Received message or None if no message is available
         """
         pass
 

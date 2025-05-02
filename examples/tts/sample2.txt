@@ -1,0 +1,1 @@
+To jest drugi plik tekstowy. System text to speech powinien odczytać ten tekst po pierwszym pliku.

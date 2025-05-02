@@ -1,0 +1,136 @@
+instal remote
+
+uruchom kolejno skrypty
+
+pip install git+https://github.com/kivy/pyjnius.git
+
+
+
+ create mode 100755 tts/start_server.sh
+ create mode 100755 tts/start_stt_server.sh
+ create mode 100755 tts/start_tts_server.sh
+ create mode 100755 tts/start_unitmcp_client.sh
+ create mode 100644 tts/stt_server.py
+ create mode 100644 tts/unitmcp_client.py
+ create mode 100644 unitmcp/__init__.py
+ create mode 100644 unitmcp/bridges/__init__.py
+ create mode 100644 unitmcp/bridges/mqtt_bridge.py
+ create mode 100644 unitmcp/hardware_client.py
+ create mode 100644 unitmcp/server.py
+Pushing changes and tags to GitHub...
+Enumerating objects: 35, done.
+Counting objects: 100% (35/35), done.
+Delta compression using up to 16 threads
+Compressing objects: 100% (31/31), done.
+Writing objects: 100% (31/31), 22.33 KiB | 7.44 MiB/s, done.
+Total 31 (delta 5), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (5/5), completed with 2 local objects.
+remote:
+remote: GitHub found 8 vulnerabilities on UnitApi/mcp-examples's default branch (2 high, 6 moderate). To find out more, visit:
+remote:      https://github.com/UnitApi/mcp-examples/security/dependabot
+remote:
+To github.com:UnitApi/mcp-examples.git
+   d913353..c477a01  main -> main
+Enumerating objects: 1, done.
+Counting objects: 100% (1/1), done.
+Writing objects: 100% (1/1), 398 bytes | 398.00 KiB/s, done.
+Total 1 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+To github.com:UnitApi/mcp-examples.git
+ * [new tag]         v0.1.5 -> v0.1.5
+Successfully published version 0.1.5
+(base) [tom@devop mcp-examples]$ cd rpi_control/
+(base) [tom@devop rpi_control]$ bash install_remote.sh pi@raspberry
+ssh: Could not resolve hostname raspberry: Name or service not known
+(base) [tom@devop rpi_control]$ bash install_remote.sh pi@192.168.188.154
+audio_record.py                                                                                                                                                                                                                                                                     100% 2329     1.5MB/s   00:00
+client.sh                                                                                                                                                                                                                                                                           100%  249   312.3KB/s   00:00
+full_demo.py                                                                                                                                                                                                                                                                        100% 1177     1.3MB/s   00:00
+hello_world.py                                                                                                                                                                                                                                                                      100%  388   476.1KB/s   00:00
+install_remote.sh                                                                                                                                                                                                                                                                   100%  632   759.8KB/s   00:00
+install.sh                                                                                                                                                                                                                                                                          100%  402   465.0KB/s   00:00
+led_control.py                                                                                                                                                                                                                                                                      100% 1957     1.6MB/s   00:00
+mqtt_example.py                                                                                                                                                                                                                                                                     100% 3746     2.7MB/s   00:00
+README.md                                                                                                                                                                                                                                                                           100% 1866     1.8MB/s   00:00
+rpi_control.py                                                                                                                                                                                                                                                                      100%   10KB   4.3MB/s   00:00
+start.sh                                                                                                                                                                                                                                                                            100%  259   297.6KB/s   00:00
+[rpi_control] Installing Python dependencies...
+Defaulting to user installation because normal site-packages is not writeable
+ERROR: Could not open requirements file: [Errno 2] No such file or directory: 'requirements.txt'
+WARNING: You are using pip version 21.0.1; however, version 25.0.1 is available.
+You should consider upgrading via the '/usr/local/bin/python -m pip install --upgrade pip' command.
+Defaulting to user installation because normal site-packages is not writeable
+ERROR: Could not open requirements file: [Errno 2] No such file or directory: 'requirements.txt'
+WARNING: You are using pip version 21.0.1; however, version 25.0.1 is available.
+You should consider upgrading via the '/usr/local/bin/python -m pip install --upgrade pip' command.
+(base) [tom@devop rpi_control]$ bash install_remote.sh pi@192.168.188.154
+audio_record.py                                                                                                                                                                                                                                                                     100% 2329     1.8MB/s   00:00
+client.sh                                                                                                                                                                                                                                                                           100%  249   270.8KB/s   00:00
+full_demo.py                                                                                                                                                                                                                                                                        100% 1177     1.3MB/s   00:00
+hello_world.py                                                                                                                                                                                                                                                                      100%  388   486.6KB/s   00:00
+install_remote.sh                                                                                                                                                                                                                                                                   100%  632   754.7KB/s   00:00
+install.sh                                                                                                                                                                                                                                                                          100%  521   589.7KB/s   00:00
+led_control.py                                                                                                                                                                                                                                                                      100% 1957     1.5MB/s   00:00
+mqtt_example.py                                                                                                                                                                                                                                                                     100% 3746     2.7MB/s   00:00
+README.md                                                                                                                                                                                                                                                                           100% 1866     1.7MB/s   00:00
+requirements.txt                                                                                                                                                                                                                                                                    100%   18    21.4KB/s   00:00
+rpi_control.py                                                                                                                                                                                                                                                                      100%   10KB   4.3MB/s   00:00
+start.sh                                                                                                                                                                                                                                                                            100%  259   288.5KB/s   00:00
+[rpi_control] Installing Python dependencies...
+Defaulting to user installation because normal site-packages is not writeable
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Collecting unitmcp
+  Downloading unitmcp-0.1.25-py3-none-any.whl (194 kB)
+Collecting paho-mqtt
+  Downloading https://www.piwheels.org/simple/paho-mqtt/paho_mqtt-2.1.0-py3-none-any.whl (67 kB)
+Collecting pytest>=8.3.5
+  Downloading https://www.piwheels.org/simple/pytest/pytest-8.3.5-py3-none-any.whl (343 kB)
+Collecting requests>=2.31.0
+  Downloading https://www.piwheels.org/simple/requests/requests-2.32.3-py3-none-any.whl (64 kB)
+Collecting aiohttp>=3.8.0
+  Using cached aiohttp-3.10.11.tar.gz (7.6 MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+    Preparing wheel metadata: started
+    Preparing wheel metadata: finished with status 'done'
+Collecting sounddevice>=0.4.0
+  Downloading https://www.piwheels.org/simple/sounddevice/sounddevice-0.5.1-py3-none-any.whl (32 kB)
+Collecting psutil>=5.9.0
+  Using cached https://www.piwheels.org/simple/psutil/psutil-7.0.0-cp36-abi3-linux_armv7l.whl (272 kB)
+Collecting pytest-mock>=3.12.0
+  Downloading https://www.piwheels.org/simple/pytest-mock/pytest_mock-3.14.0-py3-none-any.whl (9.9 kB)
+Collecting onvif-zeep>=0.2.12
+  Using cached https://www.piwheels.org/simple/onvif-zeep/onvif_zeep-0.2.12-py3-none-any.whl (191 kB)
+Collecting pytest-cov>=4.1.0
+  Downloading https://www.piwheels.org/simple/pytest-cov/pytest_cov-5.0.0-py3-none-any.whl (21 kB)
+Collecting cryptography>=42.0.0
+  Downloading cryptography-44.0.2-cp37-abi3-manylinux_2_28_armv7l.manylinux_2_31_armv7l.whl (3.7 MB)
+Collecting unitmcp
+  Downloading unitmcp-0.1.24-py3-none-any.whl (194 kB)
+  Downloading unitmcp-0.1.23-py3-none-any.whl (194 kB)
+  Downloading unitmcp-0.1.22-py3-none-any.whl (194 kB)
+  Downloading unitmcp-0.1.21-py3-none-any.whl (160 kB)
+  Downloading unitmcp-0.1.20-py3-none-any.whl (160 kB)
+  Downloading unitmcp-0.1.19-py3-none-any.whl (160 kB)
+  Downloading unitmcp-0.1.7-py3-none-any.whl (39 kB)
+Collecting numpy>=1.22.3
+  Downloading numpy-1.24.4.tar.gz (10.9 MB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+    Preparing wheel metadata: started
+    Preparing wheel metadata: finished with status 'done'
+Collecting grpcio>=1.62.0
+  Downloading grpcio-1.70.0-cp38-cp38-linux_armv7l.whl (5.2 MB)
+Collecting opencv-python>=4.6.0
+  Using cached opencv-python-4.11.0.86.tar.gz (95.2 MB)
+  Installing build dependencies: started
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...
+  Installing build dependencies: still running...

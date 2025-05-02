@@ -1,0 +1,1 @@
+Witaj w przykładzie text to speech. To jest pierwszy plik tekstowy, który zostanie odczytany przez głośnik.

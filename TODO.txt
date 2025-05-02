@@ -7,5 +7,180 @@ Let me first check the existing Docker setup to understand what's already there,
 
 I'll create a Docker setup in the rpi_control directory to simulate a Raspberry Pi environmnt for testing. Let's first check the existing Docker configuration to understand what's already in place.
 
-/home/tom/dev
-/home/tom/Projects/dev
+## Języki DSL i rozwiązania do kontroli sprzętu
+
+Z moich badań wyłania się kilka kluczowych rozwiązań DSL, które są powszechnie stosowane w podobnych zastosowaniach:
+
+1. **Node-RED** - wizualny programator "flow-based" szeroko stosowany w automatyce IoT Node-RED wykorzystuje podejście modułowe, gdzie nieprogramiści mogą definiować algorytmy poprzez graficzne łączenie predefiniowanych modułów. Ta dobrze sprawdzona koncepcja jest również używana w automatyzacji biznesowej, analizie danych i przetwarzaniu sygnałów.
+
+2. **Home Assistant YAML** - deklaratywny język do automatyzacji oparty na YAML Home Assistant używa plików YAML do konfiguracji i automatyzacji, umożliwiając automatyczne reagowanie na zdarzenia zachodzące w domu i wokół niego poprzez zdefiniowane wyzwalacze, warunki i akcje.
+
+3. **MicroPython** - implementacja Pythona dla mikrokontrolerów MicroPython to efektywna implementacja Pythona 3 zoptymalizowana dla mikrokontrolerów, zapewniająca kontrolę nad sprzętem przy jednoczesnym abstrakcyjnym podejściu do niskopoziomowych funkcji, co znacznie upraszcza rozwój systemów embedded.
+
+4. **ESPHome** - system bazujący na YAML do programowania urządzeń ESP ESPHome umożliwia programowanie płytek ESP8266 i ESP32 przy użyciu YAML, co jest jednym z popularnych podejść typu "zrób to sam" w automatyzacji domowej.
+
+5. **Grafana + MQTT/Prometheus** - dla monitorowania i wizualizacji danych z urządzeń IoT Grafana w połączeniu z Prometheusem lub MQTT pozwala na monitorowanie danych z urządzeń IoT, gdzie mikrokontrolery ESP8266/ESP32 udostępniają dane, które są zbierane i przechowywane w bazach czasowych.
+
+
+## Koncepcja rozszerzonego promptu do UnitMCP
+
+
+Na podstawie analizy istniejących rozwiązań i struktury projektu UnitMCP, proponuję rozszerzenie projektu o następujące elementy:
+
+
+# Rozszerzony Prompt dla UnitMCP: System Wieloplatformowej Kontroli Sprzętu Embedded
+
+## Cele projektu
+
+Rozbudowanie projektu UnitMCP o:
+1. System zdalnej kontroli urządzeń embedded (Raspberry Pi, ESP32, Arduino)
+2. Inteligentną, dynamiczną inicjalizację "w locie"
+3. Interfejsy DSL i integrację z systemami AI dla uproszczenia kontroli
+4. Modularną architekturę umożliwiającą rozszerzanie na różne platformy
+
+## Architektura
+
+### 1. Warstwowy model kontroli sprzętu
+
+Zaimplementuj warstwowy model dostępu do sprzętu:
+- Warstwa abstrakcji sprzętu (HAL) dla różnych platform
+- Warstwa protokołów komunikacyjnych (MQTT, WebSockets, Serial, SSH)
+- Warstwa logiki kontrolnej (DSL)
+- Warstwa interfejsów użytkownika (CLI, Web, API)
+
+### 2. System modułów rozszerzeń (plugins)
+
+- Struktura wtyczek dla różnych typów sprzętu (GPIO, Audio, HDMI, USB-C)
+- System autodetekcji i automatycznej konfiguracji
+- Repozytorium sterowników i bibliotek
+
+### 3. Deklaratywny język opisu sprzętu (DSL)
+
+Zaimplementuj deklaratywny DSL inspirowany Node-RED i Home Assistant:
+- Format oparty na YAML do opisywania konfiguracji sprzętu
+- Pipeliny przetwarzania danych na wzór Pipeline z istniejącego kodu
+- Integracja z systemami ML/LLM dla interpretacji poleceń w języku naturalnym
+
+### 4. Wieloplatformowe wsparcie
+
+- Adaptery dla różnych platform: Raspberry Pi, ESP32, Arduino, Linux, Windows
+- Automatyczna kompilacja krzyżowa dla platform docelowych
+- Dystrybuowany system wykonania poleceń
+
+## Implementacja
+
+### 1. Moduł zdalnych połączeń
+
+Rozbudować istniejący kod o:
+- Wieloprotokołowe połączenia (SSH, MQTT, WebSockets)
+- System autodetekcji urządzeń w sieci
+- Bezpieczne tunelowanie poleceń i danych
+
+### 2. Moduł inicjalizacji dynamicznej
+
+Implementacja systemu, który:
+- Wykrywa podłączony sprzęt i jego możliwości
+- Pobiera i instaluje odpowiednie sterowniki i biblioteki
+- Konfiguruje środowisko wielowątkowo dla szybkiej inicjalizacji
+
+### 3. Interfejs DSL
+
+Stworzenie DSL podobnego do Home Assistant/Node-RED który:
+- Umożliwia deklaratywny opis systemu w YAML
+- Wspiera pipeliny przetwarzania
+- Integruje się z LLM dla interpretacji poleceń w języku naturalnym
+
+### 4. System konteneryzacji dla testowania
+
+- Docker Compose dla każdego typu sprzętu (GPIO, Audio, HDMI)
+- Wirtualne sterowniki dla symulacji sprzętu
+- Środowisko CI/CD dla testowania na różnych platformach
+
+## Szczegóły techniczne
+
+### 1. Struktura kodu
+
+```
+src/unitmcp/
+  remote/             # Moduł zdalnych połączeń
+    connection.py     # Klasy do obsługi SSH, MQTT, WebSockets
+    discovery.py      # Wykrywanie urządzeń w sieci
+    file_sync.py      # Synchronizacja plików i bibliotek
+    initializer.py    # Inicjalizacja "w locie"
+    protocol.py       # Abstrakcja protokołów komunikacyjnych
+  dsl/                # Moduł DSL
+    yaml_parser.py    # Parser YAML dla konfiguracji
+    interpreter.py    # Interpreter poleceń
+    llm_interface.py  # Integracja z LLM
+  adapters/           # Adaptery dla różnych platform
+    raspberry_pi.py   # Adapter dla Raspberry Pi
+    esp32.py          # Adapter dla ESP32
+    arduino.py        # Adapter dla Arduino
+  monitoring/         # Moduł monitorowania
+    prometheus.py     # Integracja z Prometheusem
+    grafana.py        # Integracja z Grafaną
+  security/           # Rozszerzony moduł bezpieczeństwa
+    auth.py           # Uwierzytelnianie
+    encryption.py     # Szyfrowanie komunikacji
+```
+
+### 2. Zależności
+
+- paramiko (SSH)
+- paho-mqtt (MQTT)
+- websockets (WebSockets)
+- PyYAML (YAML)
+- FastAPI (API)
+- Docker SDK (konteneryzacja)
+- OpenAI API (opcjonalne dla LLM)
+
+### 3. Przykłady DSL w YAML
+
+```yaml
+device:
+  type: esp32
+  connection:
+    protocol: ssh
+    host: 192.168.1.100
+    username: admin
+    password: !secret esp32_password
+
+hardware:
+  - name: led_red
+    type: gpio
+    pin: 17
+    mode: output
+  - name: temperature_sensor
+    type: i2c
+    address: 0x76
+    driver: bme280
+
+automation:
+  - trigger:
+      platform: value
+      device: temperature_sensor
+      above: 25
+    action:
+      - service: gpio.write
+        data:
+          device: led_red
+          state: 'on'
+      - service: mqtt.publish
+        data:
+          topic: home/temperature/alert
+          payload: "Temperature too high: {{trigger.to_state}}"
+```
+
+## Rezultaty
+
+1. Kompleksowy system zdalnej kontroli urządzeń embedded
+2. Łatwy w użyciu DSL dla nieprogramistów
+3. Inteligentna inicjalizacja "w locie"
+4. Wsparcie dla wielu platform sprzętowych
+5. Rozszerzalność poprzez system wtyczek
+6. Integracja z systemami monitorowania i wizualizacji
+```
+
+Ta koncepcja łączy najlepsze elementy z Node-RED (wizualny flow), Home Assistant (YAML DSL), MicroPython (abstrakcja sprzętu) i ESPHome (konfiguracja YAML dla ESP), jednocześnie wykorzystując istniejącą architekturę UnitMCP z jej modułami klienta, serwera, protokołów i pipeline'ów.
+
+Kluczowym aspektem jest utrzymanie modularnej struktury, gdzie poszczególne komponenty można łatwo wymieniać lub rozszerzać, przy jednoczesnym zapewnieniu prostego DSL dla użytkowników końcowych, którzy mogą nie być programistami.
