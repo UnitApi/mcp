@@ -1,6 +1,6 @@
 #!/bin/bash
 # Usuń poprzednie pliki
-
+clear
 echo "Starting publication process..."
 #flatedit
 
