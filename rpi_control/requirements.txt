@@ -5,7 +5,6 @@ simpleaudio
 pydub
 python-dotenv
 httpx
-mcp
 fastapi
 
 # System dependencies for simpleaudio (required on Raspberry Pi):

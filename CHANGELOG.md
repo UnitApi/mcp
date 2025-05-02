@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.39] - 2025-05-02
+
+### Added
+- Changes in rpi_control/.env.docker
+- Changes in tests/conftest.py
+
 ## [0.1.38] - 2025-05-02
 
 ### Added

@@ -31,7 +31,7 @@ try:
         mock_mouseinfo.MouseInfo = lambda: None
         sys.modules["mouseinfo"] = mock_mouseinfo
 
-    import pyautogui
+    import pynput
     from pynput import keyboard, mouse
     from pynput.keyboard import Key, Controller as KeyboardController
     from pynput.mouse import Button, Controller as MouseController
@@ -39,6 +39,7 @@ try:
     HAS_INPUT_LIBS = True
 except ImportError:
     HAS_INPUT_LIBS = False
+    pyautogui = None
 
     # Mock classes for environments without input libraries
     class MockController:
@@ -65,7 +66,12 @@ except ImportError:
 
     KeyboardController = MockController
     MouseController = MockController
+
+try:
+    import pyautogui
+except Exception:
     pyautogui = None
+    HAS_INPUT_LIBS = False
 
 
 class InputServer(MCPServer):

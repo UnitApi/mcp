@@ -39,6 +39,9 @@ RUN pip install --no-cache-dir \
 # Set PYTHONPATH so unitmcp is importable
 ENV PYTHONPATH="/app/src:${PYTHONPATH}"
 
+# Set a dummy DISPLAY variable to avoid KeyError with pyautogui in headless environments
+ENV DISPLAY=:0
+
 # Copy the server script
 COPY docker/server/hardware_server.py /app/
 

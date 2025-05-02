@@ -9,11 +9,13 @@ services:
       - "8080:8080"
     volumes:
       - ./examples:/app/examples
+    env_file:
+      - .env.docker
     environment:
-      - PYTHONUNBUFFERED=1
-      - HOST=0.0.0.0
-      - PORT=8080
-      - SERVER_NAME=Raspberry Pi Simulator
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - SERVER_NAME=${SERVER_NAME}
     networks:
       - rpi-network
 
@@ -22,9 +24,11 @@ services:
       context: ./llm
       dockerfile: Dockerfile
     ports:
-      - "11434:11434"
+      - "11435:11434"
     volumes:
       - llm-data:/root/.ollama
+    env_file:
+      - .env.docker
     networks:
       - rpi-network
 
@@ -34,13 +38,15 @@ services:
       dockerfile: rpi_control/client/Dockerfile
     volumes:
       - ./examples:/app/examples
+    env_file:
+      - .env.docker
     environment:
-      - PYTHONUNBUFFERED=1
-      - RPI_HOST=rpi-simulator
-      - RPI_PORT=8080
-      - OLLAMA_HOST=llm-model
-      - OLLAMA_PORT=11434
-      - OLLAMA_MODEL=llama2
+      - PYTHONUNBUFFERED=${PYTHONUNBUFFERED}
+      - RPI_HOST=${RPI_HOST}
+      - RPI_PORT=${RPI_PORT}
+      - OLLAMA_HOST=${OLLAMA_HOST}
+      - OLLAMA_PORT=${OLLAMA_PORT}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
     depends_on:
       - rpi-simulator
       - llm-model

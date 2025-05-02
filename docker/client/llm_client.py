@@ -14,8 +14,16 @@ import sys
 from typing import Dict, Any, List, Optional
 
 import httpx
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+
+try:
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+    HAS_MCP = True
+except ImportError:
+    HAS_MCP = False
+    ClientSession = None
+    StdioServerParameters = None
+    stdio_client = None
 
 # Configure logging
 logging.basicConfig(
