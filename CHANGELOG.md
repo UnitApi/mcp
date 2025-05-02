@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.29] - 2025-05-02
+
+### Added
+- Changes in python-sdk
+- Changes in rpi_control/examples/README_LLM_MCP.md
+- Changes in rpi_control/examples/llm_hardware_client.py
+- Changes in rpi_control/examples/llm_hardware_control.py
+- Changes in rpi_control/examples/test_llm_mcp.py
+- Changes in src/unitmcp/protocols/llm_mcp.py
+
 ## [0.1.28] - 2025-05-02
 
 ### Added

@@ -34,7 +34,14 @@ This approach avoids the "ResolutionImpossible" error related to the acme packag
 
 - `files.sh`: Sync only the remote scripts to the Raspberry Pi
 - `log.sh`: View logs from the running service
-- `scp.sh`: Copy files to the Raspberry Pi using SCP
+- `scp.sh`: Copy all files from the rpi_control folder and its dependencies to the Raspberry Pi
+  - Usage: `bash scp.sh [user@remote_host] [remote_path] [--no-replace]`
+  - By default, this script will replace (overwrite) existing files on the remote machine
+  - Use the `--no-replace` option to skip files that already exist on the remote machine
+  - The script copies:
+    1. The src directory containing the unitmcp package
+    2. Essential setup files (setup.py, setup.cfg, pyproject.toml, MANIFEST.in)
+    3. The entire rpi_control directory with all its files
 - `start.sh`: Start the MCP Hardware Client on the Raspberry Pi
 - `start_service.sh`: Start the MCP Hardware Client as a background service on the Raspberry Pi
 

@@ -1,6 +1,9 @@
-unitmcp
+unitmcp==0.1.19  # Pin to a specific version to avoid dependency conflicts
 paho-mqtt
 simpleaudio
 pydub
+fastapi>=0.110.0  # Explicitly include fastapi to resolve dependency conflict
+mcp>=1.7.0  # MCP Python SDK with latest version
+
 # System dependency for simpleaudio (required on Raspberry Pi):
 # sudo apt-get install -y libasound2-dev
