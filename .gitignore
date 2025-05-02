@@ -28,7 +28,7 @@ mcp.code-workspace
 __pycache__/
 *.py[cod]
 *$py.class
-
+python-sdk
 # C extensions
 *.so
 
