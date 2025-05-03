@@ -6,10 +6,36 @@ integrated_demo.py
 
 import asyncio
 import json
+import os
+import sys
 from pathlib import Path
 
-from mcp_hardware import MCPHardwareClient, MCPShell, Pipeline, PipelineManager
-from mcp_hardware.pipeline.pipeline import PipelineStep, Expectation, ExpectationType
+# Add project root to Python path if needed
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+try:
+    from unitmcp import MCPHardwareClient, MCPShell
+    from unitmcp.pipeline.pipeline import Pipeline, PipelineManager, PipelineStep, Expectation, ExpectationType
+    from unitmcp.utils import EnvLoader
+except ImportError:
+    print("Error: Could not import unitmcp module.")
+    print(f"Make sure the UnitMCP project is in your Python path.")
+    print(f"Current Python path: {sys.path}")
+    print(f"Trying to add {os.path.join(project_root, 'src')} to Python path...")
+    sys.path.insert(0, os.path.join(project_root, 'src'))
+    try:
+        from unitmcp import MCPHardwareClient, MCPShell
+        from unitmcp.pipeline.pipeline import Pipeline, PipelineManager, PipelineStep, Expectation, ExpectationType
+        from unitmcp.utils import EnvLoader
+        print("Successfully imported unitmcp module after path adjustment.")
+    except ImportError:
+        print("Failed to import unitmcp module even after path adjustment.")
+        sys.exit(1)
+
+# Load environment variables
+env = EnvLoader()
 
 
 async def integrated_demo():
@@ -74,7 +100,7 @@ def create_led_control_pipeline():
         PipelineStep(
             command="setup_led",
             method="gpio.setupLED",
-            params={"device_id": "demo_led", "pin": 17},
+            params={"device_id": "demo_led", "pin": env.get_int("LED_PIN", 17)},
             expectations=[
                 Expectation(
                     type=ExpectationType.VALUE_EQUALS,
@@ -91,8 +117,8 @@ def create_led_control_pipeline():
             params={
                 "device_id": "demo_led",
                 "action": "blink",
-                "on_time": 0.1,
-                "off_time": 0.1
+                "on_time": env.get_float("FAST_BLINK", 0.1),
+                "off_time": env.get_float("FAST_BLINK", 0.1)
             },
             retry_count=2,
             description="Fast blink pattern"
@@ -109,8 +135,8 @@ def create_led_control_pipeline():
             params={
                 "device_id": "demo_led",
                 "action": "blink",
-                "on_time": 0.5,
-                "off_time": 0.5
+                "on_time": env.get_float("SLOW_BLINK", 0.5),
+                "off_time": env.get_float("SLOW_BLINK", 0.5)
             },
             description="Slow blink pattern"
         ),
@@ -204,98 +230,76 @@ def create_automation_pipeline():
     ]
 
     pipeline = Pipeline(
-        name="automation_demo",
+        name="automation",
         steps=steps,
-        description="Automation demonstration with error handling"
+        description="Automation pipeline with error handling"
     )
-
-    # Set timestamp variable
-    import datetime
-    pipeline.set_variable("timestamp", datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     return pipeline
 
 
 def create_interactive_shell_script():
     """Create a shell script file for batch operations."""
-    script_content = """# MCP Hardware Shell Script
-# This script can be run through the shell
+    script_content = """#!/bin/bash
+# Interactive shell script for UnitMCP integrated demo
 
-# Setup variables
-set led_pin 17
-set led_id test_led
-set blink_count 3
+echo "Starting UnitMCP Interactive Shell"
+echo "=================================="
 
-# Create a pipeline
-pipeline_create led_test
-pipeline_add led_test led_setup ${led_id} ${led_pin}
-pipeline_add led_test led ${led_id} on
-pipeline_add led_test sleep 1
-pipeline_add led_test led ${led_id} off
+# Set up an LED
+echo "Setting up LED on pin 17..."
+echo "setup_led demo_led 17" | nc localhost 8080
 
-# Create automation pipeline
-pipeline_create auto_test
-pipeline_add auto_test type Testing automation at $(date)
-pipeline_add auto_test move 100 100
-pipeline_add auto_test click left
+# Control the LED
+echo "Turning LED on..."
+echo "control_led demo_led on" | nc localhost 8080
+sleep 2
 
-# List all pipelines
-pipeline_list
+echo "Blinking LED..."
+echo "control_led demo_led blink 0.2 0.2" | nc localhost 8080
+sleep 5
 
-# Run the LED test
-pipeline_run led_test
+echo "Turning LED off..."
+echo "control_led demo_led off" | nc localhost 8080
 
-# Save pipelines
-pipeline_save led_test led_test.json
-pipeline_save auto_test auto_test.json
-
-# Show results
-result
-vars
+echo "Demo complete!"
 """
 
-    script_file = Path("interactive_demo.mcp")
-    with open(script_file, "w") as f:
+    with open("interactive_demo.sh", "w") as f:
         f.write(script_content)
+    
+    os.chmod("interactive_demo.sh", 0o755)
+    print("Created interactive shell script: interactive_demo.sh")
 
-    print(f"Created shell script: {script_file}")
 
-
-def main():
+async def main():
     """Main entry point for integrated demo."""
-    import argparse
-
-    parser = argparse.ArgumentParser(description="MCP Hardware Integrated Demo")
-    parser.add_argument("--shell", action="store_true", help="Start interactive shell")
-    parser.add_argument("--pipeline", action="store_true", help="Run pipeline demo")
-    parser.add_argument("--script", action="store_true", help="Create shell script")
-
-    args = parser.parse_args()
-
-    if args.shell:
-        # Start interactive shell
-        print("Starting MCP Hardware Shell...")
-        shell = MCPShell()
-        try:
-            shell.cmdloop()
-        except KeyboardInterrupt:
-            print("\nExiting...")
-    elif args.pipeline:
-        # Run pipeline demo
-        asyncio.run(integrated_demo())
-    elif args.script:
-        # Create shell script
-        create_interactive_shell_script()
-    else:
-        # Show options
-        print("MCP Hardware Integrated Demo")
-        print("=" * 50)
-        print("Options:")
-        print("  --shell    : Start interactive shell")
-        print("  --pipeline : Run pipeline demonstration")
-        print("  --script   : Create example shell script")
-        print("\nRun with one of the options above")
+    print("UnitMCP Integrated Demo")
+    print("======================")
+    print("\nThis demo showcases the integration of various UnitMCP features:")
+    print("1. Pipeline execution")
+    print("2. Shell command interface")
+    print("3. Hardware control")
+    print("4. Automation capabilities")
+    
+    # Create the interactive shell script
+    create_interactive_shell_script()
+    
+    try:
+        # Run the integrated demo
+        await integrated_demo()
+        
+        print("\nDemo completed successfully!")
+        print("\nYou can also try the interactive shell script:")
+        print("  ./interactive_demo.sh")
+        
+    except KeyboardInterrupt:
+        print("\nDemo interrupted by user")
+    except Exception as e:
+        print(f"\nError during demo: {e}")
+    
+    print("\nThank you for exploring UnitMCP!")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

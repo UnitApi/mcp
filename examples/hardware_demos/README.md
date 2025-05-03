@@ -1,116 +1,77 @@
-# Hardware Demonstration Examples
+# UnitMCP Example: Hardware Demos
 
-This directory contains various hardware integration demonstrations using the UnitMCP library.
+## Purpose
 
-## Examples
-
-### sensor_demo.py
-
-This example demonstrates how to interface with various sensors.
-
-**Features:**
-- Temperature sensor reading
-- Motion detection
-- Light level sensing
-- Data logging
-
-### actuator_demo.py
-
-This example demonstrates how to control various actuators.
-
-**Features:**
-- Servo motor control
-- Relay switching
-- LED control
-- Motor driver integration
-
-### led_control.py
-
-This example demonstrates basic LED control functionality using the UnitMCP library.
-
-**Features:**
-- Simple LED blinking
-- Different blink patterns
-- Environment variable configuration
-- Error handling
-
-### traffic_light.py
-
-This example demonstrates a traffic light simulation system.
-
-**Features:**
-- Traffic light simulation
-- Pedestrian crossing system
-- LED sequencing
-- Environment variable configuration
-- Error handling
-
-## Environment Variables
-
-All examples in this directory support configuration via environment variables. You can:
-
-1. Create a `.env` file in this directory (copy from `txt.env` as a starting point)
-2. Set environment variables in your shell before running the examples
-3. Pass configuration via command-line arguments (where supported)
-
-### Common Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `RPI_HOST` | Hostname or IP address of the MCP server | localhost |
-| `RPI_PORT` | Port number of the MCP server | 8080 |
-| `SIMULATION_MODE` | Run in simulation mode without hardware | false |
-
-### LED Control Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `LED_PIN` | GPIO pin for the LED | 17 |
-| `LED_ID` | Identifier for the LED | led1 |
-| `BLINK_COUNT` | Number of times to blink | 5 |
-| `BLINK_DURATION` | Duration of each blink in seconds | 0.5 |
-| `FAST_BLINK` | Duration for fast blinking in seconds | 0.1 |
-| `SLOW_BLINK` | Duration for slow blinking in seconds | 0.5 |
-| `PATTERN_DURATION` | Duration to run each pattern in seconds | 3.0 |
-
-### Traffic Light Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `RED_LED_PIN` | GPIO pin for red light | 17 |
-| `YELLOW_LED_PIN` | GPIO pin for yellow light | 27 |
-| `GREEN_LED_PIN` | GPIO pin for green light | 22 |
-| `RED_LIGHT_TIME` | Duration for red light in seconds | 5.0 |
-| `YELLOW_LIGHT_TIME` | Duration for yellow light in seconds | 2.0 |
-| `GREEN_LIGHT_TIME` | Duration for green light in seconds | 5.0 |
-
-### Pedestrian Crossing Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `CAR_RED_PIN` | GPIO pin for car red light | 17 |
-| `CAR_GREEN_PIN` | GPIO pin for car green light | 22 |
-| `PED_RED_PIN` | GPIO pin for pedestrian red light | 23 |
-| `PED_GREEN_PIN` | GPIO pin for pedestrian green light | 24 |
-| `BUTTON_PIN` | GPIO pin for pedestrian button | 25 |
-| `CROSSING_TIME` | Duration for pedestrian crossing in seconds | 10.0 |
-| `TRANSITION_TIME` | Duration for light transitions in seconds | 3.0 |
-| `FLASH_COUNT` | Number of times to flash pedestrian green light | 3 |
-
-## Usage
-
-```bash
-# Run with default settings (uses .env file if present)
-python sensor_demo.py
-python actuator_demo.py
-python led_control.py
-python traffic_light.py
-
-# Run with specific environment variables
-LED_PIN=18 BLINK_COUNT=10 python led_control.py
-```
+These examples demonstrate how to control various hardware devices using the UnitMCP library. They provide practical demonstrations of LED control and traffic light simulation, showing proper error handling and configuration through environment variables.
 
 ## Requirements
 
-- UnitMCP library: `pip install -e ..`
-- Appropriate hardware (LEDs, buttons, etc.) or simulation mode enabled
+- Python 3.7+
+- UnitMCP library (installed or in PYTHONPATH)
+- Raspberry Pi or compatible hardware (optional, can run in simulation mode)
+
+## Environment Variables
+
+These examples use the following environment variables which can be configured in a `.env` file:
+
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `RPI_HOST` | Hostname or IP address of the Raspberry Pi | `localhost` |
+| `RPI_PORT` | Port number for the MCP server | `8080` |
+| `LED_PIN` | GPIO pin number for the LED | `17` |
+| `LED_ID` | Identifier for the LED device | `led1` |
+| `BLINK_COUNT` | Number of times to blink the LED | `5` |
+| `BLINK_DURATION` | Duration of each blink in seconds | `0.5` |
+| `RED_LED_PIN` | GPIO pin for red traffic light | `17` |
+| `YELLOW_LED_PIN` | GPIO pin for yellow traffic light | `27` |
+| `GREEN_LED_PIN` | GPIO pin for green traffic light | `22` |
+| `SIMULATION_MODE` | Run in simulation mode without hardware | `false` |
+
+## How to Run
+
+```bash
+# Run LED control demo
+python led_control.py
+
+# Run traffic light demo
+python traffic_light.py
+```
+
+## Example Output
+
+### LED Control Demo
+```
+LED Control Demo
+1. Simple blink
+2. LED patterns
+Select demo (1-2): 1
+Connecting to MCP server at localhost:8080
+Using LED on pin 17 with ID 'led1'
+LED setup complete
+Blink 1
+Blink 2
+Blink 3
+Blink 4
+Blink 5
+LED blinking complete
+```
+
+### Traffic Light Demo
+```
+Connecting to MCP server at localhost:8080
+Using LED pins: Red=17, Yellow=27, Green=22
+Timing: Red=5.0s, Yellow=2.0s, Green=5.0s
+Setting up traffic light system...
+Traffic light running (Ctrl+C to stop)
+RED
+RED + YELLOW
+GREEN
+YELLOW
+...
+```
+
+## Additional Notes
+
+- These examples can be run in simulation mode by setting the `SIMULATION_MODE` environment variable to `true`.
+- For real hardware control, ensure that the UnitMCP server is running on the target device.
+- The traffic light example includes a pedestrian crossing simulation that can be selected when running the script.

@@ -1,116 +1,183 @@
-# UnitMCP Custom Automation Configuration
+# UnitMCP Configuration Automation Example
+
+# Devices configuration
+devices:
+  main_led:
+    type: led
+    pin: 17
+    description: "Main indicator LED"
+  
+  user_button:
+    type: button
+    pin: 27
+    description: "User interaction button"
+  
+  traffic1:
+    type: traffic_light
+    red_pin: 17
+    yellow_pin: 27
+    green_pin: 22
+    description: "Main traffic light"
+
+# Sequences define ordered steps of actions
+sequences:
+  # Main sequence - runs by default
+  main:
+    description: "Main demonstration sequence"
+    steps:
+      - type: led
+        device: main_led
+        action: on
+        description: "Turn on the main LED"
+      
+      - type: button
+        device: user_button
+        action: wait_press
+        description: "Wait for button press to continue"
+      
+      - type: traffic_light
+        device: traffic1
+        action: cycle
+        params:
+          duration: 2.0
+        description: "Run a traffic light cycle"
+      
+      - type: led
+        device: main_led
+        action: blink
+        params:
+          on_time: 0.1
+          off_time: 0.1
+          count: 10
+        description: "Blink the LED rapidly"
+      
+      - type: delay
+        params:
+          duration: 1.0
+        description: "Pause for 1 second"
+      
+      - type: led
+        device: main_led
+        action: off
+        description: "Turn off the main LED"
+  
+  # LED demonstration sequence
+  led_demo:
+    description: "LED demonstration sequence"
+    steps:
+      - type: led
+        device: main_led
+        action: on
+        description: "Turn on LED"
+      
+      - type: delay
+        params:
+          duration: 1.0
+        description: "Wait 1 second"
+      
+      - type: led
+        device: main_led
+        action: blink
+        params:
+          on_time: 0.1
+          off_time: 0.1
+          count: 5
+        description: "Blink LED fast"
+      
+      - type: delay
+        params:
+          duration: 1.0
+        description: "Wait 1 second"
+      
+      - type: led
+        device: main_led
+        action: blink
+        params:
+          on_time: 0.5
+          off_time: 0.5
+          count: 3
+        description: "Blink LED slow"
+      
+      - type: delay
+        params:
+          duration: 1.0
+        description: "Wait 1 second"
+      
+      - type: led
+        device: main_led
+        action: off
+        description: "Turn off LED"
+  
+  # Button demonstration sequence
+  button_demo:
+    description: "Button interaction demonstration"
+    steps:
+      - type: led
+        device: main_led
+        action: on
+        description: "Turn on indicator LED"
+      
+      - type: button
+        device: user_button
+        action: wait_press
+        description: "Wait for first button press"
+      
+      - type: led
+        device: main_led
+        action: blink
+        params:
+          on_time: 0.1
+          off_time: 0.1
+          count: 3
+        description: "Blink LED to acknowledge button press"
+      
+      - type: button
+        device: user_button
+        action: wait_press
+        description: "Wait for second button press"
+      
+      - type: led
+        device: main_led
+        action: off
+        description: "Turn off LED"
+  
+  # Traffic light demonstration
+  traffic_demo:
+    description: "Traffic light demonstration"
+    steps:
+      - type: traffic_light
+        device: traffic1
+        action: red
+        params:
+          duration: 3.0
+        description: "Red light for 3 seconds"
+      
+      - type: traffic_light
+        device: traffic1
+        action: yellow
+        params:
+          duration: 1.0
+        description: "Yellow light for 1 second"
+      
+      - type: traffic_light
+        device: traffic1
+        action: green
+        params:
+          duration: 3.0
+        description: "Green light for 3 seconds"
+      
+      - type: traffic_light
+        device: traffic1
+        action: cycle
+        params:
+          duration: 2.0
+          cycles: 2
+        description: "Run 2 complete traffic light cycles"
+
+# Define which sequence to run by default
+main_sequence: main
 
 # Global settings
-global:
-  simulation_mode: true  # Set to false when using real hardware
+settings:
+  simulation_mode: false  # Set to true when no hardware is available
   log_level: INFO
-
-# Hardware configuration
-hardware:
-  led_pin: 18
-  button_pin: 17
-
-# Triggers
-triggers:
-  # Time-based trigger that fires every 5 seconds
-  time_trigger:
-    type: time
-    interval: 5.0
-    max_count: 6  # Will fire 6 times (30 seconds total)
-  
-  # Button-based trigger (if hardware is connected)
-  button_trigger:
-    type: gpio
-    pin: ${BUTTON_PIN:17}
-    edge: rising
-    debounce: 0.2
-
-# Actions
-actions:
-  # LED actions
-  led_on:
-    type: led
-    device_id: led_${LED_PIN:18}
-    action: on
-  
-  led_off:
-    type: led
-    device_id: led_${LED_PIN:18}
-    action: off
-  
-  led_blink:
-    type: led
-    device_id: led_${LED_PIN:18}
-    action: blink
-    on_time: 0.3
-    off_time: 0.3
-    count: 5
-  
-  # Audio actions
-  beep:
-    type: audio
-    action_type: tone
-    frequency: ${AUDIO_FREQUENCY:440}
-    duration: ${AUDIO_DURATION:0.5}
-  
-  speak_hello:
-    type: audio
-    action_type: speak
-    text: ${TTS_MESSAGE:Hello, UnitMCP automation system is running!}
-  
-  # Delay action
-  delay_short:
-    type: delay
-    delay: 1.0
-  
-  delay_medium:
-    type: delay
-    delay: 2.0
-  
-  # Log actions
-  log_start:
-    type: log
-    message: "Custom automation sequence started"
-    level: info
-  
-  log_end:
-    type: log
-    message: "Custom automation sequence completed"
-    level: info
-
-# Sequences
-sequences:
-  # Startup sequence
-  startup:
-    actions:
-      - log_start
-      - speak_hello
-      - led_blink
-      - delay_short
-  
-  # LED sequence
-  led_pattern:
-    actions:
-      - led_on
-      - delay_short
-      - led_off
-      - delay_short
-      - led_blink
-      - delay_medium
-  
-  # Shutdown sequence
-  shutdown:
-    actions:
-      - beep
-      - led_off
-      - log_end
-
-# Trigger-to-sequence mappings
-mappings:
-  # Map time trigger to sequences
-  - trigger: time_trigger
-    sequence: led_pattern
-  
-  # Map button trigger to sequence (if hardware is connected)
-  - trigger: button_trigger
-    sequence: startup

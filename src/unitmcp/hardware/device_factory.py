@@ -9,379 +9,20 @@ and concrete factory implementations for specific device types.
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union, Type
 
+from .base import Device, DeviceType, DeviceMode
+from .led import LEDDevice
+from .button import ButtonDevice
+from .traffic_light import TrafficLightDevice
+from .display import DisplayDevice, DisplayType
+from ..utils.env_loader import EnvLoader
+
+# Configure logging
 logger = logging.getLogger(__name__)
 
-
-class Device(ABC):
-    """
-    Abstract base class for hardware devices.
-    
-    This class defines the interface that all hardware device implementations must follow.
-    """
-    
-    def __init__(self, device_id: str):
-        """
-        Initialize a hardware device.
-        
-        Parameters
-        ----------
-        device_id : str
-            Unique identifier for the device
-        """
-        self.device_id = device_id
-        self.is_initialized = False
-    
-    @abstractmethod
-    async def initialize(self) -> bool:
-        """
-        Initialize the device.
-        
-        Returns
-        -------
-        bool
-            True if initialization was successful, False otherwise
-        """
-        pass
-    
-    @abstractmethod
-    async def cleanup(self) -> bool:
-        """
-        Clean up device resources.
-        
-        Returns
-        -------
-        bool
-            True if cleanup was successful, False otherwise
-        """
-        pass
-    
-    @abstractmethod
-    async def execute_command(self, command: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a command on the device.
-        
-        Parameters
-        ----------
-        command : str
-            Command to execute
-        params : Dict[str, Any]
-            Command parameters
-            
-        Returns
-        -------
-        Dict[str, Any]
-            Command result
-        """
-        pass
-
-
-class LEDDevice(Device):
-    """
-    LED device implementation.
-    
-    This class provides functionality for controlling LED devices.
-    """
-    
-    def __init__(self, device_id: str, pin: int):
-        """
-        Initialize an LED device.
-        
-        Parameters
-        ----------
-        device_id : str
-            Unique identifier for the device
-        pin : int
-            GPIO pin number for the LED
-        """
-        super().__init__(device_id)
-        self.pin = pin
-        self.state = False
-        self.blink_task = None
-    
-    async def initialize(self) -> bool:
-        """
-        Initialize the LED device.
-        
-        Returns
-        -------
-        bool
-            True if initialization was successful, False otherwise
-        """
-        try:
-            # In a real implementation, this would set up the GPIO pin
-            # For now, we'll just mark it as initialized
-            self.is_initialized = True
-            logger.info(f"Initialized LED device {self.device_id} on pin {self.pin}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to initialize LED device {self.device_id}: {e}")
-            return False
-    
-    async def cleanup(self) -> bool:
-        """
-        Clean up LED device resources.
-        
-        Returns
-        -------
-        bool
-            True if cleanup was successful, False otherwise
-        """
-        try:
-            # Stop any ongoing blink task
-            if self.blink_task and not self.blink_task.done():
-                self.blink_task.cancel()
-            
-            # Turn off the LED
-            self.state = False
-            
-            # In a real implementation, this would clean up the GPIO pin
-            self.is_initialized = False
-            logger.info(f"Cleaned up LED device {self.device_id}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to clean up LED device {self.device_id}: {e}")
-            return False
-    
-    async def execute_command(self, command: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a command on the LED device.
-        
-        Parameters
-        ----------
-        command : str
-            Command to execute (on, off, blink, toggle)
-        params : Dict[str, Any]
-            Command parameters
-            
-        Returns
-        -------
-        Dict[str, Any]
-            Command result
-        """
-        import asyncio
-        
-        if not self.is_initialized:
-            return {"success": False, "error": "Device not initialized"}
-        
-        try:
-            if command == "on":
-                self.state = True
-                # Stop any ongoing blink task
-                if self.blink_task and not self.blink_task.done():
-                    self.blink_task.cancel()
-                return {"success": True, "state": self.state}
-            
-            elif command == "off":
-                self.state = False
-                # Stop any ongoing blink task
-                if self.blink_task and not self.blink_task.done():
-                    self.blink_task.cancel()
-                return {"success": True, "state": self.state}
-            
-            elif command == "toggle":
-                self.state = not self.state
-                # Stop any ongoing blink task
-                if self.blink_task and not self.blink_task.done():
-                    self.blink_task.cancel()
-                return {"success": True, "state": self.state}
-            
-            elif command == "blink":
-                # Get blink parameters
-                on_time = params.get("on_time", 0.5)
-                off_time = params.get("off_time", 0.5)
-                count = params.get("count", 0)  # 0 means blink indefinitely
-                
-                # Stop any ongoing blink task
-                if self.blink_task and not self.blink_task.done():
-                    self.blink_task.cancel()
-                
-                # Start a new blink task
-                self.blink_task = asyncio.create_task(self._blink(on_time, off_time, count))
-                
-                return {
-                    "success": True,
-                    "on_time": on_time,
-                    "off_time": off_time,
-                    "count": count
-                }
-            
-            else:
-                return {"success": False, "error": f"Unknown command: {command}"}
-        
-        except Exception as e:
-            logger.error(f"Error executing command {command} on LED device {self.device_id}: {e}")
-            return {"success": False, "error": str(e)}
-    
-    async def _blink(self, on_time: float, off_time: float, count: int = 0):
-        """
-        Blink the LED.
-        
-        Parameters
-        ----------
-        on_time : float
-            Time in seconds that the LED should be on
-        off_time : float
-            Time in seconds that the LED should be off
-        count : int, optional
-            Number of blink cycles (0 means blink indefinitely), by default 0
-        """
-        import asyncio
-        
-        try:
-            blink_count = 0
-            while count == 0 or blink_count < count:
-                # Turn on
-                self.state = True
-                await asyncio.sleep(on_time)
-                
-                # Turn off
-                self.state = False
-                await asyncio.sleep(off_time)
-                
-                blink_count += 1
-        except asyncio.CancelledError:
-            # Task was cancelled, clean up
-            pass
-        except Exception as e:
-            logger.error(f"Error in blink task for LED device {self.device_id}: {e}")
-
-
-class ButtonDevice(Device):
-    """
-    Button device implementation.
-    
-    This class provides functionality for controlling button devices.
-    """
-    
-    def __init__(self, device_id: str, pin: int):
-        """
-        Initialize a button device.
-        
-        Parameters
-        ----------
-        device_id : str
-            Unique identifier for the device
-        pin : int
-            GPIO pin number for the button
-        """
-        super().__init__(device_id)
-        self.pin = pin
-        self.is_pressed = False
-        self.press_callbacks = []
-    
-    async def initialize(self) -> bool:
-        """
-        Initialize the button device.
-        
-        Returns
-        -------
-        bool
-            True if initialization was successful, False otherwise
-        """
-        try:
-            # In a real implementation, this would set up the GPIO pin
-            # For now, we'll just mark it as initialized
-            self.is_initialized = True
-            logger.info(f"Initialized button device {self.device_id} on pin {self.pin}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to initialize button device {self.device_id}: {e}")
-            return False
-    
-    async def cleanup(self) -> bool:
-        """
-        Clean up button device resources.
-        
-        Returns
-        -------
-        bool
-            True if cleanup was successful, False otherwise
-        """
-        try:
-            # In a real implementation, this would clean up the GPIO pin
-            self.is_initialized = False
-            logger.info(f"Cleaned up button device {self.device_id}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to clean up button device {self.device_id}: {e}")
-            return False
-    
-    async def execute_command(self, command: str, params: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Execute a command on the button device.
-        
-        Parameters
-        ----------
-        command : str
-            Command to execute (read, register_callback, simulate_press)
-        params : Dict[str, Any]
-            Command parameters
-            
-        Returns
-        -------
-        Dict[str, Any]
-            Command result
-        """
-        if not self.is_initialized:
-            return {"success": False, "error": "Device not initialized"}
-        
-        try:
-            if command == "read":
-                return {"success": True, "is_pressed": self.is_pressed}
-            
-            elif command == "register_callback":
-                callback = params.get("callback")
-                if callback and callable(callback):
-                    self.press_callbacks.append(callback)
-                    return {"success": True, "message": "Callback registered"}
-                else:
-                    return {"success": False, "error": "Invalid callback"}
-            
-            elif command == "simulate_press":
-                # For testing purposes
-                self.is_pressed = True
-                # Notify callbacks
-                for callback in self.press_callbacks:
-                    try:
-                        callback(self.device_id, True)
-                    except Exception as e:
-                        logger.error(f"Error in button press callback: {e}")
-                
-                # Reset after a short delay
-                import asyncio
-                asyncio.create_task(self._reset_after_delay(0.1))
-                
-                return {"success": True, "message": "Press simulated"}
-            
-            else:
-                return {"success": False, "error": f"Unknown command: {command}"}
-        
-        except Exception as e:
-            logger.error(f"Error executing command {command} on button device {self.device_id}: {e}")
-            return {"success": False, "error": str(e)}
-    
-    async def _reset_after_delay(self, delay: float):
-        """
-        Reset the button state after a delay.
-        
-        Parameters
-        ----------
-        delay : float
-            Delay in seconds before resetting
-        """
-        import asyncio
-        
-        await asyncio.sleep(delay)
-        self.is_pressed = False
-        
-        # Notify callbacks
-        for callback in self.press_callbacks:
-            try:
-                callback(self.device_id, False)
-            except Exception as e:
-                logger.error(f"Error in button release callback: {e}")
+# Load environment variables
+env = EnvLoader()
 
 
 class DeviceFactory(ABC):
@@ -392,133 +33,313 @@ class DeviceFactory(ABC):
     """
     
     @abstractmethod
-    def create_device(self, device_id: str, device_type: str, **kwargs) -> Optional[Device]:
+    async def create_device(
+        self, 
+        device_id: str, 
+        device_type: Union[DeviceType, str], 
+        mode: Union[DeviceMode, str] = None,
+        **kwargs
+    ) -> Optional[Device]:
         """
         Create a device of the specified type.
         
-        Parameters
-        ----------
-        device_id : str
-            Unique identifier for the device
-        device_type : str
-            Type of device to create
-        **kwargs
-            Device parameters
+        Args:
+            device_id: Unique identifier for the device
+            device_type: Type of device to create
+            mode: Operation mode (hardware, simulation, remote, mock)
+            **kwargs: Device parameters
             
-        Returns
-        -------
-        Optional[Device]
+        Returns:
             An instance of the appropriate device class, or None if creation failed
         """
         pass
 
 
-class GPIODeviceFactory(DeviceFactory):
+class HardwareDeviceFactory(DeviceFactory):
     """
-    Factory for GPIO devices.
+    Factory for hardware devices.
     
-    This class provides functionality for creating GPIO devices like LEDs and buttons.
+    This class provides functionality for creating hardware devices like LEDs, buttons,
+    traffic lights, and displays.
     """
     
-    def create_device(self, device_id: str, device_type: str, **kwargs) -> Optional[Device]:
-        """
-        Create a GPIO device of the specified type.
-        
-        Parameters
-        ----------
-        device_id : str
-            Unique identifier for the device
-        device_type : str
-            Type of device to create (led, button)
+    async def create_device(
+        self, 
+        device_id: str, 
+        device_type: Union[DeviceType, str], 
+        mode: Union[DeviceMode, str] = None,
         **kwargs
-            Device parameters
+    ) -> Optional[Device]:
+        """
+        Create a hardware device of the specified type.
+        
+        Args:
+            device_id: Unique identifier for the device
+            device_type: Type of device to create (LED, BUTTON, TRAFFIC_LIGHT, DISPLAY, etc.)
+            mode: Operation mode (hardware, simulation, remote, mock)
+            **kwargs: Device parameters
             
-        Returns
-        -------
-        Optional[Device]
+        Returns:
             An instance of the appropriate device class, or None if creation failed
         """
-        if device_type == "led":
-            pin = kwargs.get("pin")
-            if pin is None:
-                logger.error("LED device requires a pin parameter")
-                return None
+        try:
+            # Convert string device type to enum if needed
+            if isinstance(device_type, str):
+                try:
+                    device_type = DeviceType(device_type.upper())
+                except ValueError:
+                    logger.error(f"Unknown device type: {device_type}")
+                    return None
             
-            return LEDDevice(device_id, pin)
-        
-        elif device_type == "button":
-            pin = kwargs.get("pin")
-            if pin is None:
-                logger.error("Button device requires a pin parameter")
-                return None
+            # Convert string mode to enum if needed
+            if isinstance(mode, str):
+                try:
+                    mode = DeviceMode(mode.upper())
+                except ValueError:
+                    logger.error(f"Unknown device mode: {mode}")
+                    return None
             
-            return ButtonDevice(device_id, pin)
-        
-        else:
-            logger.error(f"Unknown GPIO device type: {device_type}")
+            # Use default mode if not specified
+            if mode is None:
+                # Check if we're running on a Raspberry Pi
+                try:
+                    import RPi.GPIO
+                    mode = DeviceMode.HARDWARE
+                except ImportError:
+                    mode = DeviceMode.SIMULATION
+                    logger.warning("RPi.GPIO not available, defaulting to simulation mode")
+            
+            # Create the appropriate device based on type
+            if device_type == DeviceType.LED:
+                pin = kwargs.get('pin')
+                device = LEDDevice(device_id, pin, mode, **kwargs)
+                logger.info(f"Created LED device '{device_id}' on pin {pin} (mode: {mode.value})")
+                return device
+                
+            elif device_type == DeviceType.BUTTON:
+                pin = kwargs.get('pin')
+                pull_up = kwargs.get('pull_up', True)
+                debounce_ms = kwargs.get('debounce_ms', 50)
+                device = ButtonDevice(device_id, pin, mode, pull_up, debounce_ms, **kwargs)
+                logger.info(f"Created button device '{device_id}' on pin {pin} (mode: {mode.value})")
+                return device
+                
+            elif device_type == DeviceType.TRAFFIC_LIGHT:
+                red_pin = kwargs.get('red_pin')
+                yellow_pin = kwargs.get('yellow_pin')
+                green_pin = kwargs.get('green_pin')
+                device = TrafficLightDevice(device_id, red_pin, yellow_pin, green_pin, mode, **kwargs)
+                logger.info(f"Created traffic light device '{device_id}' (mode: {mode.value})")
+                return device
+                
+            elif device_type == DeviceType.DISPLAY:
+                display_type = kwargs.get('display_type')
+                width = kwargs.get('width')
+                height = kwargs.get('height')
+                address = kwargs.get('address')
+                device = DisplayDevice(device_id, display_type, width, height, address, mode, **kwargs)
+                logger.info(f"Created display device '{device_id}' of type {display_type} (mode: {mode.value})")
+                return device
+                
+            else:
+                logger.error(f"Unsupported device type: {device_type}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error creating device '{device_id}' of type {device_type}: {e}")
             return None
+
+
+class SimulationDeviceFactory(HardwareDeviceFactory):
+    """
+    Factory for simulation devices.
+    
+    This class provides functionality for creating simulated devices.
+    It extends the HardwareDeviceFactory but forces the mode to be simulation.
+    """
+    
+    async def create_device(
+        self, 
+        device_id: str, 
+        device_type: Union[DeviceType, str], 
+        mode: Union[DeviceMode, str] = None,
+        **kwargs
+    ) -> Optional[Device]:
+        """
+        Create a simulated device of the specified type.
+        
+        Args:
+            device_id: Unique identifier for the device
+            device_type: Type of device to create
+            mode: Ignored, always set to simulation
+            **kwargs: Device parameters
+            
+        Returns:
+            An instance of the appropriate device class in simulation mode, or None if creation failed
+        """
+        # Force simulation mode
+        return await super().create_device(device_id, device_type, DeviceMode.SIMULATION, **kwargs)
+
+
+class RemoteDeviceFactory(HardwareDeviceFactory):
+    """
+    Factory for remote devices.
+    
+    This class provides functionality for creating remote-controlled devices.
+    It extends the HardwareDeviceFactory but forces the mode to be remote.
+    """
+    
+    async def create_device(
+        self, 
+        device_id: str, 
+        device_type: Union[DeviceType, str], 
+        mode: Union[DeviceMode, str] = None,
+        **kwargs
+    ) -> Optional[Device]:
+        """
+        Create a remote-controlled device of the specified type.
+        
+        Args:
+            device_id: Unique identifier for the device
+            device_type: Type of device to create
+            mode: Ignored, always set to remote
+            **kwargs: Device parameters
+            
+        Returns:
+            An instance of the appropriate device class in remote mode, or None if creation failed
+        """
+        # Force remote mode
+        return await super().create_device(device_id, device_type, DeviceMode.REMOTE, **kwargs)
+
+
+class MockDeviceFactory(HardwareDeviceFactory):
+    """
+    Factory for mock devices.
+    
+    This class provides functionality for creating mock devices for testing.
+    It extends the HardwareDeviceFactory but forces the mode to be mock.
+    """
+    
+    async def create_device(
+        self, 
+        device_id: str, 
+        device_type: Union[DeviceType, str], 
+        mode: Union[DeviceMode, str] = None,
+        **kwargs
+    ) -> Optional[Device]:
+        """
+        Create a mock device of the specified type.
+        
+        Args:
+            device_id: Unique identifier for the device
+            device_type: Type of device to create
+            mode: Ignored, always set to mock
+            **kwargs: Device parameters
+            
+        Returns:
+            An instance of the appropriate device class in mock mode, or None if creation failed
+        """
+        # Force mock mode
+        return await super().create_device(device_id, device_type, DeviceMode.MOCK, **kwargs)
 
 
 # Factory registry
 device_factories = {
-    "gpio": GPIODeviceFactory()
+    "hardware": HardwareDeviceFactory(),
+    "simulation": SimulationDeviceFactory(),
+    "remote": RemoteDeviceFactory(),
+    "mock": MockDeviceFactory()
 }
 
 
-def get_device_factory(factory_type: str) -> Optional[DeviceFactory]:
+async def get_device_factory(factory_type: str) -> Optional[DeviceFactory]:
     """
     Get a device factory of the specified type.
     
-    Parameters
-    ----------
-    factory_type : str
-        Type of factory to get
+    Args:
+        factory_type: Type of factory to get
         
-    Returns
-    -------
-    Optional[DeviceFactory]
+    Returns:
         An instance of the appropriate factory class, or None if not found
     """
-    return device_factories.get(factory_type)
+    factory_type = factory_type.lower()
+    if factory_type in device_factories:
+        return device_factories[factory_type]
+    else:
+        logger.error(f"Unknown factory type: {factory_type}")
+        return None
 
 
-def register_device_factory(factory_type: str, factory: DeviceFactory):
+def register_device_factory(factory_type: str, factory: DeviceFactory) -> None:
     """
     Register a device factory.
     
-    Parameters
-    ----------
-    factory_type : str
-        Type of factory to register
-    factory : DeviceFactory
-        Factory instance to register
+    Args:
+        factory_type: Type of factory to register
+        factory: Factory instance to register
     """
+    factory_type = factory_type.lower()
     device_factories[factory_type] = factory
+    logger.info(f"Registered device factory: {factory_type}")
 
 
-def create_device(factory_type: str, device_id: str, device_type: str, **kwargs) -> Optional[Device]:
+async def create_device(
+    factory_type: str, 
+    device_id: str, 
+    device_type: Union[DeviceType, str], 
+    **kwargs
+) -> Optional[Device]:
     """
     Create a device using the specified factory.
     
-    Parameters
-    ----------
-    factory_type : str
-        Type of factory to use
-    device_id : str
-        Unique identifier for the device
-    device_type : str
-        Type of device to create
-    **kwargs
-        Device parameters
+    Args:
+        factory_type: Type of factory to use
+        device_id: Unique identifier for the device
+        device_type: Type of device to create
+        **kwargs: Device parameters
         
-    Returns
-    -------
-    Optional[Device]
+    Returns:
         An instance of the appropriate device class, or None if creation failed
     """
-    factory = get_device_factory(factory_type)
-    if factory is None:
-        logger.error(f"Unknown factory type: {factory_type}")
+    factory = await get_device_factory(factory_type)
+    if factory:
+        return await factory.create_device(device_id, device_type, **kwargs)
+    else:
         return None
+
+
+async def create_devices_from_config(config: Dict[str, Any]) -> Dict[str, Device]:
+    """
+    Create multiple devices from a configuration dictionary.
     
-    return factory.create_device(device_id, device_type, **kwargs)
+    Args:
+        config: Configuration dictionary with device specifications
+        
+    Returns:
+        Dictionary mapping device IDs to device instances
+    """
+    devices = {}
+    
+    if "devices" not in config:
+        logger.error("No devices specified in configuration")
+        return devices
+    
+    for device_config in config["devices"]:
+        device_id = device_config.get("id")
+        device_type = device_config.get("type")
+        factory_type = device_config.get("factory", "hardware")
+        
+        if not device_id or not device_type:
+            logger.error("Device configuration missing required fields: id, type")
+            continue
+        
+        # Extract device parameters
+        params = {k: v for k, v in device_config.items() if k not in ["id", "type", "factory"]}
+        
+        # Create the device
+        device = await create_device(factory_type, device_id, device_type, **params)
+        
+        if device:
+            devices[device_id] = device
+    
+    return devices

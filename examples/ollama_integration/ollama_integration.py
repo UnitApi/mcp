@@ -32,7 +32,7 @@ try:
     from unitmcp.server.gpio import GPIOServer
     from unitmcp.server.input import InputServer
     from unitmcp.server.permission import PermissionManager
-    from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_simulation_mode
+    from unitmcp.utils import EnvLoader
 except ImportError:
     print("Error: Could not import unitmcp module.")
     print(f"Make sure the UnitMCP project is in your Python path.")
@@ -44,7 +44,7 @@ except ImportError:
         from unitmcp.server.gpio import GPIOServer
         from unitmcp.server.input import InputServer
         from unitmcp.server.permission import PermissionManager
-        from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_simulation_mode
+        from unitmcp.utils import EnvLoader
         print("Successfully imported unitmcp module after path adjustment.")
     except ImportError:
         print("Failed to import unitmcp module even after path adjustment.")
@@ -78,8 +78,8 @@ class OllamaHardwareAgent:
             mcp_port: Port for the MCP server
         """
         self.model = model or env.get('OLLAMA_MODEL', 'llama2')
-        self.host = mcp_host or get_rpi_host()
-        self.port = mcp_port or get_rpi_port()
+        self.host = mcp_host or env.get('RPI_HOST', 'localhost')
+        self.port = mcp_port or env.get_int('RPI_PORT', 8080)
         self.client = MCPHardwareClient(self.host, self.port)
         self.logger = logging.getLogger("OllamaHardwareAgent")
         
@@ -200,173 +200,242 @@ Example: {"command": "setup_pin", "params": {"pin": 17, "mode": "OUT"}}
             self.logger.error(f"Error executing command {command}: {e}")
             return {"error": str(e)}
 
-    async def interactive_session(self):
-        """Run interactive session with user."""
-        print("Ollama Hardware Control Agent")
-        print(f"Using model: {self.model}")
-        print(f"Connected to MCP server at {self.host}:{self.port}")
-        print("Type 'exit' to quit")
-        print("-" * 30)
+    async def close(self):
+        """Close the connection to the MCP server."""
+        try:
+            await self.client.disconnect()
+            self.logger.info("Disconnected from MCP server")
+        except Exception as e:
+            self.logger.error(f"Error disconnecting from MCP server: {e}")
 
+    async def interactive_session(self):
+        """Run an interactive session with the agent."""
+        print(f"Ollama Hardware Agent - Model: {self.model}")
+        print("Type 'exit' or 'quit' to end the session")
+        print("=" * 50)
+        
         try:
             await self.connect()
-
+            
             while True:
-                user_input = input("\nYour command: ")
-
+                user_input = input("\nEnter command: ")
+                
                 if user_input.lower() in ['exit', 'quit']:
                     break
-
+                    
+                print("Processing...")
                 result = await self.process_command(user_input)
-                print(f"Result: {json.dumps(result, indent=2)}")
-
-        except KeyboardInterrupt:
-            print("\nExiting...")
-        except Exception as e:
-            print(f"\nError: {e}")
+                
+                if "error" in result:
+                    print(f"Error: {result['error']}")
+                else:
+                    print(f"Success: {json.dumps(result.get('result', {}), indent=2)}")
+                    
         finally:
-            await self.client.disconnect()
-            print("Disconnected from MCP server")
+            await self.close()
 
 
-async def setup_server():
-    """Setup MCP server with hardware capabilities."""
-    # Get configuration from environment variables
-    server_host = env.get('SERVER_HOST', '0.0.0.0')
-    server_port = env.get_int('SERVER_PORT', 8080)
+async def setup_server(host: str = None, port: int = None):
+    """
+    Setup MCP server with hardware capabilities.
     
-    # Create permission manager
+    Args:
+        host: Host to bind the server to
+        port: Port to bind the server to
+    """
+    host = host or env.get('RPI_HOST', 'localhost')
+    port = port or env.get_int('RPI_PORT', 8080)
+    
+    # Create server with GPIO and input capabilities
+    server = MCPServer(host, port)
+    
+    # Add GPIO server
+    gpio_server = GPIOServer()
+    server.add_server(gpio_server)
+    
+    # Add input server
+    input_server = InputServer()
+    server.add_server(input_server)
+    
+    # Configure permissions
     permission_manager = PermissionManager()
-
-    # Allow access to all hardware for demo
-    permission_manager.grant_permission("client_*", "gpio")
-    permission_manager.grant_permission("client_*", "input")
-
-    # Create server
-    server = MCPServer(
-        host=server_host,
-        port=server_port,
-        permission_manager=permission_manager
-    )
-
-    # Register hardware servers
-    server.register_server("gpio", GPIOServer())
-    server.register_server("input", InputServer())
-
+    permission_manager.allow_all()  # For demo purposes
+    server.set_permission_manager(permission_manager)
+    
     # Start server
-    print(f"Starting MCP server on {server_host}:{server_port}")
     await server.start()
+    print(f"MCP Server running at {host}:{port}")
+    
+    return server
 
 
 async def demo_automation():
     """Demonstrate automated hardware control with Ollama."""
-    # Get configuration from environment variables
-    model = env.get('OLLAMA_MODEL', 'llama2')
+    print("Ollama Hardware Automation Demo")
+    print("=" * 50)
     
-    agent = OllamaHardwareAgent(model=model)
-    await agent.connect()
-
-    # Example automation scenarios
-    scenarios = env.get_list('DEMO_SCENARIOS', [
-        "Setup pin 17 as output for LED control",
-        "Turn on the LED connected to pin 17",
-        "Blink the LED 5 times",
-        "Take a screenshot and save it",
-        "Type 'Hello from Ollama' using keyboard",
-        "Move mouse to position 500,500 and click"
-    ])
-
-    for scenario in scenarios:
-        print(f"\nExecuting: {scenario}")
-        result = await agent.process_command(scenario)
-        print(f"Result: {json.dumps(result, indent=2)}")
-        await asyncio.sleep(env.get_float('DEMO_DELAY', 2.0))
-
-    await agent.client.disconnect()
+    # Create agent
+    agent = OllamaHardwareAgent(
+        model=env.get('OLLAMA_MODEL', 'llama2'),
+        mcp_host=env.get('RPI_HOST', 'localhost'),
+        mcp_port=env.get_int('RPI_PORT', 8080)
+    )
+    
+    try:
+        await agent.connect()
+        
+        # Run a sequence of commands
+        commands = [
+            "Set up an LED on pin 17 and call it main_led",
+            "Blink the main_led with 0.2 second intervals",
+            "Wait for 5 seconds then turn off the main_led",
+            "Move the mouse to position x=500, y=500",
+            "Take a screenshot"
+        ]
+        
+        for i, command in enumerate(commands):
+            print(f"\nStep {i+1}: {command}")
+            result = await agent.process_command(command)
+            
+            if "error" in result:
+                print(f"Error: {result['error']}")
+            else:
+                print(f"Success: {json.dumps(result.get('result', {}), indent=2)}")
+                
+            # Add a small delay between commands
+            await asyncio.sleep(1)
+            
+    finally:
+        await agent.close()
 
 
 async def voice_control_demo():
     """Voice control demo with speech recognition."""
     try:
         import speech_recognition as sr
+        from gtts import gTTS
+        import pygame
     except ImportError:
-        print("Speech recognition not found, trying to install...")
-        os.system(f"{sys.executable} -m pip install SpeechRecognition")
-        import speech_recognition as sr
-
-    # Get configuration from environment variables
-    model = env.get('OLLAMA_MODEL', 'llama2')
-    timeout = env.get_float('VOICE_TIMEOUT', 5.0)
+        print("Voice control dependencies not installed.")
+        print("Install with: pip install SpeechRecognition gTTS pygame")
+        return
     
+    print("Ollama Voice Control Demo")
+    print("=" * 50)
+    
+    # Create agent
+    agent = OllamaHardwareAgent(
+        model=env.get('OLLAMA_MODEL', 'llama2'),
+        mcp_host=env.get('RPI_HOST', 'localhost'),
+        mcp_port=env.get_int('RPI_PORT', 8080)
+    )
+    
+    # Initialize speech recognition
     recognizer = sr.Recognizer()
-    agent = OllamaHardwareAgent(model=model)
-
-    await agent.connect()
-
-    print("Voice Control Active - Say 'exit' to quit")
-
-    with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source)
-
+    
+    # Initialize pygame for audio playback
+    pygame.mixer.init()
+    
+    def speak(text):
+        """Convert text to speech and play it."""
+        tts = gTTS(text=text, lang='en')
+        tts.save("response.mp3")
+        pygame.mixer.music.load("response.mp3")
+        pygame.mixer.music.play()
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+    
+    try:
+        await agent.connect()
+        speak("Voice control ready. Please speak a command.")
+        
         while True:
-            try:
+            with sr.Microphone() as source:
                 print("\nListening...")
-                audio = recognizer.listen(source, timeout=timeout)
-
-                # Convert speech to text
+                audio = recognizer.listen(source)
+                
+            try:
                 command = recognizer.recognize_google(audio)
                 print(f"You said: {command}")
-
-                if "exit" in command.lower():
+                
+                if command.lower() in ["exit", "quit", "stop"]:
+                    speak("Goodbye!")
                     break
-
-                # Process command
+                
+                speak(f"Processing command: {command}")
                 result = await agent.process_command(command)
-                print(f"Result: {json.dumps(result, indent=2)}")
-
-            except sr.WaitTimeoutError:
-                print("No speech detected")
+                
+                if "error" in result:
+                    speak(f"Error: {result['error']}")
+                else:
+                    speak("Command executed successfully")
+                
             except sr.UnknownValueError:
-                print("Could not understand audio")
-            except Exception as e:
-                print(f"Error: {e}")
-
-    await agent.client.disconnect()
+                speak("Sorry, I didn't understand that.")
+            except sr.RequestError:
+                speak("Sorry, I couldn't request results from the speech recognition service.")
+                
+    finally:
+        await agent.close()
+        # Clean up temporary files
+        if os.path.exists("response.mp3"):
+            os.remove("response.mp3")
 
 
 if __name__ == "__main__":
     import argparse
-
-    parser = argparse.ArgumentParser(description="Ollama Hardware Control")
-    parser.add_argument("--mode", choices=["server", "interactive", "demo", "voice"],
-                        default=env.get('OLLAMA_MODE', 'interactive'), 
-                        help="Running mode")
-    parser.add_argument("--model", default=env.get('OLLAMA_MODEL', 'llama2'), 
-                        help="Ollama model to use")
-    parser.add_argument("--host", default=env.get('RPI_HOST', None),
-                        help="MCP server hostname or IP")
-    parser.add_argument("--port", type=int, default=env.get_int('RPI_PORT', None),
-                        help="MCP server port")
-    parser.add_argument("--env-file", default=None,
-                        help="Path to custom .env file")
-
+    
+    parser = argparse.ArgumentParser(description="Ollama Hardware Control Demo")
+    parser.add_argument("--server", action="store_true", help="Run MCP server")
+    parser.add_argument("--interactive", action="store_true", help="Run interactive session")
+    parser.add_argument("--demo", action="store_true", help="Run automation demo")
+    parser.add_argument("--voice", action="store_true", help="Run voice control demo")
+    parser.add_argument("--model", type=str, help="Ollama model to use")
+    parser.add_argument("--host", type=str, help="MCP server host")
+    parser.add_argument("--port", type=int, help="MCP server port")
+    
     args = parser.parse_args()
     
-    # Load custom environment file if specified
-    if args.env_file:
-        env = EnvLoader(args.env_file)
+    # Override environment variables with command line arguments
+    if args.model:
+        os.environ["OLLAMA_MODEL"] = args.model
+    if args.host:
+        os.environ["RPI_HOST"] = args.host
+    if args.port:
+        os.environ["RPI_PORT"] = str(args.port)
     
-    # Check if simulation mode is enabled
-    simulation = get_simulation_mode()
-    if simulation:
-        print("Running in simulation mode - no actual hardware will be controlled")
-
-    if args.mode == "server":
-        asyncio.run(setup_server())
-    elif args.mode == "interactive":
-        agent = OllamaHardwareAgent(model=args.model, mcp_host=args.host, mcp_port=args.port)
-        asyncio.run(agent.interactive_session())
-    elif args.mode == "demo":
-        asyncio.run(demo_automation())
-    elif args.mode == "voice":
-        asyncio.run(voice_control_demo())
+    # Default to interactive mode if no mode specified
+    if not (args.server or args.interactive or args.demo or args.voice):
+        args.interactive = True
+    
+    async def main():
+        server = None
+        
+        try:
+            if args.server:
+                server = await setup_server()
+            
+            if args.interactive:
+                agent = OllamaHardwareAgent()
+                await agent.interactive_session()
+            
+            if args.demo:
+                await demo_automation()
+            
+            if args.voice:
+                await voice_control_demo()
+                
+            # If server is running, keep it alive
+            if server:
+                print("Server running. Press Ctrl+C to stop.")
+                while True:
+                    await asyncio.sleep(1)
+                    
+        except KeyboardInterrupt:
+            print("\nExiting...")
+        finally:
+            if server:
+                await server.stop()
+                print("Server stopped.")
+    
+    asyncio.run(main())

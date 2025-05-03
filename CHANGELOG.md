@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.55] - 2025-05-03
+
+### Added
+- Changes in docs/DSL_INTEGRATION.md
+- Changes in examples/README_TEMPLATE.md
+- Changes in examples/hardware_example.py
+- Changes in examples/rpi_control/button_demo.py
+- Changes in examples/rpi_control/led_demo.py
+- Changes in examples/rpi_control/traffic_light_demo.py
+- Changes in src/unitmcp/dsl/__init__.py
+- Changes in src/unitmcp/dsl/compiler.py
+- Changes in src/unitmcp/hardware/base.py
+- Changes in src/unitmcp/hardware/button.py
+- Changes in src/unitmcp/hardware/display.py
+- Changes in src/unitmcp/hardware/led.py
+- Changes in src/unitmcp/hardware/traffic_light.py
+
+### Changed
+- Changes in examples/hardware_demos/README.md
+- Changes in examples/hardware_demos/led_control.py
+- Changes in examples/integrated_demo/README.md
+- Changes in examples/integrated_demo/integrated_demo.py
+- Changes in examples/ollama_integration/README.md
+- Changes in examples/ollama_integration/ollama_integration.py
+- Changes in examples/rpi_control/hardware_client.py
+- Changes in examples/rpi_control/my_custom_config.yaml
+
+### Fixed
+- Changes in examples/rpi_control/README.md
+- Changes in examples/rpi_control/config_automation_example.py
+
 ## [0.1.54] - 2025-05-03
 
 ### Added

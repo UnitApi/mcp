@@ -9,7 +9,6 @@ It uses environment variables for configuration and shows proper error handling.
 import asyncio
 import os
 import sys
-from pathlib import Path
 
 # Add project root to Python path if needed
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
