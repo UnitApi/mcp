@@ -1,0 +1,9 @@
+zaktualizuj examples/runner, dodaj testy i sprawdz czy w src/unitmcp nie ma duplikatow w implementacji,
+zmniejsz wielkosc plikow, jesli maja wiecej niz 3400 linii, oddziel rozne funkcje, jesli to mozliwe do osobnych plikow
+
+uzyj runner wszedzie tam, gdzie mozna uproscic start przykladow w exampes/ z uzyciem client-server
+finalnie rkazdy przyklad powinien miec w swoim folderze pliki runner, client, server, aby pokazac jak to dziala oraz przyklady impelenmentacji zpotrzebnymi plikami konfiguracji i readme
+podobnie jak to jest zaimplementowane w przykladach: examples/ai
+
+zaproponuj inne rozwiazanie jesli ten plan mozna ulepszyc, interesuje mnie jak najprawidziej zrobione rozwiazanie, gdzie w przykladach bedzie
+mogl zorientowac sie jak to dziala junior programista oraz nieprogramista: devops, admin, kazdy ktory chce to urchomic w firmie laub w swoim srodowisku w domu

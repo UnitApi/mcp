@@ -1,0 +1,37 @@
+# Voice Assistant Client Configuration
+
+# Audio settings
+audio:
+  input:
+    device: null  # null for default device
+    sample_rate: 16000
+    channels: 1
+    chunk_size: 1024
+    silence_threshold: 300
+    silence_duration: 1.0  # seconds of silence to end recording
+  
+  output:
+    device: null  # null for default device
+    volume: 1.0
+
+# User interface settings
+ui:
+  display_transcriptions: true
+  display_responses: true
+  wake_word: "hey assistant"
+  wake_word_sensitivity: 0.5
+  confirmation_sound: true
+
+# Connection settings
+connection:
+  server_host: "localhost"
+  server_port: 8765
+  timeout: 10.0  # seconds
+  reconnect_attempts: 3
+  reconnect_delay: 2.0  # seconds
+
+# Logging settings
+logging:
+  level: "INFO"
+  file: "client.log"
+  console: true

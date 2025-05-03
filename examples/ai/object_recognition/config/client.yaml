@@ -1,0 +1,62 @@
+# Object Recognition Client Configuration
+
+# Camera settings
+camera:
+  device: 0  # Camera device index (0 for default webcam)
+  width: 640
+  height: 480
+  fps: 30
+  flip_horizontal: false
+  flip_vertical: false
+  rotation: 0  # Rotation in degrees (0, 90, 180, 270)
+
+# Display settings
+display:
+  enabled: true
+  window_name: "UnitMCP Object Recognition"
+  fullscreen: false
+  width: 800
+  height: 600
+  show_fps: true
+  show_confidence: true
+  font_scale: 0.5
+  line_thickness: 2
+  
+  # Colors for bounding boxes (B, G, R format)
+  colors:
+    default: [0, 255, 0]  # Green
+    person: [0, 165, 255]  # Orange
+    car: [0, 0, 255]  # Red
+    bicycle: [255, 0, 0]  # Blue
+    dog: [255, 0, 255]  # Purple
+    cat: [255, 255, 0]  # Cyan
+
+# Connection settings
+connection:
+  server_host: "localhost"
+  server_port: 8765
+  timeout: 10.0  # seconds
+  reconnect_attempts: 3
+  reconnect_delay: 2.0  # seconds
+  
+  # Image compression settings for network transfer
+  compression:
+    enabled: true
+    format: "jpg"
+    quality: 90  # JPEG quality (0-100)
+
+# Recording settings
+recording:
+  enabled: false
+  trigger_on_detection: true  # Start recording when objects are detected
+  output_directory: "./recordings"
+  format: "mp4"
+  codec: "mp4v"
+  fps: 30
+  duration: 10  # Recording duration in seconds
+
+# Logging settings
+logging:
+  level: "INFO"
+  file: "client.log"
+  console: true

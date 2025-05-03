@@ -1,0 +1,52 @@
+# Speech Processing Configuration
+
+# Text-to-Speech Configuration
+tts:
+  enabled: true
+  default_engine: "pyttsx3"  # Default TTS engine to use
+  
+  # PyTTSX3 Configuration
+  pyttsx3:
+    enabled: true
+    voice: null  # Use default voice
+    rate: 150  # Speech rate
+    volume: 1.0  # Volume (0.0 to 1.0)
+  
+  # Google TTS Configuration
+  gtts:
+    enabled: true
+    language: "en"  # Language code
+    slow: false  # Slower pronunciation
+    lang_check: true  # Check if language is supported
+
+# Speech-to-Text Configuration
+stt:
+  enabled: true
+  default_engine: "whisper"  # Default STT engine to use
+  
+  # Whisper Configuration
+  whisper:
+    enabled: true
+    model_size: "base"  # Model size ('tiny', 'base', 'small', 'medium', 'large')
+    language: "en"  # Language code
+    task: "transcribe"  # Task ('transcribe' or 'translate')
+    device: null  # Device to use (null for auto-detection)
+  
+  # Google Speech-to-Text Configuration
+  google_speech:
+    enabled: false  # Disabled by default, enable when API key is available
+    language: "en-US"  # Language code
+    sample_rate: 16000  # Audio sample rate in Hz
+    api_key: "${GOOGLE_API_KEY}"  # API key from environment variable
+
+# Audio Analysis Configuration
+audio_analysis:
+  enabled: true
+  sample_rate: 16000  # Audio sample rate in Hz
+  n_fft: 2048  # FFT window size
+  hop_length: 512  # Number of samples between successive frames
+  extract_mfcc: true  # Extract MFCCs
+  extract_spectrogram: true  # Extract spectrogram
+  extract_onsets: true  # Extract onsets
+  extract_tempo: true  # Extract tempo
+  extract_pitch: true  # Extract pitch

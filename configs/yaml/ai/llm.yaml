@@ -1,0 +1,38 @@
+# LLM Configuration
+
+# Ollama Configuration
+ollama:
+  enabled: true
+  model: "llama2"  # Default model to use
+  host: "${RPI_HOST}"  # Host where Ollama is running
+  port: "${RPI_PORT}"  # Port for Ollama API
+  timeout: 30  # Request timeout in seconds
+  parameters:
+    temperature: 0.7
+    top_p: 0.9
+    top_k: 40
+    max_tokens: 1024
+
+# Claude Configuration
+claude:
+  enabled: false  # Disabled by default, enable when API key is available
+  model: "claude-3-opus-20240229"  # Model version
+  api_key: "${ANTHROPIC_API_KEY}"  # API key from environment variable
+  timeout: 60  # Request timeout in seconds
+  parameters:
+    temperature: 0.7
+    max_tokens: 2048
+    top_p: 0.9
+
+# OpenAI Configuration
+openai:
+  enabled: false  # Disabled by default, enable when API key is available
+  model: "gpt-4-turbo"  # Model version
+  api_key: "${OPENAI_API_KEY}"  # API key from environment variable
+  timeout: 60  # Request timeout in seconds
+  parameters:
+    temperature: 0.7
+    max_tokens: 2048
+    top_p: 0.9
+    frequency_penalty: 0.0
+    presence_penalty: 0.0

@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.61] - 2025-05-03
+
+### Added
+- Changes in TODO2.txt
+- Changes in configs/yaml/ai/config.yaml
+- Changes in configs/yaml/ai/llm.yaml
+- Changes in configs/yaml/ai/nlp.yaml
+- Changes in configs/yaml/ai/speech.yaml
+- Changes in configs/yaml/ai/vision.yaml
+- Changes in examples/ai/README.md
+- Changes in examples/ai/ai_demo.py
+- Changes in examples/ai/object_recognition/README.md
+- Changes in examples/ai/object_recognition/client.py
+- Changes in examples/ai/object_recognition/config/client.yaml
+- Changes in examples/ai/object_recognition/config/server.yaml
+- Changes in examples/ai/object_recognition/runner.py
+- Changes in examples/ai/object_recognition/server.py
+- Changes in examples/ai/voice_assistant/README.md
+- Changes in examples/ai/voice_assistant/client.py
+- Changes in examples/ai/voice_assistant/config/client.yaml
+- Changes in examples/ai/voice_assistant/config/server.yaml
+- Changes in examples/ai/voice_assistant/runner.py
+- Changes in examples/ai/voice_assistant/server.py
+- Changes in src/unitmcp/ai/__init__.py
+- Changes in src/unitmcp/ai/common/model_interface.py
+- Changes in src/unitmcp/ai/llm/__init__.py
+- Changes in src/unitmcp/ai/llm/claude.py
+- Changes in src/unitmcp/ai/llm/ollama.py
+- Changes in src/unitmcp/ai/llm/openai.py
+- Changes in src/unitmcp/ai/nlp/__init__.py
+- Changes in src/unitmcp/ai/nlp/huggingface.py
+- Changes in src/unitmcp/ai/nlp/spacy_integration.py
+- Changes in src/unitmcp/ai/speech/__init__.py
+- Changes in src/unitmcp/ai/speech/audio_analysis.py
+- Changes in src/unitmcp/ai/speech/stt.py
+- Changes in src/unitmcp/ai/speech/tts.py
+- Changes in src/unitmcp/ai/vision/__init__.py
+- Changes in src/unitmcp/ai/vision/face_analysis.py
+- Changes in src/unitmcp/ai/vision/image_processing.py
+- Changes in src/unitmcp/ai/vision/object_detection.py
+
 ## [0.1.60] - 2025-05-03
 
 ### Added

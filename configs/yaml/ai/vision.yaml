@@ -1,0 +1,34 @@
+# Computer Vision Configuration
+
+# Image Processing Configuration
+image_processing:
+  enabled: true
+  resize: [640, 480]  # Target size for image resizing (width, height)
+  normalize: true  # Whether to normalize pixel values
+  grayscale: false  # Convert to grayscale
+  blur: null  # Gaussian blur kernel size (null for no blur)
+  edges: false  # Apply edge detection
+  extract_histograms: true  # Extract color histograms
+  extract_keypoints: true  # Extract keypoints and descriptors
+
+# Object Detection Configuration
+object_detection:
+  enabled: true
+  default_model: "yolo"  # Default object detection model
+  
+  # YOLO Configuration
+  yolo:
+    enabled: true
+    model_version: "yolov8n"  # YOLO model version ('yolov8n', 'yolov8s', 'yolov8m', 'yolov8l', 'yolov8x')
+    input_size: 640  # Input image size
+    confidence_threshold: 0.5  # Confidence threshold for detections
+    nms_threshold: 0.4  # Non-maximum suppression threshold
+    device: null  # Device to use (null for auto-detection)
+
+# Face Analysis Configuration
+face_analysis:
+  enabled: true
+  detection_threshold: 0.5  # Confidence threshold for face detection
+  recognition_threshold: 0.6  # Similarity threshold for face recognition
+  detect_landmarks: true  # Detect facial landmarks
+  analyze_emotions: true  # Analyze emotions in detected faces

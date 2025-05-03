@@ -1,0 +1,42 @@
+# Main AI Configuration
+
+# Include component-specific configurations
+includes:
+  - llm.yaml
+  - speech.yaml
+  - nlp.yaml
+  - vision.yaml
+
+# Global AI settings
+ai:
+  enabled: true
+  log_level: "INFO"
+  cache_dir: "${HOME}/.unitmcp/ai/cache"
+  
+  # Default models to use for each capability
+  defaults:
+    llm: "ollama"
+    tts: "pyttsx3"
+    stt: "whisper"
+    nlp: "spacy"
+    vision: "image_processing"
+    object_detection: "yolo"
+    face_analysis: "face_detector"
+  
+  # Dependencies to check/install
+  dependencies:
+    required:
+      - "numpy"
+      - "pyttsx3"
+    optional:
+      - "ollama"
+      - "anthropic"
+      - "openai"
+      - "whisper"
+      - "google-cloud-speech"
+      - "librosa"
+      - "transformers"
+      - "spacy"
+      - "opencv-python"
+      - "ultralytics"
+      - "dlib"
