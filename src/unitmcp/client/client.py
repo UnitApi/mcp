@@ -30,14 +30,224 @@ class MCPHardwareClient:
     async def connect(self):
         """Connect to MCP server."""
         try:
+            self.logger.info(f"Attempting to connect to {self.host}:{self.port}...")
+            
+            # Try to resolve the hostname first
+            import socket
+            try:
+                addr_info = socket.getaddrinfo(self.host, self.port, family=socket.AF_INET)
+                resolved_ip = addr_info[0][4][0]
+                self.logger.info(f"Resolved {self.host} to IP: {resolved_ip}")
+            except socket.gaierror as e:
+                self.logger.error(f"Failed to resolve hostname {self.host}: {e}")
+                # Continue anyway as asyncio might handle it differently
+            
+            # Try to check if the port is open using a quick socket connection
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(2)  # 2 second timeout
+                result = sock.connect_ex((self.host, self.port))
+                sock.close()
+                
+                if result != 0:
+                    self.logger.warning(f"Port check indicates {self.host}:{self.port} may not be open (error code: {result})")
+                else:
+                    self.logger.info(f"Port check successful: {self.host}:{self.port} appears to be open")
+            except Exception as e:
+                self.logger.warning(f"Port check failed: {e}")
+            
+            # Now try the actual asyncio connection
+            self.logger.info(f"Establishing asyncio connection to {self.host}:{self.port}...")
             self._reader, self._writer = await asyncio.open_connection(
                 self.host, self.port
             )
             self._connected = True
-            self.logger.info(f"Connected to MCP server at {self.host}:{self.port}")
+            self.logger.info(f"Successfully connected to MCP server at {self.host}:{self.port}")
+        except ConnectionRefusedError as e:
+            self.logger.error(f"Connection refused: {e} - The server at {self.host}:{self.port} actively refused the connection")
+            self.logger.error("This typically means the server is not running or is not listening on this port")
+            raise
+        except asyncio.TimeoutError as e:
+            self.logger.error(f"Connection timeout: {e} - Could not connect to {self.host}:{self.port} in time")
+            self.logger.error("This typically means the server is unreachable or blocked by a firewall")
+            raise
         except Exception as e:
             self.logger.error(f"Failed to connect: {e}")
+            # Print more details about the exception
+            import traceback
+            self.logger.error(f"Exception details: {traceback.format_exc()}")
             raise
+
+    def connect_sync(self):
+        """
+        Synchronous version of connect method.
+        
+        This method can be called from non-async code to connect to the server.
+        """
+        try:
+            # Use asyncio.run to run the connect coroutine in a new event loop
+            asyncio.run(self.connect())
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to connect (sync): {e}")
+            raise
+    
+    async def connect_with_retry(self, max_retries=3, retry_delay=2.0):
+        """
+        Attempt to connect to the server with retry logic.
+        
+        Args:
+            max_retries (int): Maximum number of connection attempts
+            retry_delay (float): Delay between retries in seconds
+            
+        Returns:
+            bool: True if connection was successful, False otherwise
+            
+        Raises:
+            ConnectionError: If all connection attempts fail
+        """
+        self.logger.info(f"Attempting to connect to {self.host}:{self.port} with {max_retries} retries...")
+        
+        for attempt in range(1, max_retries + 1):
+            self.logger.info(f"Connection attempt {attempt}/{max_retries}...")
+            try:
+                await self.connect()
+                self.logger.info(f"Successfully connected to {self.host}:{self.port} on attempt {attempt}")
+                return True
+            except Exception as e:
+                error_code = getattr(e, 'errno', None)
+                self.logger.warning(f"Connection attempt {attempt} refused: {e}")
+                
+                if attempt < max_retries:
+                    wait_time = retry_delay * (1.0 if attempt == 1 else 0.5 * attempt)
+                    self.logger.info(f"Waiting {wait_time} seconds before retry...")
+                    await asyncio.sleep(wait_time)
+        
+        self.logger.error(f"All {max_retries} connection attempts failed")
+        raise ConnectionError(f"Could not establish a stable connection.")
+
+    async def discover_server_port(self, port_ranges=None, timeout=0.2):
+        """
+        Discover the port that the server is listening on.
+        
+        Args:
+            port_ranges (list): List of port ranges to check, each range is a tuple (start, end)
+            timeout (float): Timeout for each port check in seconds
+            
+        Returns:
+            int: The discovered port number, or None if no port is found
+        """
+        import socket
+        import concurrent.futures
+        import time
+        
+        if port_ranges is None:
+            # Default port ranges to check, focusing on common MCP ports first
+            port_ranges = [
+                (8000, 8100),    # Common web server ports
+                (9500, 9600),    # Common MCP ports
+                (5000, 5100)     # Common Flask/API ports
+            ]
+        
+        self.logger.info(f"Scanning {self.host} for open ports...")
+        open_ports = []
+        
+        # Function to check a single port
+        def check_port(port):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
+            result = sock.connect_ex((self.host, port))
+            sock.close()
+            if result == 0:
+                return port
+            return None
+        
+        # Check each port range
+        for start_port, end_port in port_ranges:
+            self.logger.info(f"Scanning port range {start_port}-{end_port}...")
+            
+            # Use ThreadPoolExecutor for parallel port scanning
+            with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+                futures = [executor.submit(check_port, port) for port in range(start_port, end_port + 1)]
+                
+                for future in concurrent.futures.as_completed(futures):
+                    port = future.result()
+                    if port is not None:
+                        self.logger.info(f"Found open port: {port}")
+                        open_ports.append(port)
+        
+        if not open_ports:
+            self.logger.warning(f"No open ports found on {self.host}")
+            return None
+        
+        # Try to connect to each open port to verify it's an MCP server
+        for port in open_ports:
+            self.logger.info(f"Attempting to connect to discovered port {port}...")
+            
+            # Save the original port
+            original_port = self.port
+            
+            try:
+                # Set the port to the discovered port
+                self.port = port
+                
+                # Try to connect
+                await self.connect()
+                
+                # If we get here, the connection was successful
+                self.logger.info(f"Successfully connected to MCP server on port {port}")
+                return port
+                
+            except Exception as e:
+                self.logger.warning(f"Port {port} is open but not an MCP server: {e}")
+                
+                # Reset the connection state
+                self._writer = None
+                self._reader = None
+                
+            finally:
+                # Restore the original port if the connection failed
+                if self._writer is None and self._reader is None:
+                    self.port = original_port
+        
+        # If we get here, none of the open ports were MCP servers
+        self.logger.warning(f"No MCP servers found on any open ports on {self.host}")
+        return None
+
+    async def connect_with_discovery(self, max_retries=3, retry_delay=2.0):
+        """
+        Attempt to connect to the server, with automatic port discovery if the initial connection fails.
+        
+        Args:
+            max_retries (int): Maximum number of connection attempts per port
+            retry_delay (float): Delay between retries in seconds
+            
+        Returns:
+            bool: True if connection was successful, False otherwise
+            
+        Raises:
+            ConnectionError: If all connection attempts fail
+        """
+        # Try connecting to the specified port first
+        try:
+            self.logger.info(f"Attempting to connect to specified port {self.port} first...")
+            await self.connect_with_retry(max_retries, retry_delay)
+            return True
+        except ConnectionError as e:
+            self.logger.warning(f"Failed to connect to specified port {self.port}: {e}")
+            
+            # If that fails, try to discover the correct port
+            self.logger.info("Attempting to discover the correct port...")
+            discovered_port = await self.discover_server_port()
+            
+            if discovered_port is not None:
+                self.logger.info(f"Discovered MCP server on port {discovered_port}")
+                
+                # Port was already set and connection established in discover_server_port
+                return True
+            else:
+                self.logger.error("Could not discover any MCP server ports")
+                raise ConnectionError("Could not discover any MCP server ports. Please verify the server is running.")
 
     async def disconnect(self):
         """Disconnect from MCP server."""
@@ -46,6 +256,15 @@ class MCPHardwareClient:
             await self._writer.wait_closed()
             self._connected = False
             self.logger.info("Disconnected from MCP server")
+
+    def is_connected(self) -> bool:
+        """
+        Check if the client is connected to the server.
+        
+        Returns:
+            bool: True if connected, False otherwise
+        """
+        return self._connected and self._writer is not None and not self._writer.is_closing()
 
     async def send_request(
         self, method: str, params: Dict[str, Any] = None

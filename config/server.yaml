@@ -1,0 +1,29 @@
+# Server configuration
+server:
+  host: 0.0.0.0  # Listen on all interfaces
+  port: 8001     # Changed from 8000 to avoid conflict
+  debug: true
+  ssl_enabled: false
+
+# GPIO configuration
+gpio:
+  enabled: true
+  pins:
+    - 17
+    - 18
+    - 27
+
+# Logging configuration
+logging:
+  level: INFO
+  file: logs/server.log
+  max_size: 10MB
+  backup_count: 5
+
+# Security configuration
+security:
+  authentication_required: false
+  allowed_hosts:
+    - localhost
+    - 127.0.0.1
+    - 192.168.188.154

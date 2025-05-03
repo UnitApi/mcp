@@ -1,0 +1,27 @@
+# Music Player Configuration
+
+# Music directory (can be absolute or relative path)
+music_dir: "./music"
+
+# Audio output settings
+output_device: "headphones"  # Use "headphones" for 3.5mm jack on Raspberry Pi
+volume: 0.8                  # Volume level (0.0 to 1.0)
+
+# Playback settings
+shuffle: true                # Shuffle playlist
+repeat: false                # Repeat playlist when finished
+
+# Playlist (relative to music_dir or absolute paths)
+playlist:
+  - "beethoven_fur_elise.mp3"
+  - "mozart_eine_kleine_nachtmusik.mp3"
+  - "bach_air_on_g_string.mp3"
+  - "vivaldi_four_seasons_spring.mp3"
+  - "tchaikovsky_nutcracker_dance.mp3"
+
+# Remote execution settings (for orchestrator)
+remote:
+  host: "192.168.188.154"    # Raspberry Pi IP address
+  port: 9515                 # Port for MCP connection
+  ssh_username: "pi"         # SSH username for Raspberry Pi
+  ssh_password: "raspberry"  # SSH password (consider using key-based auth instead)

@@ -163,6 +163,99 @@ for name, device_config in config["devices"].items():
     device_manager.add_device(name, device_config)
 ```
 
+## Using with Orchestrator
+
+The basic examples can be easily managed and executed using the UnitMCP Orchestrator:
+
+### Running via Orchestrator Shell
+
+```bash
+# Start the orchestrator shell
+python -m unitmcp.orchestrator.main
+
+# Run the basic example with default settings
+mcp> run basic
+
+# Run with simulation mode disabled (for physical devices)
+mcp> run basic --simulation=false
+
+# Run with custom host and port
+mcp> run basic --host=192.168.1.100 --port=8080
+
+# Run with SSL enabled
+mcp> run basic --ssl=true --port=8443
+```
+
+### Remote Execution
+
+You can run the basic example on a remote device (like a Raspberry Pi):
+
+```bash
+# Run on a remote device using SSH with password authentication
+mcp> run basic --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry
+
+# Run on a remote device using SSH with key-based authentication
+mcp> run basic --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-key-path=~/.ssh/id_rsa
+```
+
+### Using Custom Configuration
+
+You can use custom configuration files with the orchestrator:
+
+```bash
+# Run with a custom environment file
+mcp> run basic --env-file=~/my_unitmcp_configs/env/custom.env
+
+# Run with a custom server configuration
+mcp> run basic --config=~/my_unitmcp_configs/server/server.yaml
+```
+
+### Example-Specific Parameters
+
+The basic example supports these specific parameters when run through the orchestrator:
+
+```bash
+# Set GPIO pins to use
+mcp> run basic --gpio-pins=17,18,27
+
+# Set blink duration for LED examples
+mcp> run basic --blink-duration=0.5
+
+# Set loop count for repetitive operations
+mcp> run basic --loop-count=10
+```
+
+### Running from Command Line
+
+You can also run the basic example directly from the command line without entering the interactive shell:
+
+```bash
+# Run the basic example with default settings
+python -m unitmcp.orchestrator.main --run basic
+
+# Run with custom settings
+python -m unitmcp.orchestrator.main --run basic --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry
+```
+
+### Troubleshooting
+
+If you encounter issues with the basic example:
+
+1. **Port conflict**: If the default port is already in use, specify a different port
+   ```bash
+   mcp> run basic --port=9515
+   ```
+
+2. **Configuration file not found**: Ensure the configuration file exists or specify a custom one
+   ```bash
+   mcp> run basic --config=/path/to/existing/server.yaml
+   ```
+
+3. **SSH connection issues**: Verify SSH credentials and connectivity
+   ```bash
+   mcp> run basic --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry --ssh-port=22 --verbose
+   ```
+
 ## Running the Examples
 
 To run these examples, you'll need:

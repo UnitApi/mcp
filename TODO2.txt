@@ -101,3 +101,5 @@ ROOT: send signal SIGINT(2) to 160701 from 160661 with timeout 0.30
 (venv) (base) [tom@devop mcp]$
 
 
+jak zanstalowac na rpi poprzez runner i orchestrator aplikacje web z elementami html, aby dziallo na skonfigurowanym przez runner porcie?
+

@@ -268,6 +268,118 @@ This approach provides several benefits:
 - **Multiple clients**: Multiple clients can monitor the same GPIO pins
 - **Scalability**: The system can handle many GPIO pins without performance degradation
 
+## Using with Orchestrator
+
+The Raspberry Pi Control example can be easily managed and executed using the UnitMCP Orchestrator:
+
+### Running via Orchestrator Shell
+
+```bash
+# Start the orchestrator shell
+python -m unitmcp.orchestrator.main
+
+# Run the rpi_control example with default settings (simulation mode)
+mcp> run rpi_control
+
+# Run with simulation mode disabled (for physical Raspberry Pi)
+mcp> run rpi_control --simulation=false --host=192.168.188.154
+
+# Run with SSH connection to Raspberry Pi
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry
+
+# Run with custom port
+mcp> run rpi_control --port=9515
+```
+
+### Remote Execution Options
+
+You can run the rpi_control example on a remote Raspberry Pi with various connection options:
+
+```bash
+# Using password authentication
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry --ssh-port=22
+
+# Using key-based authentication
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-key-path=~/.ssh/id_rsa
+
+# With verbose logging for troubleshooting
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry --verbose
+```
+
+### Using Custom Configuration
+
+You can use custom configuration files with the orchestrator:
+
+```bash
+# Run with a custom environment file
+mcp> run rpi_control --env-file=~/my_unitmcp_configs/env/custom.env
+
+# Run with a custom server configuration
+mcp> run rpi_control --config=~/my_unitmcp_configs/server/server.yaml
+
+# Combining custom configuration options
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry --port=9515 --env-file=~/my_unitmcp_configs/env/custom.env --config=~/my_unitmcp_configs/server/server.yaml
+```
+
+### Example-Specific Parameters
+
+The rpi_control example supports these specific parameters when run through the orchestrator:
+
+```bash
+# Set GPIO pins for LEDs
+mcp> run rpi_control --led-pin=17 --red-pin=17 --yellow-pin=27 --green-pin=22
+
+# Set GPIO pin for button
+mcp> run rpi_control --button-pin=27
+
+# Configure blinking speeds
+mcp> run rpi_control --fast-blink=0.1 --slow-blink=0.5
+
+# Enable or disable GPIO streaming
+mcp> run rpi_control --stream-updates=true --update-interval=100
+```
+
+### Running from Command Line
+
+You can also run the rpi_control example directly from the command line without entering the interactive shell:
+
+```bash
+# Run with default settings
+python -m unitmcp.orchestrator.main --run rpi_control
+
+# Run on physical Raspberry Pi
+python -m unitmcp.orchestrator.main --run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry
+```
+
+### Troubleshooting
+
+If you encounter issues with the rpi_control example:
+
+1. **Port conflict**: If the default port is already in use, specify a different port
+   ```bash
+   mcp> run rpi_control --port=9515
+   ```
+
+2. **Configuration file not found**: Ensure the configuration file exists or specify a custom one
+   ```bash
+   mcp> run rpi_control --config=/path/to/existing/server.yaml
+   ```
+
+3. **SSH connection issues**: Verify SSH credentials and connectivity
+   ```bash
+   # Test SSH connection separately
+   ssh pi@192.168.188.154 -p 22
+   
+   # Then run with verbose logging
+   mcp> run rpi_control --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry --verbose
+   ```
+
+4. **GPIO permission issues**: Ensure the user has permission to access GPIO pins
+   ```bash
+   # On Raspberry Pi, add user to gpio group
+   sudo usermod -a -G gpio pi
+   ```
+
 ## Additional Notes
 
 - The `hardware_client.py` file provides a reusable client class for controlling Raspberry Pi hardware

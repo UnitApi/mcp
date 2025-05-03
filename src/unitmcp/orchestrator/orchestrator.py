@@ -7,8 +7,11 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Union, Any
+from datetime import datetime
 
 from ..utils.logger import setup_logging as setup_logger
+from ..client.client import MCPHardwareClient
+from ..hardware.gpio import GPIOController
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +52,11 @@ class Orchestrator:
         self.examples = {}
         self.servers = {}
         self.active_runners = {}
+        self.current_server = None
+        self.recent_servers = []
+        
+        # Initialize GPIO controller
+        self.gpio_controller = GPIOController()
         
         # Discover available examples
         self._discover_examples()
@@ -377,49 +385,104 @@ class Orchestrator:
         """Get all active runners."""
         return self.active_runners
     
-    def connect_to_server(self, host: str, port: int, ssl_enabled: bool = False) -> Dict[str, Any]:
+    def connect_to_server(self, host: str, port: int, ssl_enabled: bool = False, retry_count: int = 3, timeout: float = 2.0, use_discovery: bool = False) -> Dict[str, Any]:
         """
-        Connect to a server.
+        Connect to an MCP server.
         
         Args:
-            host: Host to connect to
-            port: Port to connect to
-            ssl_enabled: Whether to use SSL
+            host (str): Server hostname or IP address
+            port (int): Server port
+            ssl_enabled (bool): Whether to use SSL for the connection
+            retry_count (int): Number of connection attempts to make
+            timeout (float): Connection timeout in seconds
+            use_discovery (bool): Whether to use port discovery if connection fails
             
         Returns:
-            Dictionary with connection information
+            dict: Connection information
+            
+        Raises:
+            ConnectionError: If connection fails
         """
-        from ..client.client import MCPHardwareClient
+        # If already connected to a server, disconnect first
+        if self.current_server and self.current_server.get("client"):
+            try:
+                client = self.current_server.get("client")
+                if client and hasattr(client, "disconnect"):
+                    asyncio.run(client.disconnect())
+                logger.info(f"Disconnected from previous server.")
+            except Exception as e:
+                logger.warning(f"Could not properly disconnect from previous server: {e}")
         
+        # Create a new client
+        from ..client.client import MCPHardwareClient
+        client = MCPHardwareClient(host=host, port=port)
+        
+        # Try to connect with retry logic
         try:
-            client = MCPHardwareClient(host=host, port=port)
-            client.connect()
-            
-            # Add server to recent list
-            server_info = f"{host}:{port}"
-            if server_info in self.config.get("recent_servers", []):
-                self.config["recent_servers"].remove(server_info)
-            self.config["recent_servers"].insert(0, server_info)
-            self.config["recent_servers"] = self.config["recent_servers"][:10]  # Keep only 10 most recent
-            self._save_config()
-            
-            return {
-                "host": host,
-                "port": port,
-                "ssl_enabled": ssl_enabled,
-                "status": "connected",
-                "client": client
-            }
+            if use_discovery:
+                # Use the discovery feature to find the correct port
+                success = asyncio.run(client.connect_with_discovery(max_retries=retry_count, retry_delay=timeout))
+            else:
+                # Use regular retry logic
+                success = asyncio.run(client.connect_with_retry(max_retries=retry_count, retry_delay=timeout))
+                
+            if success:
+                # Connection successful
+                self.current_server = {
+                    "host": host,
+                    "port": client.port,  # Use the client's port which might have been updated during discovery
+                    "client": client,
+                    "status": "connected",
+                    "connected_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                
+                # Add to recent servers list if not already there
+                server_key = f"{host}:{client.port}"
+                if server_key not in [f"{s['host']}:{s['port']}" for s in self.recent_servers]:
+                    self.recent_servers.insert(0, {
+                        "host": host,
+                        "port": client.port,
+                        "last_connected": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    })
+                    # Keep only the most recent N servers
+                    self.recent_servers = self.recent_servers[:10]
+                else:
+                    # Update the last_connected time for the existing server
+                    for server in self.recent_servers:
+                        if f"{server['host']}:{server['port']}" == server_key:
+                            server["last_connected"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            break
+                
+                return self.current_server
+            else:
+                raise ConnectionError("Could not establish a stable connection.")
+                
         except Exception as e:
-            if not self.quiet:
-                logger.error(f"Failed to connect to server {host}:{port}: {e}")
-            return {
-                "host": host,
-                "port": port,
-                "ssl_enabled": ssl_enabled,
-                "status": "failed",
-                "error": str(e)
-            }
+            # Clean up failed connection
+            if client and hasattr(client, "disconnect"):
+                try:
+                    asyncio.run(client.disconnect())
+                except:
+                    pass
+            
+            # Reset current server
+            self.current_server = None
+            
+            # Re-raise the exception
+            raise
+    
+    async def handle_gpio_command(self, command: str, args: list) -> Dict[str, Any]:
+        """
+        Handle a GPIO command.
+        
+        Args:
+            command: The GPIO command (setup, write, read)
+            args: Command arguments
+            
+        Returns:
+            Result of the operation
+        """
+        return await self.gpio_controller.handle_command(command, args)
     
     def get_recent_examples(self) -> List[str]:
         """Get list of recently used examples."""
@@ -448,7 +511,7 @@ class Orchestrator:
     
     def get_recent_servers(self) -> List[str]:
         """Get list of recently connected servers."""
-        return self.config.get("recent_servers", [])
+        return self.recent_servers
     
     def create_env_file(self, example_name: str, simulation: bool = None, 
                        host: str = None, port: int = None, 

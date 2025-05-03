@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.67] - 2025-05-03
+
+### Added
+- Changes in config/server.yaml
+- Changes in examples/audio/ENHANCED_SHELL_README.md
+- Changes in examples/audio/MUSIC_PLAYER_GUIDE.md
+- Changes in examples/audio/config/music_config.yaml
+- Changes in examples/audio/connection_beep.py
+- Changes in examples/audio/enhanced_shell.py
+- Changes in examples/audio/music/README.txt
+- Changes in examples/audio/music_player.py
+- Changes in examples/audio/orchestrator_music.py
+- Changes in examples/audio/run_enhanced_shell.py
+- Changes in examples/audio/tone_demo.py
+- Changes in examples/audio/tone_generator.py
+- Changes in examples/rpi_server_starter.py
+- Changes in server_diagnostics.py
+- Changes in src/unitmcp/hardware/gpio.py
+- Changes in src/unitmcp/orchestrator/README_PATCH.md
+- Changes in src/unitmcp/orchestrator/shell_patch.py
+- Changes in src/unitmcp/runner/rpi_server_starter.py
+- Changes in start_rpi_server.py
+- Changes in start_updated_rpi_server.py
+- Changes in update_rpi_repo.py
+
+### Changed
+- Changes in examples/audio/README.md
+
 ## [0.1.66] - 2025-05-03
 
 ## [0.1.65] - 2025-05-03

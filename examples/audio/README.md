@@ -13,6 +13,8 @@ This directory contains examples demonstrating audio recording, playback, and pr
 - `config/` - Directory containing configuration files:
   - `client.yaml` - Client configuration settings
   - `server.yaml` - Server configuration settings
+- `tone_generator.py` - Example for generating precise audio tones
+- `tone_demo.py` - Script demonstrating various sound patterns
 
 ## Available Examples
 
@@ -52,6 +54,94 @@ This example showcases:
 - Saving generated speech to audio files
 - Streaming TTS output directly to audio devices
 - Adjusting voice parameters (pitch, rate, volume)
+
+### Tone Generator Examples
+
+The audio examples now include a tone generator that can produce precise audio tones with specific frequencies:
+
+#### Basic Tone Generation
+
+```bash
+# Generate a 1kHz tone for 3 seconds
+python tone_generator.py --frequency 1000 --duration 3
+
+# Generate a 1kHz tone and output to headset
+python tone_generator.py --frequency 1000 --duration 3 --output headset
+
+# List available audio devices
+python tone_generator.py --list-devices
+
+# Generate a tone with custom parameters
+python tone_generator.py --frequency 440 --duration 5 --volume 0.7 --sample-rate 48000 --channels 2
+```
+
+#### Playing Tone Sequences
+
+```bash
+# Play a sequence of tones (comma-separated frequencies)
+python tone_generator.py --sequence 440,880,1320 --sequence-durations 0.5,0.3,0.7
+
+# Play a C major scale
+python tone_demo.py --demo scale
+```
+
+#### Demo Sound Patterns
+
+The `tone_demo.py` script demonstrates various sound patterns:
+
+```bash
+# Play a single tone (default: 1kHz)
+python tone_demo.py --demo tone
+
+# Play a musical scale
+python tone_demo.py --demo scale
+
+# Play an alarm pattern
+python tone_demo.py --demo alarm
+
+# Play a siren pattern (frequency sweep)
+python tone_demo.py --demo siren
+
+# Play a series of beeps
+python tone_demo.py --demo beeps
+```
+
+#### Running on Raspberry Pi
+
+To run these examples on a Raspberry Pi:
+
+1. **Install required packages**:
+   ```bash
+   pip install numpy sounddevice
+   ```
+
+2. **Configure audio output**:
+   ```bash
+   # For headset output
+   sudo raspi-config
+   # Navigate to System Options > Audio > Force 3.5mm (headphone) jack
+   ```
+
+3. **Run the example**:
+   ```bash
+   # Play a 1kHz tone through headset
+   python tone_generator.py --frequency 1000 --duration 3 --output headset
+   ```
+
+#### Using with Orchestrator
+
+The tone generator can be run through the UnitMCP Orchestrator:
+
+```bash
+# Run on local machine
+mcp> run audio --demo=tone --frequency=1000 --duration=3
+
+# Run on Raspberry Pi with headset output
+mcp> run audio --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=raspberry --demo=tone --frequency=1000 --duration=3 --output=headset
+
+# Play an alarm pattern
+mcp> run audio --demo=alarm --volume=0.8
+```
 
 ## Using the Runner
 
@@ -169,6 +259,91 @@ processor = AudioProcessor()
 processed_audio = processor.apply_effect(audio_data, "echo", delay=0.5, decay=0.5)
 processor.save_to_file(processed_audio, "processed.wav")
 ```
+
+## Using with Orchestrator
+
+The audio examples can be easily run using the UnitMCP Orchestrator, which provides a convenient way to manage and execute examples:
+
+### Running via Orchestrator Shell
+
+```bash
+# Start the orchestrator shell
+python -m unitmcp.orchestrator.main
+
+# Run the audio example with default settings
+mcp> run audio
+
+# Run with simulation mode disabled (for physical devices)
+mcp> run audio --simulation=false
+
+# Run with custom host and port
+mcp> run audio --host=192.168.1.100 --port=9515
+
+# Run with SSH connection to a remote device
+mcp> run audio --simulation=false --host=192.168.1.100 --ssh-username=pi --ssh-password=raspberry
+```
+
+### Using Custom Configuration
+
+You can use custom configuration files with the orchestrator:
+
+```bash
+# Run with a custom environment file
+mcp> run audio --env-file=~/my_configs/audio.env
+
+# Run with a custom server configuration
+mcp> run audio --config=~/my_configs/audio_server.yaml
+```
+
+### Example-Specific Parameters
+
+The audio example supports these specific parameters when run through the orchestrator:
+
+```bash
+# Set audio recording duration
+mcp> run audio --duration=10
+
+# Set audio sample rate
+mcp> run audio --sample-rate=48000
+
+# Set audio channels
+mcp> run audio --channels=2
+
+# Run specific demo mode
+mcp> run audio --demo=tts
+```
+
+### Running from Command Line
+
+You can also run the audio example directly from the command line without entering the interactive shell:
+
+```bash
+# Run the audio example with default settings
+python -m unitmcp.orchestrator.main --run audio
+
+# Run with custom settings
+python -m unitmcp.orchestrator.main --run audio --simulation=false --host=192.168.1.100 --ssh-username=pi --port=9515
+```
+
+### Troubleshooting
+
+If you encounter issues with the audio example:
+
+1. **Audio device not found**: Ensure the correct audio device is available
+   ```bash
+   mcp> run audio --audio-device=default
+   ```
+
+2. **Connection issues**: Verify network connectivity to remote devices
+   ```bash
+   mcp> run audio --host=192.168.1.100 --verbose
+   ```
+
+3. **Permission issues**: Make sure you have the necessary permissions for audio devices
+   ```bash
+   # On Linux systems, you might need to add your user to the audio group
+   sudo usermod -a -G audio $USER
+   ```
 
 ## Running the Examples
 

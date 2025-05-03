@@ -88,10 +88,10 @@ Once you see the `(remote)` prompt, you have successfully connected to your remo
 (remote) gpio list
 
 # Set GPIO pin mode and state
-(remote) gpio 17 out 1    # Set GPIO 17 as output with value HIGH
+(remote) gpio 18 out 1    # Set GPIO 17 as output with value HIGH
 (remote) gpio 18 in       # Set GPIO 18 as input
 (remote) gpio 17 read     # Read the current value of GPIO 17
-(remote) gpio 17 toggle   # Toggle the state of GPIO 17
+(remote) gpio 18 toggle   # Toggle the state of GPIO 17
 ```
 
 #### LED Control

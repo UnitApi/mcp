@@ -858,3 +858,132 @@ class CustomShell(OrchestratorShell):
         # Implementacja komendy
         
     def
+
+```
+
+## Konfiguracja niestandardowa
+
+Orchestrator domyślnie korzysta z plików konfiguracyjnych znajdujących się w repozytorium, ale możliwe jest użycie własnych konfiguracji:
+
+### Użycie niestandardowego pliku .env
+
+Możesz określić własny plik .env podczas uruchamiania przykładu:
+
+```bash
+# Uruchomienie przykładu z własnym plikiem .env
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=pi --port=9515 --env-file=~/.env
+```
+
+### Użycie niestandardowego katalogu konfiguracyjnego
+
+Możesz utworzyć własny katalog konfiguracyjny i wskazać go podczas uruchamiania Orchestratora:
+
+```bash
+# Utworzenie własnego katalogu konfiguracyjnego
+mkdir -p ~/my_unitmcp_configs/env
+mkdir -p ~/my_unitmcp_configs/server
+
+# Kopiowanie i dostosowanie domyślnych plików konfiguracyjnych
+cp /path/to/unitmcp/configs/env/default.env ~/my_unitmcp_configs/env/custom.env
+cp /path/to/unitmcp/examples/rpi_control/config/server.yaml ~/my_unitmcp_configs/server/
+
+# Uruchomienie Orchestratora z własnym katalogiem konfiguracyjnym
+python -m unitmcp.orchestrator.main --config-dir=~/my_unitmcp_configs
+```
+
+### Ustawienie zmiennej środowiskowej UNITMCP_CONFIG_PATH
+
+Możesz ustawić zmienną środowiskową, aby wskazać niestandardowy katalog konfiguracyjny:
+
+```bash
+# Ustawienie zmiennej środowiskowej
+export UNITMCP_CONFIG_PATH=~/my_unitmcp_configs
+
+# Dodanie do .bashrc lub .zshrc dla trwałego efektu
+echo 'export UNITMCP_CONFIG_PATH=~/my_unitmcp_configs' >> ~/.bashrc
+```
+
+## Rozwiązywanie problemów
+
+### Problem z importem modułów
+
+Jeśli napotykasz błędy importu modułów, upewnij się, że pakiet UnitMCP jest zainstalowany w trybie deweloperskim:
+
+```bash
+cd /path/to/unitmcp
+pip install -e .
+```
+
+### Konflikt portów
+
+Jeśli serwer nie może się uruchomić z powodu zajętego portu:
+
+```
+Error starting server: [Errno 98] error while attempting to bind on address ('127.0.0.1', 8000): [errno 98] address already in use
+```
+
+Rozwiązania:
+1. Użyj innego portu: `--port=9515`
+2. Znajdź i zakończ proces używający tego portu:
+   ```bash
+   sudo lsof -i :8000
+   sudo kill <PID>
+   ```
+
+### Brak pliku konfiguracyjnego
+
+Jeśli pojawia się błąd braku pliku konfiguracyjnego:
+
+```
+Error loading configuration from config/server.yaml: [Errno 2] No such file or directory: 'config/server.yaml'
+```
+
+Rozwiązania:
+1. Utwórz brakujący plik konfiguracyjny:
+   ```bash
+   mkdir -p config
+   cp /path/to/unitmcp/examples/rpi_control/config/server.yaml config/
+   ```
+2. Określ ścieżkę do istniejącego pliku konfiguracyjnego:
+   ```bash
+   mcp> run rpi_control --config=/path/to/existing/server.yaml
+   ```
+
+### Problemy z połączeniem SSH
+
+Jeśli masz problemy z połączeniem SSH:
+
+1. Upewnij się, że podałeś prawidłowe dane logowania:
+   ```bash
+   mcp> run rpi_control --ssh-username=pi --ssh-password=pi --ssh-port=22
+   ```
+2. Sprawdź, czy host jest dostępny:
+   ```bash
+   ping 192.168.188.154
+   ```
+3. Spróbuj połączyć się ręcznie przez SSH:
+   ```bash
+   ssh pi@192.168.188.154 -p 22
+   ```
+
+## Zaawansowane użycie
+
+### Uruchamianie przykładów z parametrami specyficznymi dla przykładu
+
+Niektóre przykłady mogą wymagać dodatkowych parametrów. Możesz je przekazać jako argumenty:
+
+```bash
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --blink_duration=0.5 --loop_count=10
+```
+
+### Uruchamianie przykładów z niestandardowym plikiem konfiguracyjnym serwera
+
+```bash
+mcp> run rpi_control --config=/path/to/custom/server.yaml
+```
+
+### Łączenie wielu opcji konfiguracyjnych
+
+```bash
+mcp> run rpi_control --simulation=false --host=192.168.188.154 --ssh-username=pi --ssh-password=pi --port=9515 --env-file=~/.env --config=/path/to/custom/server.yaml --log-level=DEBUG
+```
