@@ -19,10 +19,37 @@ import sys
 import time
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+from pathlib import Path
+
+# Add the project's src directory to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+
+try:
+    from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_log_level, get_log_file, get_simulation_mode
+except ImportError:
+    print(f"Error: Could not import unitmcp module.")
+    print(f"Make sure the UnitMCP project is in your Python path.")
+    print(f"Current Python path: {sys.path}")
+    print(f"Trying to add {os.path.join(project_root, 'src')} to Python path...")
+    sys.path.insert(0, os.path.join(project_root, 'src'))
+    try:
+        from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_log_level, get_log_file, get_simulation_mode
+        print("Successfully imported unitmcp module after path adjustment.")
+    except ImportError:
+        print("Failed to import unitmcp module even after path adjustment.")
+        print("Please ensure the UnitMCP project is properly installed.")
+        sys.exit(1)
+
+# Load environment variables
+env = EnvLoader()
 
 # Configure logging
+log_level = getattr(logging, get_log_level())
+log_file = get_log_file()
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -50,7 +77,7 @@ def is_raspberry_pi() -> bool:
     
 # Try to import GPIO library if on Raspberry Pi
 GPIO = None
-if is_raspberry_pi():
+if is_raspberry_pi() or get_simulation_mode():
     try:
         import RPi.GPIO as GPIO
         GPIO.setmode(GPIO.BCM)
@@ -297,38 +324,53 @@ async def verify_server_is_listening(host, port):
 async def main():
     """Main function to start the server."""
     parser = argparse.ArgumentParser(description='Hardware Control Server')
-    parser.add_argument('--host', default='0.0.0.0', help='Host to bind the server to')
-    parser.add_argument('--port', type=int, default=8082, help='Port to use for the server')
+    parser.add_argument('--host', default=None, help='Host to bind the server to (overrides env var)')
+    parser.add_argument('--port', type=int, default=None, help='Port to use for the server (overrides env var)')
+    parser.add_argument('--env-file', default=None, help='Path to .env file')
     args = parser.parse_args()
+    
+    # Load environment variables from specified file if provided
+    if args.env_file:
+        env = EnvLoader(args.env_file)
+    
+    # Use command line arguments or environment variables
+    host = args.host or get_rpi_host()
+    port = args.port or get_rpi_port()
     
     # Log startup information
     logger.info(f"[STARTUP] Hardware Control Server starting at {datetime.now().isoformat()}")
-    logger.info(f"[CONFIG] Host: {args.host}, Port: {args.port}")
+    logger.info(f"[CONFIG] Host: {host}, Port: {port}")
     
     # Log system information
     log_system_info()
     
     # Start the server
-    server = await asyncio.start_server(handle_client, args.host, args.port)
+    server = await asyncio.start_server(handle_client, host, port)
     
-    addr = server.sockets[0].getsockname()
-    logger.info(f"[SERVER] Listening on {args.host}:{args.port}")
+    # Log server start
+    logger.info(f"[SERVER] Server started on {host}:{port}")
     
-    # Verify that the server is listening
-    await verify_server_is_listening('127.0.0.1', args.port)
+    # Verify the server is listening
+    await verify_server_is_listening(host, port)
     
     async with server:
         await server.serve_forever()
+
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
         logger.info("[SERVER] Server stopped by user")
-    except Exception as e:
-        logger.error(f"[ERROR] Server error: {e}")
-    finally:
-        # Clean up GPIO if used
+        # Clean up GPIO if available
         if GPIO:
             GPIO.cleanup()
             logger.info("[HARDWARE] GPIO cleaned up")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"[ERROR] Server error: {e}")
+        # Clean up GPIO if available
+        if GPIO:
+            GPIO.cleanup()
+            logger.info("[HARDWARE] GPIO cleaned up")
+        sys.exit(1)

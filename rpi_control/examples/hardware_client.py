@@ -16,10 +16,37 @@ import socket
 import sys
 from datetime import datetime
 from typing import Dict, Any, Optional
+from pathlib import Path
+
+# Add the project's src directory to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+
+try:
+    from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_log_level, get_log_file
+except ImportError:
+    print(f"Error: Could not import unitmcp module.")
+    print(f"Make sure the UnitMCP project is in your Python path.")
+    print(f"Current Python path: {sys.path}")
+    print(f"Trying to add {os.path.join(project_root, 'src')} to Python path...")
+    sys.path.insert(0, os.path.join(project_root, 'src'))
+    try:
+        from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_log_level, get_log_file
+        print("Successfully imported unitmcp module after path adjustment.")
+    except ImportError:
+        print("Failed to import unitmcp module even after path adjustment.")
+        print("Please ensure the UnitMCP project is properly installed.")
+        sys.exit(1)
+
+# Load environment variables
+env = EnvLoader()
 
 # Configure logging
+log_level = getattr(logging, get_log_level())
+log_file = get_log_file()
+
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -83,19 +110,34 @@ async def send_command(host: str, port: int, command: Dict[str, Any]) -> Dict[st
 async def main():
     """Main function to parse arguments and send commands."""
     parser = argparse.ArgumentParser(description='Hardware Control Client')
-    parser.add_argument('--host', default='127.0.0.1', help='Host where the server is running')
-    parser.add_argument('--port', type=int, default=8082, help='Port where the server is listening')
-    parser.add_argument('--command', default='status', help='Command to send (gpio, i2c, status)')
-    parser.add_argument('--pin', type=int, help='GPIO pin number (for gpio command)')
-    parser.add_argument('--state', help='GPIO pin state (on/off, for gpio command)')
-    parser.add_argument('--address', help='I2C device address (for i2c command)')
-    parser.add_argument('--register', help='I2C register (for i2c command)')
-    parser.add_argument('--value', help='I2C value to write (for i2c command)')
+    parser.add_argument('--host', default=None, help='Host where the server is running (overrides env var)')
+    parser.add_argument('--port', type=int, default=None, help='Port where the server is listening (overrides env var)')
+    parser.add_argument('--command', default=env.get('COMMAND', 'status'), 
+                        help='Command to send (gpio, i2c, status)')
+    parser.add_argument('--pin', type=int, default=env.get_int('GPIO_PIN', None), 
+                        help='GPIO pin number (for gpio command)')
+    parser.add_argument('--state', default=env.get('STATE', None), 
+                        help='GPIO pin state (on/off, for gpio command)')
+    parser.add_argument('--address', default=env.get('ADDRESS', None), 
+                        help='I2C device address (for i2c command)')
+    parser.add_argument('--register', default=env.get('REGISTER', None), 
+                        help='I2C register (for i2c command)')
+    parser.add_argument('--value', default=env.get('VALUE', None), 
+                        help='I2C value to write (for i2c command)')
+    parser.add_argument('--env-file', default=None, help='Path to .env file')
     args = parser.parse_args()
+    
+    # Load environment variables from specified file if provided
+    if args.env_file:
+        env = EnvLoader(args.env_file)
+    
+    # Use command line arguments or environment variables
+    host = args.host or get_rpi_host()
+    port = args.port or get_rpi_port()
     
     # Log startup information
     logger.info(f"[STARTUP] Hardware Control Client starting at {datetime.now().isoformat()}")
-    logger.info(f"[CONFIG] Host: {args.host}, Port: {args.port}, Command: {args.command}")
+    logger.info(f"[CONFIG] Host: {host}, Port: {port}, Command: {args.command}")
     
     # Log system information
     log_system_info()
@@ -124,7 +166,7 @@ async def main():
     command["timestamp"] = datetime.now().isoformat()
     
     # Send the command
-    response = await send_command(args.host, args.port, command)
+    response = await send_command(host, port, command)
     
     # Check the response
     if response["status"] == "success":

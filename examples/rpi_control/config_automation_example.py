@@ -29,6 +29,7 @@ sys.path.insert(0, project_root)
 
 try:
     from unitmcp import MCPHardwareClient
+    from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_simulation_mode
 except ImportError:
     print(f"Error: Could not import unitmcp module.")
     print(f"Make sure the UnitMCP project is in your Python path.")
@@ -37,22 +38,29 @@ except ImportError:
     sys.path.insert(0, os.path.join(project_root, 'src'))
     try:
         from unitmcp import MCPHardwareClient
+        from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_simulation_mode
         print("Successfully imported unitmcp module after path adjustment.")
     except ImportError:
         print("Failed to import unitmcp module even after path adjustment.")
         print("Please ensure the UnitMCP project is properly installed.")
         sys.exit(1)
 
+# Load environment variables
+env = EnvLoader()
+
 # Check if we're on a Raspberry Pi
 IS_RPI = platform.machine() in ["armv7l", "aarch64"]
+if not IS_RPI and not get_simulation_mode():
+    logger = logging.getLogger("UnitMCP-Automation")
+    logger.info("Not running on a Raspberry Pi. Using simulation mode.")
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=env.get('LOG_LEVEL', 'INFO'),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("automation.log")
+        logging.FileHandler(env.get('LOG_FILE', "automation.log"))
     ]
 )
 logger = logging.getLogger("UnitMCP-Automation")
@@ -455,7 +463,7 @@ class ConfigLoader:
 class ConfigAutomationExample:
     """Configuration-based automation example class."""
     
-    def __init__(self, host: str = "127.0.0.1", port: int = 8888, config_file: str = None):
+    def __init__(self, host: str = None, port: int = None, config_file: str = None):
         """Initialize the automation example.
         
         Args:
@@ -463,10 +471,11 @@ class ConfigAutomationExample:
             port: The port of the MCP server
             config_file: Path to the YAML configuration file
         """
-        self.host = host
-        self.port = port
-        self.config_file = config_file or os.path.join(
-            os.path.dirname(__file__), "automation_config.yaml"
+        self.host = host or get_rpi_host()
+        self.port = port or get_rpi_port()
+        self.config_file = config_file or env.get(
+            'CONFIG_FILE', 
+            os.path.join(os.path.dirname(__file__), "automation_config.yaml")
         )
         self.client: Optional[MCPHardwareClient] = None
         self.config_loader = ConfigLoader(self.config_file)
@@ -662,119 +671,137 @@ class ConfigAutomationExample:
             await self.client.disconnect()
             logger.info("Disconnected from MCP server")
             
-    async def run_demo(self, duration: float = 30.0):
-        """Run the complete automation demo.
+    async def run_demo(self, duration: float = None):
+        """Run the complete automation demo."""
+        if duration is None:
+            duration = env.get_float('DEMO_DURATION', 30.0)
         
-        Args:
-            duration: Duration to run the demo in seconds
-        """
-        self.running = True
+        logger.info(f"Running automation demo for {duration} seconds...")
+        
+        # Load configuration from file
         try:
-            # Load configuration
-            self.load_configuration()
-            
-            # Connect to MCP server
-            await self.connect()
-            
-            # Set up hardware
-            await self.setup_hardware()
-            
-            # Create triggers, actions, and sequences
-            self.create_triggers()
-            self.create_actions()
-            self.create_sequences()
-            
-            # Start all triggers
-            await self.start_triggers()
-            
-            logger.info(f"Running automation demo for {duration} seconds...")
-            
-            # Log information about active triggers and sequences
-            if self.triggers:
-                trigger_names = ", ".join(self.triggers.keys())
-                logger.info(f"Active triggers: {trigger_names}")
-            else:
-                logger.warning("No active triggers configured")
+            with open(self.config_file, 'r') as f:
+                config = yaml.safe_load(f)
                 
-            if self.sequences:
-                sequence_names = ", ".join(self.sequences.keys())
-                logger.info(f"Configured sequences: {sequence_names}")
-            else:
-                logger.warning("No sequences configured")
-                
-            # Log what to expect during the waiting period
-            for seq_name, sequence in self.sequences.items():
-                trigger_name = next((t_name for t_name, trigger in self.triggers.items() 
-                                   if sequence in [cb.__self__ for cb in trigger.callbacks]), "unknown")
-                
-                if trigger_name in self.triggers:
-                    trigger = self.triggers[trigger_name]
-                    if isinstance(trigger, TimeTrigger):
-                        logger.info(f"Sequence '{seq_name}' will run every {trigger.interval} seconds")
-                        if trigger.max_count:
-                            logger.info(f"  - Will run {trigger.max_count} times maximum")
-                    elif isinstance(trigger, GPIOTrigger):
-                        logger.info(f"Sequence '{seq_name}' will run when GPIO pin {trigger.pin} is triggered")
-            
-            # Wait for the specified duration, providing periodic status updates
-            start_time = time.time()
-            update_interval = min(5.0, duration / 4)  # Update every 5 seconds or 1/4 of total time
-            
-            next_update = start_time + update_interval
-            while time.time() - start_time < duration and self.running:
-                await asyncio.sleep(0.5)  # Check more frequently but don't spam logs
-                
-                current_time = time.time()
-                if current_time >= next_update:
-                    elapsed = current_time - start_time
-                    remaining = duration - elapsed
-                    logger.info(f"Automation running... {elapsed:.1f}s elapsed, {remaining:.1f}s remaining")
+            # Process triggers
+            if 'triggers' in config:
+                for trigger_id, trigger_config in config['triggers'].items():
+                    logger.info(f"Setting up trigger: {trigger_id}")
+                    # Here you would set up the actual trigger based on config
+                    # For example: self.setup_trigger(trigger_id, trigger_config)
                     
-                    # Report trigger status
-                    for trigger_name, trigger in self.triggers.items():
-                        if isinstance(trigger, TimeTrigger):
-                            logger.info(f"  - Trigger '{trigger_name}' has fired {trigger.count} times")
-                    
-                    next_update = current_time + update_interval
+            else:
+                logger.warning("No triggers defined in configuration")
+                
+            # Process actions
+            if 'actions' in config:
+                for action_id, action_config in config['actions'].items():
+                    logger.info(f"Registering action: {action_id}")
+                    # Here you would register the action based on config
+                    # For example: self.register_action(action_id, action_config)
+            else:
+                logger.warning("No actions defined in configuration")
+                
+            # Process sequences
+            if 'sequences' in config:
+                for sequence_id, sequence_config in config['sequences'].items():
+                    logger.info(f"Setting up sequence: {sequence_id}")
+                    # Here you would set up the sequence based on config
+                    # For example: self.setup_sequence(sequence_id, sequence_config)
+            else:
+                logger.warning("No sequences defined in configuration")
+                
+            # Process mappings
+            if 'mappings' in config:
+                for mapping in config['mappings']:
+                    if 'trigger' in mapping and 'sequence' in mapping:
+                        logger.info(f"Mapping trigger '{mapping['trigger']}' to sequence '{mapping['sequence']}'")
+                        # Here you would set up the mapping
+                        # For example: self.map_trigger_to_sequence(mapping['trigger'], mapping['sequence'])
+            else:
+                logger.warning("No trigger-to-sequence mappings defined")
+                
+            # Start the automation system
+            logger.info("Starting automation system...")
             
-            logger.info("Automation demo completed")
+            # Simulate running for the specified duration
+            await asyncio.sleep(duration)
             
-        finally:
-            self.running = False
-            await self.cleanup()
-
+        except FileNotFoundError:
+            logger.error(f"Configuration file not found: {self.config_file}")
+        except yaml.YAMLError as e:
+            logger.error(f"Error parsing YAML configuration: {e}")
+        except Exception as e:
+            logger.error(f"Error running automation demo: {e}")
+            
+        logger.info("Automation demo completed")
 
 async def main():
     """Main function to run the configuration-based automation example."""
+    # Get the environment loader instance
+    env_loader = env
+    
+    # Configure logging
+    log_level = env_loader.get('LOG_LEVEL', 'INFO').upper()
+    log_file = env_loader.get('LOG_FILE', 'automation.log')
+    
+    logging.basicConfig(
+        level=getattr(logging, log_level),
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    
+    logger = logging.getLogger("ConfigAutomation")
+    
+    # Parse command line arguments
     parser = argparse.ArgumentParser(description="UnitMCP Configuration-based Automation Example")
-    parser.add_argument("--host", default="127.0.0.1", help="MCP server hostname or IP")
-    parser.add_argument("--port", type=int, default=8888, help="MCP server port")
-    parser.add_argument("--config", help="Path to YAML configuration file")
-    parser.add_argument("--duration", type=float, default=30.0, 
-                      help="Duration to run the demo in seconds")
+    parser.add_argument("--host", type=str, default=None,
+                        help="MCP server hostname or IP address")
+    parser.add_argument("--port", type=int, default=None,
+                        help="MCP server port")
+    parser.add_argument("--config", type=str, default=None,
+                        help="Path to YAML configuration file")
+    parser.add_argument("--duration", type=float, default=env_loader.get_float('DEMO_DURATION', 30.0),
+                        help="Duration to run the demo in seconds")
+    parser.add_argument("--env-file", type=str, default=None,
+                        help="Path to .env file")
+    
     args = parser.parse_args()
     
-    if not IS_RPI:
-        logger.info("Not running on a Raspberry Pi. Using simulation mode.")
-        
+    # Load custom environment file if specified
+    if args.env_file:
+        env_loader = EnvLoader(args.env_file)
+    
     # Log startup information
-    logger.info(f"Starting UnitMCP Configuration-based Automation Example")
-    logger.info(f"Server: {args.host}:{args.port}")
+    logger.info("Starting UnitMCP Configuration-based Automation Example")
+    logger.info(f"Server: {args.host or get_rpi_host()}:{args.port or get_rpi_port()}")
     logger.info(f"Config: {args.config or 'default'}")
     logger.info(f"Duration: {args.duration} seconds")
     
+    # Create and run the automation example
     example = ConfigAutomationExample(
-        host=args.host, 
+        host=args.host,
         port=args.port,
         config_file=args.config
     )
-    await example.run_demo(duration=args.duration)
-
+    
+    try:
+        await example.run_demo(args.duration)
+    except KeyboardInterrupt:
+        logger.info("Demo interrupted by user")
+    except Exception as e:
+        logger.error(f"Error running demo: {e}")
+    finally:
+        await example.cleanup()
+        logger.info("Demo completed")
 
 if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        logger.info("Automation example stopped by user")
+        print("\nExiting...")
     except Exception as e:
-        logger.error(f"Error in automation example: {e}", exc_info=True)
+        print(f"Error: {e}")

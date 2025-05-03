@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.54] - 2025-05-03
+
+### Added
+- Changes in examples/ollama_integration/txt.env
+- Changes in examples/rpi_control/README.md
+- Changes in examples/rpi_control/hardware_client.py
+- Changes in examples/rpi_control/my_custom_config.yaml
+- Changes in examples/rpi_control/run_examples.sh
+- Changes in examples/rpi_control/txt.env
+
 ## [0.1.53] - 2025-05-03
 
 ### Added

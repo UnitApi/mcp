@@ -1,0 +1,116 @@
+# UnitMCP Custom Automation Configuration
+
+# Global settings
+global:
+  simulation_mode: true  # Set to false when using real hardware
+  log_level: INFO
+
+# Hardware configuration
+hardware:
+  led_pin: 18
+  button_pin: 17
+
+# Triggers
+triggers:
+  # Time-based trigger that fires every 5 seconds
+  time_trigger:
+    type: time
+    interval: 5.0
+    max_count: 6  # Will fire 6 times (30 seconds total)
+  
+  # Button-based trigger (if hardware is connected)
+  button_trigger:
+    type: gpio
+    pin: ${BUTTON_PIN:17}
+    edge: rising
+    debounce: 0.2
+
+# Actions
+actions:
+  # LED actions
+  led_on:
+    type: led
+    device_id: led_${LED_PIN:18}
+    action: on
+  
+  led_off:
+    type: led
+    device_id: led_${LED_PIN:18}
+    action: off
+  
+  led_blink:
+    type: led
+    device_id: led_${LED_PIN:18}
+    action: blink
+    on_time: 0.3
+    off_time: 0.3
+    count: 5
+  
+  # Audio actions
+  beep:
+    type: audio
+    action_type: tone
+    frequency: ${AUDIO_FREQUENCY:440}
+    duration: ${AUDIO_DURATION:0.5}
+  
+  speak_hello:
+    type: audio
+    action_type: speak
+    text: ${TTS_MESSAGE:Hello, UnitMCP automation system is running!}
+  
+  # Delay action
+  delay_short:
+    type: delay
+    delay: 1.0
+  
+  delay_medium:
+    type: delay
+    delay: 2.0
+  
+  # Log actions
+  log_start:
+    type: log
+    message: "Custom automation sequence started"
+    level: info
+  
+  log_end:
+    type: log
+    message: "Custom automation sequence completed"
+    level: info
+
+# Sequences
+sequences:
+  # Startup sequence
+  startup:
+    actions:
+      - log_start
+      - speak_hello
+      - led_blink
+      - delay_short
+  
+  # LED sequence
+  led_pattern:
+    actions:
+      - led_on
+      - delay_short
+      - led_off
+      - delay_short
+      - led_blink
+      - delay_medium
+  
+  # Shutdown sequence
+  shutdown:
+    actions:
+      - beep
+      - led_off
+      - log_end
+
+# Trigger-to-sequence mappings
+mappings:
+  # Map time trigger to sequences
+  - trigger: time_trigger
+    sequence: led_pattern
+  
+  # Map button trigger to sequence (if hardware is connected)
+  - trigger: button_trigger
+    sequence: startup
