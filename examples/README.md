@@ -4,6 +4,13 @@ This directory contains various examples demonstrating the capabilities of the U
 
 ## Directory Structure
 
+- **basic/** - Basic examples for getting started with UnitMCP
+- **platforms/** - Platform-specific examples (Raspberry Pi, PC, etc.)
+- **llm/** - Large Language Model integration examples (Claude, Ollama)
+- **advanced/** - Advanced usage patterns and complex demonstrations
+
+The following legacy directories are being migrated to the new structure:
+
 - **audio/** - Audio recording, playback, and processing examples
 - **automation/** - Automation scripts, pipelines, and workflow examples
 - **dsl/** - Domain-Specific Language for hardware configuration and natural language control
@@ -48,6 +55,33 @@ You can set environment variables in three ways:
 | `VERBOSE` | Enable verbose logging | 0 |
 | `LOG_LEVEL` | Logging level (INFO, DEBUG, WARNING, ERROR) | INFO |
 | `ENABLE_CLAUDE_PLUGIN` | Enable the Claude UnitMCP Plugin | 0 |
+
+## Configuration Files
+
+All configuration files have been moved to the `/configs` directory:
+
+- Environment variables: `/configs/env/`
+- YAML configurations: `/configs/yaml/`
+
+To load configuration files in your code, use the following paths:
+
+```python
+# Load environment variables
+from dotenv import load_dotenv
+import os
+
+# Load from the new location
+load_dotenv("/path/to/configs/env/default.env")
+
+# Load YAML configuration
+import yaml
+
+# Load from the new location
+with open("/path/to/configs/yaml/devices/default.yaml", "r") as f:
+    config = yaml.safe_load(f)
+```
+
+See the [Migration Guide](/docs/MIGRATION_GUIDE.md) for more details on the new structure.
 
 ## Quick Start
 

@@ -439,13 +439,8 @@ class EnvConfigAutomationExample:
             config_file: Path to the YAML configuration file
             env_file: Path to the .env file
         """
-        # Set default config file path
-        self.config_file = config_file or os.path.join(
-            os.path.dirname(__file__), "env_automation_config.yaml"
-        )
-        
-        # Create the config loader with env file support
-        self.config_loader = ConfigLoader(self.config_file, env_file)
+        # Create the config loader with env file support and automation config type
+        self.config_loader = ConfigLoader(config_file, env_file, "automation")
         
         # Load configuration first to get environment variables
         self.config = self.config_loader.load_config()

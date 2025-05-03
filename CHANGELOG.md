@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.58] - 2025-05-03
+
+### Added
+- Changes in configs/yaml/automation/default.yaml
+- Changes in configs/yaml/automation/env_automation.yaml
+- Changes in configs/yaml/devices/default.yaml
+- Changes in docs/MIGRATION_GUIDE.md
+- Changes in docs/api/README.md
+- Changes in docs/architecture/README.md
+- Changes in docs/architecture/descriptions/DSL_INTEGRATION.md
+- Changes in docs/architecture/diagrams/architecture.svg
+- Changes in docs/architecture/diagrams/graph.svg
+- Changes in docs/architecture/diagrams/project.svg
+- Changes in docs/guides/hardware/README.md
+- Changes in docs/guides/installation/README.md
+- Changes in docs/guides/llm/claude_integration.md
+- Changes in docs/guides/llm/ollama_integration.md
+- Changes in examples/advanced/automation_example.py
+- Changes in examples/advanced/config_automation_example.py
+- Changes in examples/basic/dsl_cli_example.py
+- Changes in examples/basic/dsl_example.py
+- Changes in examples/basic/dsl_quickstart_demo.py
+- Changes in examples/llm/claude_plugin_demo.py
+- Changes in examples/llm/ollama_integration.py
+- Changes in examples/platforms/raspberry_pi/button_demo.py
+- Changes in examples/platforms/raspberry_pi/led_demo.py
+- Changes in examples/platforms/raspberry_pi/traffic_light_demo.py
+- Changes in scripts/verify_migration.py
+
 ## [0.1.57] - 2025-05-03
 
 ### Added

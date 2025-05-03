@@ -32,6 +32,9 @@ class EnvLoader:
         self.search_paths = search_paths or []
         self.loaded = False
         
+        # Default configs directory
+        self.configs_dir = os.path.join(self._find_project_root() or "", "configs", "env")
+        
         # Load environment variables
         self.load_env()
         
@@ -56,15 +59,33 @@ class EnvLoader:
                 logger.info(f"Loaded environment variables from {env_path}")
                 self.loaded = True
                 return True
+        
+        # Try to load from the new configs/env directory
+        if os.path.exists(self.configs_dir):
+            # Try default.env first
+            default_env_path = os.path.join(self.configs_dir, 'default.env')
+            if os.path.exists(default_env_path):
+                load_dotenv(default_env_path)
+                logger.info(f"Loaded environment variables from {default_env_path}")
+                self.loaded = True
+                return True
                 
-        # If no .env file was found, try to load from the current directory
+            # Try development.env if default.env doesn't exist
+            dev_env_path = os.path.join(self.configs_dir, 'development.env')
+            if os.path.exists(dev_env_path):
+                load_dotenv(dev_env_path)
+                logger.info(f"Loaded environment variables from {dev_env_path}")
+                self.loaded = True
+                return True
+                
+        # If no .env file was found, try to load from the current directory (legacy support)
         if os.path.exists('.env'):
             load_dotenv('.env')
             logger.info("Loaded environment variables from ./.env")
             self.loaded = True
             return True
             
-        # If no .env file was found, try to load from the project root
+        # If no .env file was found, try to load from the project root (legacy support)
         project_root = self._find_project_root()
         if project_root:
             env_path = os.path.join(project_root, '.env')
@@ -217,16 +238,53 @@ class EnvLoader:
 class ConfigLoader:
     """Loads and processes configuration files with environment variable support."""
     
-    def __init__(self, config_file: str, env_file: str = None):
+    def __init__(self, config_file: str = None, env_file: str = None, config_type: str = None):
         """Initialize the configuration loader.
         
         Args:
-            config_file: Path to the configuration file
+            config_file: Path to the configuration file (optional)
             env_file: Path to the .env file (optional)
+            config_type: Type of configuration (devices, automation, security) (optional)
         """
         self.config_file = config_file
-        self.env_loader = EnvLoader(env_file, [os.path.dirname(os.path.abspath(config_file))])
+        self.config_type = config_type
+        
+        # Find project root
+        self.project_root = self._find_project_root()
+        
+        # Set up configs directory paths
+        if self.project_root:
+            self.configs_yaml_dir = os.path.join(self.project_root, "configs", "yaml")
+            
+            # If config_file is not provided but config_type is, use the default config file for that type
+            if not config_file and config_type:
+                if config_type in ["devices", "automation", "security"]:
+                    self.config_file = os.path.join(self.configs_yaml_dir, config_type, "default.yaml")
+        
+        # Set up environment loader
+        search_paths = []
+        if self.config_file:
+            search_paths.append(os.path.dirname(os.path.abspath(self.config_file)))
+        
+        self.env_loader = EnvLoader(env_file, search_paths)
         self.config = None
+        
+    def _find_project_root(self) -> Optional[str]:
+        """Find the project root directory by looking for setup.py or pyproject.toml.
+        
+        Returns:
+            Path to the project root directory, or None if not found
+        """
+        current_dir = os.path.abspath(os.path.dirname(__file__))
+        
+        # Go up the directory tree until we find setup.py or pyproject.toml
+        while current_dir != os.path.dirname(current_dir):  # Stop at the root directory
+            if os.path.exists(os.path.join(current_dir, 'setup.py')) or \
+               os.path.exists(os.path.join(current_dir, 'pyproject.toml')):
+                return current_dir
+            current_dir = os.path.dirname(current_dir)
+            
+        return None
         
     def load_yaml_config(self) -> Dict[str, Any]:
         """Load a YAML configuration file and resolve environment variables.
@@ -234,6 +292,17 @@ class ConfigLoader:
         Returns:
             Dictionary containing the processed configuration
         """
+        # If config_file is not set, try to find a default config file
+        if not self.config_file and self.project_root and self.config_type:
+            default_config = os.path.join(self.configs_yaml_dir, self.config_type, "default.yaml")
+            if os.path.exists(default_config):
+                self.config_file = default_config
+                logger.info(f"Using default configuration file: {default_config}")
+        
+        if not self.config_file or not os.path.exists(self.config_file):
+            logger.error("Configuration file not found")
+            return {}
+            
         try:
             with open(self.config_file, 'r') as f:
                 self.config = yaml.safe_load(f)
@@ -256,11 +325,17 @@ class ConfigLoader:
         Returns:
             Dictionary containing the processed configuration
         """
-        if self.config_file.endswith(('.yaml', '.yml')):
+        if not self.config_file:
+            logger.error("No configuration file specified")
+            return {}
+            
+        # Detect file type based on extension
+        if self.config_file.endswith('.yaml') or self.config_file.endswith('.yml'):
             return self.load_yaml_config()
         else:
             logger.error(f"Unsupported configuration file format: {self.config_file}")
             return {}
+{{ ... }}
 
 
 # Create a singleton instance for easy access

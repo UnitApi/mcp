@@ -1,6 +1,6 @@
 # MCP Hardware Project Summary
 
-![graph.svg](docs/graph.svg)
+![graph.svg](docs/architecture/diagrams/graph.svg)
 
 ## 🚀 Project Overview
 
@@ -16,12 +16,27 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
 
 ### 🆕 Latest Updates (May 2025)
 
+- **Project Reorganization**: Improved directory structure for better organization and clarity
+- **Unified Documentation**: Consolidated documentation in a structured format
+- **Standardized Configuration**: Reorganized configuration files for consistency
 - **Simulation Mode**: Enhanced simulation capabilities for development without hardware
 - **DSL Integration**: Fixed and improved Domain-Specific Language support
 - **Claude 3.7 Integration**: Added natural language processing for device control
 - **Mock Device Factory**: Created mock implementations for testing
 - **Comprehensive Testing**: All integration tests now passing
 - **Claude UnitMCP Plugin**: New plugin for advanced natural language hardware control
+
+### 📁 New Project Structure
+
+The project has been reorganized to improve clarity and reduce duplication:
+
+- **Documentation**: All documentation is now in the `docs/` directory with clear sections
+- **Configuration**: Configuration files are now in the `configs/` directory
+- **Source Code**: Source code is organized into logical categories in `src/unitmcp/`
+- **Examples**: Examples are categorized by functionality
+- **Tests**: Test structure aligns with the source code structure
+
+See the [Migration Guide](docs/MIGRATION_GUIDE.md) for details on the changes and how to update your code.
 
 ## 🏗️ Architecture
 
@@ -72,7 +87,7 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
    - Integration with DSL system and MockDeviceFactory
    - Simulation mode for testing without hardware
 
-![architecture.svg](docs/architecture.svg)
+![architecture.svg](docs/architecture/diagrams/architecture.svg)
 
 ## 📊 Architecture Diagrams
 
@@ -105,152 +120,53 @@ graph TD
     J --> F1
 ```
 
-### Hardware Abstraction Layer
+For more detailed architecture documentation, see the [Architecture Documentation](docs/architecture/README.md).
 
-```mermaid
-classDiagram
-    class Device {
-        <<abstract>>
-        +device_id: str
-        +mode: DeviceMode
-        +initialize()
-        +cleanup()
-        +execute_command()
-        +get_status()
-        +register_event_callback()
-    }
-    
-    class OutputDevice {
-        <<abstract>>
-        +activate()
-        +deactivate()
-    }
-    
-    class InputDevice {
-        <<abstract>>
-        +read()
-    }
-    
-    class LEDDevice {
-        +pin: int
-        +activate()
-        +deactivate()
-        +set_brightness()
-        +blink()
-    }
-    
-    class ButtonDevice {
-        +pin: int
-        +pull_up: bool
-        +debounce_ms: int
-        +read()
-        +simulate_press()
-    }
-    
-    class TrafficLightDevice {
-        +red_pin: int
-        +yellow_pin: int
-        +green_pin: int
-        +set_state()
-        +start_cycle()
-    }
-    
-    class DisplayDevice {
-        +display_type: DisplayType
-        +width: int
-        +height: int
-        +clear()
-        +write_line()
-        +write_text()
-        +set_cursor()
-    }
-    
-    class DeviceFactory {
-        +create_device()
-        +create_devices_from_config()
-    }
-    
-    Device <|-- OutputDevice
-    Device <|-- InputDevice
-    OutputDevice <|-- LEDDevice
-    InputDevice <|-- ButtonDevice
-    Device <|-- TrafficLightDevice
-    Device <|-- DisplayDevice
-    DeviceFactory --> Device
-```
+### Project Structure
 
-### Command Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Client as MCPHardwareClient
-    participant Server as MCPServer
-    participant HAL as Hardware Abstraction Layer
-    participant HW as Hardware
-    
-    User->>Client: Execute Command
-    Client->>Server: Send Command
-    Server->>Server: Validate Command
-    Server->>HAL: Process Command
-    HAL->>HW: Control Hardware
-    HW-->>HAL: Hardware Response
-    HAL-->>Server: Process Response
-    Server-->>Client: Return Result
-    Client-->>User: Display Result
-```
-
-### ASCII Architecture Overview
+The project has been reorganized with the following structure:
 
 ```
-+---------------------+    +----------------------+    +---------------------+
-|                     |    |                      |    |                     |
-|  User / AI Agent    |<-->|  MCPHardwareClient   |<-->|  MCP Server         |
-|                     |    |                      |    |                     |
-+---------------------+    +----------------------+    +---------+-----------+
-                                                                |
-                                                                v
-+---------------------+    +----------------------+    +---------------------+
-|                     |    |                      |    |                     |
-|  Physical Hardware  |<-->|  Hardware Drivers    |<-->|  Hardware Servers   |
-|                     |    |                      |    |                     |
-+---------------------+    +----------------------+    +---------------------+
-        ^                           ^
-        |                           |
-        |     +------------------+  |
-        +---->|                  |<-+
-              | Hardware         |
-              | Abstraction      |
-              | Layer            |
-              |                  |
-              +------------------+
-```
-
-### Device Interaction Flow
-
-```
-User/Agent Request
-      |
-      v
-+-------------+     +----------------+     +----------------+
-| Device      |     | Command        |     | Hardware       |
-| Factory     |---->| Execution      |---->| Control        |
-|             |     |                |     |                |
-+-------------+     +----------------+     +----------------+
-      ^                    |                      |
-      |                    v                      v
-+-------------+     +----------------+     +----------------+
-| Device      |     | Event          |     | Status         |
-| Config      |     | Handling       |     | Reporting      |
-|             |     |                |     |                |
-+-------------+     +----------------+     +----------------+
-                           |                      |
-                           v                      v
-                    +-------------------------------+
-                    |                               |
-                    |        Response to User       |
-                    |                               |
-                    +-------------------------------+
+UnitMCP/
+├── configs/                # Configuration files
+│   ├── env/                # Environment variables
+│   └── yaml/               # YAML configuration files
+│       ├── devices/        # Device configurations
+│       ├── automation/     # Automation configurations
+│       └── security/       # Security configurations
+├── docs/                   # Documentation
+│   ├── api/                # API documentation
+│   ├── architecture/       # Architecture documentation
+│   │   ├── diagrams/       # Architecture diagrams
+│   │   └── descriptions/   # Component descriptions
+│   ├── guides/             # User guides
+│   │   ├── installation/   # Installation guides
+│   │   ├── hardware/       # Hardware guides
+│   │   └── llm/            # LLM integration guides
+│   ├── examples/           # Example documentation
+│   └── development/        # Development documentation
+├── docker/                 # Docker configurations
+├── examples/               # Example code
+│   ├── basic/              # Basic examples
+│   ├── platforms/          # Platform-specific examples
+│   ├── llm/                # LLM integration examples
+│   └── advanced/           # Advanced examples
+├── src/                    # Source code
+│   └── unitmcp/            # UnitMCP package
+│       ├── core/           # Core functionality
+│       ├── hardware/       # Hardware abstraction layer
+│       ├── communication/  # Communication protocols
+│       ├── dsl/            # Domain-specific language
+│       ├── llm/            # LLM integration
+│       ├── plugin/         # Plugin system
+│       ├── security/       # Security features
+│       ├── utils/          # Utility functions
+│       └── simulation/     # Simulation components
+└── tests/                  # Tests
+    ├── unit/               # Unit tests
+    ├── integration/        # Integration tests
+    ├── system/             # System tests
+    └── performance/        # Performance tests
 ```
 
 ## 💡 Key Features

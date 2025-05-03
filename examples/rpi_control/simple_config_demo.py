@@ -28,13 +28,15 @@ logger = logging.getLogger("UnitMCP-Demo")
 class ConfigLoader:
     """Loads automation configuration from YAML files."""
     
-    def __init__(self, config_file: str):
+    def __init__(self, config_file: str, config_type: str = "automation"):
         """Initialize the configuration loader.
         
         Args:
             config_file: Path to the YAML configuration file
+            config_type: Type of configuration (e.g., automation, settings)
         """
         self.config_file = config_file
+        self.config_type = config_type
         self.config = None
         
     def load_config(self) -> Dict[str, Any]:
@@ -217,10 +219,8 @@ class SimpleDemo:
         Args:
             config_file: Path to the YAML configuration file
         """
-        self.config_file = config_file or os.path.join(
-            os.path.dirname(__file__), "automation_config.yaml"
-        )
-        self.config_loader = ConfigLoader(self.config_file)
+        # Create the config loader with automation config type
+        self.config_loader = ConfigLoader(config_file, config_type="automation")
         self.config = {}
         self.triggers = {}
         self.actions = {}
