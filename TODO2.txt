@@ -20,16 +20,6 @@ I've been working on updating the examples in the UnitMCP project to follow a st
 Structure Standardization
 I've created and implemented:
 
-A standardized base runner in examples/runner/base_runner.py
-A template directory structure in examples/template/ with:
-runner.py, client.py, server.py
-config/client.yaml and config/server.yaml
-README.md with documentation
-tests/ directory with test files
-Two utility scripts:
-check_example_structure.py to verify which examples follow the standard structure
-convert_example_structure.py to update examples to follow the standard structure
-
 
 sprawdz czy nie ma duplikatow examples po stworzeniu template,
 wszysteki przyklady i pliki powinny byc rozne
@@ -45,61 +35,5 @@ znajdz przyklad ze streowaniem gpio na rasberry pi z klienta na PC
 czy aktualne przyklady z portem dzialaja na tej zasadzie co ze skryptow, porownaj
 zaktualizuj dokumentacje przykladow w examples, czy w shell mozna uruchomic zdalny serwer a potem sie do niego podlaczy aby sterowac GPIO?
 
-check tox and pytes and fix
-
-
-w examples/shell_cli/README.md nie jest opisany runner.py, popraw w innych przykladach, jesli dokumentacja jest niekompletna, nie opisuje kazdego pliku i sposobu uzycia a takze konfgiugracji oraz
-jak pobrac dane konfiguracyjne dla servera z .env lub z command line poprzez start runnera konfigurujacego srodowisko
-
-
-w poniszych plikach jest zaszyta odpowiedzialnosc runnera z paczki unitmcp, ktory powinien zainstalowac zaleznosci i pozwolic na uztyweanie sprzetu
-simple_remote_shell.py
-rpi_gpio_helper.py
-process_manager.py
-w przypadku dzialania shell interaktywnego moga pojawic sie rozne problemy z czasem, gdyby zostaly uruchomione wiele procesow jednoczesnie, monitoruj co sie dzieje i jesli to jakas anomalia to stworz rozwiazanie
-
-
-(remote) connect 192.168.188.154 --ssh --username pi --password pi
-Invalid port: --ssh
-(remote) connect 192.168.188.154 --port 22 --ssh --username pi --password pi
-Invalid port: --port
-(remote) connect 192.168.188.154 22 --ssh --username pi --password pi
-SSH support not available. Install paramiko for SSH functionality.
-(remote)
-
 add real time streaming for each hardware device such for GPIO Streaming: Added real-time GPIO streaming from Raspberry Pi to client PC
-
-
-poszerz dzialanie runnera, aby instalowal zaleznosci i uruchamial  aplikacje i skrypty shell,  nodejs, python, php, static html poprzez podanie tylko adresu git,
-rozszerzenie powinni pobrac repo na wskazana maszyne (po adresie lub jako istnejacy client, server)
-powinna byc mozliwosc uruhcmiania automatycznie, zwlaszzca jesli sa tam rozne ci dla github lub gitlab,
-jesli sa jakies dane potrtzebne to interaktywnie user powinien byc zapytany, np. jesli chodzi o zmienne w .env do tego projektu git
-oraz gdy po uruchomieniu tej aplikacji z git cos nie dziala poprawnie, powinny byc logi i inteligentne podpowiedzi po analizie logow
-
-
-bazujac na aktualnym kodzie z folderu ./runner sprawdz czy ta implementacja runnera jest poprawna i przenies to co sie da do ./src/unitmcp aby przykładdy były proste
-a cała implementacja była w bibliotece, aby runner insttalowal zaleznosci i uruchamial  aplikacje i skrypty shell,  nodejs, python, php, static html poprzez podanie tylko adresu git,
-
-przenies src/unitmcp/orchestrator/README.md do examples/orchestrator/README.md i stworz kilka przykładów aoraz rozszerz dokumentacje
-
-
-
-zwieksz ilsoc przykladow dla kazdej komendy orchestratora w dokumenatcji: examples/orchestrator/README.md
-
-
-popraw problem z tox
-]$ tox
-ROOT: will run in automatically provisioned tox, host /home/tom/github/UnitApi/mcp/venv/bin/python3.12 is missing [requires (has)]: setuptools_scm>=6.2
-ROOT: provision> .tox/.tox/bin/python -m tox
-py311: recreate env because requirements removed: tabulate
-py311: remove tox env folder /home/tom/github/UnitApi/mcp/.tox/py311
-py311: install_deps> python -I -m pip install 'pyautogui>=0.9.54' 'pytest-asyncio>=0.23.0' 'pytest-cov>=4.1.0' 'pytest-mock>=3.12.0' 'pytest-timeout>=2.2.0' 'pytest>=8.3.5' -r requirements.txt -r requirements-dev.txt
-^CROOT: [160661] KeyboardInterrupt - teardown started
-ROOT: interrupt tox environment: py311
-ROOT: requested interrupt of 160701 from 160661, activate in 0.00
-ROOT: send signal SIGINT(2) to 160701 from 160661 with timeout 0.30
-(venv) (base) [tom@devop mcp]$
-
-
-jak zanstalowac na rpi poprzez runner i orchestrator aplikacje web z elementami html, aby dziallo na skonfigurowanym przez runner porcie?
 

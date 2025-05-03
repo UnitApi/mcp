@@ -29,6 +29,27 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
 - **GPIO Streaming**: Added real-time GPIO streaming from Raspberry Pi to client PC
 - **SSH/TCP Support**: Added support for both SSH and TCP connections to remote devices
 
+### 📦 Dependency Management
+
+We now use Conda for dependency management to ensure consistent environments across different platforms:
+
+- **Cross-platform compatibility**: Works on Windows, Linux, macOS, and Raspberry Pi
+- **Isolated environments**: Prevents dependency conflicts
+- **Binary package management**: Handles both Python packages and system libraries
+
+To set up your environment:
+
+```bash
+# Linux/macOS
+chmod +x setup_environment.sh
+./setup_environment.sh
+
+# Windows
+setup_environment.bat
+```
+
+For more details, see [INSTALLATION.md](INSTALLATION.md).
+
 ### 📁 New Project Structure
 
 The project has been reorganized to improve clarity and reduce duplication:
@@ -1195,4 +1216,3 @@ These diagrams can be used throughout the documentation to visualize system arch
   });
   mermaid.init(undefined, '.language-mermaid');
 </script>
-

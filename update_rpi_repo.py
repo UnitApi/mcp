@@ -117,114 +117,54 @@ class RepoUpdater:
             # Build the SSH command
             ssh_cmd = self._build_ssh_command()
             
-            # First, check the current branch
-            branch_cmd = f"cd {self.repo_path} && git branch --show-current"
-            full_branch_cmd = f"{ssh_cmd} '{branch_cmd}'"
+            # Update the repository
+            update_cmd = f"cd {self.repo_path} && git pull origin {self.branch}"
+            full_update_cmd = f"{ssh_cmd} '{update_cmd}'"
             
-            logger.info(f"Checking current branch: {full_branch_cmd}")
+            logger.info(f"Updating repository: {full_update_cmd}")
             process = await asyncio.create_subprocess_shell(
-                full_branch_cmd,
+                full_update_cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
             
             stdout, stderr = await process.communicate()
-            current_branch = stdout.decode().strip()
-            
-            logger.info(f"Current branch: {current_branch}")
-            
-            # Check for local changes
-            status_cmd = f"cd {self.repo_path} && git status --porcelain"
-            full_status_cmd = f"{ssh_cmd} '{status_cmd}'"
-            
-            logger.info(f"Checking for local changes: {full_status_cmd}")
-            process = await asyncio.create_subprocess_shell(
-                full_status_cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            
-            stdout, stderr = await process.communicate()
-            local_changes = stdout.decode().strip()
-            
-            if local_changes:
-                logger.warning(f"Local changes detected in the repository:")
-                logger.warning(local_changes)
-                
-                # Stash local changes
-                stash_cmd = f"cd {self.repo_path} && git stash"
-                full_stash_cmd = f"{ssh_cmd} '{stash_cmd}'"
-                
-                logger.info(f"Stashing local changes: {full_stash_cmd}")
-                process = await asyncio.create_subprocess_shell(
-                    full_stash_cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-                
-                stdout, stderr = await process.communicate()
-                logger.info(f"Stash result: {stdout.decode().strip()}")
-            
-            # Checkout the desired branch if needed
-            if current_branch != self.branch:
-                checkout_cmd = f"cd {self.repo_path} && git checkout {self.branch}"
-                full_checkout_cmd = f"{ssh_cmd} '{checkout_cmd}'"
-                
-                logger.info(f"Checking out branch {self.branch}: {full_checkout_cmd}")
-                process = await asyncio.create_subprocess_shell(
-                    full_checkout_cmd,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-                
-                stdout, stderr = await process.communicate()
-                
-                if process.returncode != 0:
-                    logger.error(f"Failed to checkout branch {self.branch}: {stderr.decode()}")
-                    return False
-                
-                logger.info(f"Checked out branch {self.branch}")
-            
-            # Pull the latest changes
-            pull_cmd = f"cd {self.repo_path} && git pull"
-            full_pull_cmd = f"{ssh_cmd} '{pull_cmd}'"
-            
-            logger.info(f"Pulling latest changes: {full_pull_cmd}")
-            process = await asyncio.create_subprocess_shell(
-                full_pull_cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            
-            stdout, stderr = await process.communicate()
+            output = stdout.decode()
+            error = stderr.decode()
             
             if process.returncode != 0:
-                logger.error(f"Failed to pull latest changes: {stderr.decode()}")
+                logger.error(f"Failed to update repository: {error}")
                 return False
             
-            logger.info(f"Pull result: {stdout.decode().strip()}")
+            logger.info(f"Repository updated successfully: {output}")
             
-            # Install dependencies if requirements.txt exists
-            install_cmd = f"cd {self.repo_path} && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi"
-            full_install_cmd = f"{ssh_cmd} '{install_cmd}'"
+            # Create virtual environment if it doesn't exist and install dependencies
+            venv_cmd = f"cd {self.repo_path} && " \
+                      f"if [ ! -d venv ]; then python -m venv venv; fi && " \
+                      f"source venv/bin/activate && " \
+                      f"if [ -f requirements.txt ]; then pip install -r requirements.txt; fi"
+            full_venv_cmd = f"{ssh_cmd} '{venv_cmd}'"
             
-            logger.info(f"Installing dependencies: {full_install_cmd}")
+            logger.info(f"Setting up virtual environment and installing dependencies: {full_venv_cmd}")
             process = await asyncio.create_subprocess_shell(
-                full_install_cmd,
+                full_venv_cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
             
             stdout, stderr = await process.communicate()
+            dep_output = stdout.decode()
+            dep_error = stderr.decode()
             
             if process.returncode != 0:
-                logger.warning(f"Warning during dependency installation: {stderr.decode()}")
+                logger.error(f"Failed to install dependencies: {dep_error}")
+                logger.warning(f"Warning during dependency installation: {dep_error}")
+            else:
+                logger.info(f"Dependencies installed successfully: {dep_output}")
             
-            logger.info(f"Repository updated successfully at {self.repo_path}")
             return True
-            
         except Exception as e:
-            logger.error(f"Error updating existing repository: {e}")
+            logger.error(f"Error updating repository: {str(e)}")
             return False
     
     async def _clone_repo(self) -> bool:
@@ -239,7 +179,7 @@ class RepoUpdater:
             ssh_cmd = self._build_ssh_command()
             
             # Clone the repository
-            clone_cmd = f"git clone {self.repo_url} {self.repo_path} && cd {self.repo_path} && git checkout {self.branch}"
+            clone_cmd = f"git clone {self.repo_url} {self.repo_path}"
             full_clone_cmd = f"{ssh_cmd} '{clone_cmd}'"
             
             logger.info(f"Cloning repository: {full_clone_cmd}")
@@ -250,34 +190,42 @@ class RepoUpdater:
             )
             
             stdout, stderr = await process.communicate()
+            output = stdout.decode()
+            error = stderr.decode()
             
             if process.returncode != 0:
-                logger.error(f"Failed to clone repository: {stderr.decode()}")
+                logger.error(f"Failed to clone repository: {error}")
                 return False
             
-            logger.info(f"Clone result: {stdout.decode().strip()}")
+            logger.info(f"Repository cloned successfully: {output}")
             
-            # Install dependencies if requirements.txt exists
-            install_cmd = f"cd {self.repo_path} && if [ -f requirements.txt ]; then pip install -r requirements.txt; fi"
-            full_install_cmd = f"{ssh_cmd} '{install_cmd}'"
+            # Create virtual environment and install dependencies
+            venv_cmd = f"cd {self.repo_path} && " \
+                      f"python -m venv venv && " \
+                      f"source venv/bin/activate && " \
+                      f"if [ -f requirements.txt ]; then pip install -r requirements.txt; fi"
+            full_venv_cmd = f"{ssh_cmd} '{venv_cmd}'"
             
-            logger.info(f"Installing dependencies: {full_install_cmd}")
+            logger.info(f"Setting up virtual environment and installing dependencies: {full_venv_cmd}")
             process = await asyncio.create_subprocess_shell(
-                full_install_cmd,
+                full_venv_cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
             
             stdout, stderr = await process.communicate()
+            dep_output = stdout.decode()
+            dep_error = stderr.decode()
             
             if process.returncode != 0:
-                logger.warning(f"Warning during dependency installation: {stderr.decode()}")
+                logger.error(f"Failed to install dependencies: {dep_error}")
+                logger.warning(f"Warning during dependency installation: {dep_error}")
+            else:
+                logger.info(f"Dependencies installed successfully: {dep_output}")
             
-            logger.info(f"Repository cloned successfully to {self.repo_path}")
             return True
-            
         except Exception as e:
-            logger.error(f"Error cloning repository: {e}")
+            logger.error(f"Error cloning repository: {str(e)}")
             return False
     
     async def _backup_existing_directory(self) -> bool:

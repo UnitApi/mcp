@@ -245,22 +245,143 @@ class RPiServerStarter:
             if stderr:
                 logger.warning(f"Python environment stderr: {stderr.decode()}")
             
-            # Check if the server directory exists and find server entry points
-            server_files = await self._find_server_files()
+            # Check if server_main.py exists
+            server_main_path = f"{self.server_path}/src/unitmcp/server/server_main.py"
+            check_server_main_cmd = f"test -f {server_main_path} && echo 'File exists' || echo 'File does not exist'"
+            full_check_server_main_cmd = f"{ssh_cmd} '{check_server_main_cmd}'"
             
-            if not server_files:
-                logger.error("Could not find server entry points")
-                return False
+            logger.info(f"Checking if server_main.py exists: {full_check_server_main_cmd}")
+            process = await asyncio.create_subprocess_shell(
+                full_check_server_main_cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
             
-            logger.info(f"Found server entry points: {server_files}")
+            stdout, stderr = await process.communicate()
+            output = stdout.decode().strip()
             
-            # Try each server entry point until one works
-            for server_file, is_module in server_files:
-                if await self._try_start_server(server_file, is_module):
+            if "File exists" in output:
+                logger.info(f"server_main.py found at {server_main_path}")
+                
+                # Check if virtual environment exists
+                check_venv_cmd = f"test -d {self.server_path}/venv && echo 'venv exists' || echo 'venv does not exist'"
+                full_check_venv_cmd = f"{ssh_cmd} '{check_venv_cmd}'"
+                
+                logger.info(f"Checking if virtual environment exists: {full_check_venv_cmd}")
+                process = await asyncio.create_subprocess_shell(
+                    full_check_venv_cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                
+                stdout, stderr = await process.communicate()
+                venv_output = stdout.decode().strip()
+                
+                if "venv does not exist" in venv_output:
+                    logger.info("Creating virtual environment and installing dependencies")
+                    venv_cmd = f"cd {self.server_path} && python -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+                    full_venv_cmd = f"{ssh_cmd} '{venv_cmd}'"
+                    
+                    process = await asyncio.create_subprocess_shell(
+                        full_venv_cmd,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    
+                    stdout, stderr = await process.communicate()
+                    if process.returncode != 0:
+                        logger.warning(f"Error creating virtual environment: {stderr.decode()}")
+                        logger.warning("Will try to start server without virtual environment")
+                    else:
+                        logger.info("Virtual environment created successfully")
+                else:
+                    logger.info("Virtual environment already exists")
+                
+                # Start the server using server_main.py with virtual environment
+                server_cmd = f"cd {self.server_path} && source venv/bin/activate && python -m src.unitmcp.server.server_main --host 0.0.0.0 --port {self.port}"
+                
+                if self.simulation:
+                    server_cmd += " --simulation"
+                    
+                if self.verbose:
+                    server_cmd += " --verbose"
+                
+                # Start the server in the background and redirect output to a log file
+                log_file = f"~/mcp_server_{self.port}.log"
+                server_cmd = f"nohup {server_cmd} > {log_file} 2>&1 &"
+                
+                # Execute the command
+                full_cmd = f"{ssh_cmd} '{server_cmd}'"
+                
+                logger.info(f"Starting server with command: {full_cmd}")
+                process = await asyncio.create_subprocess_shell(
+                    full_cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                
+                stdout, stderr = await process.communicate()
+                
+                if process.returncode != 0:
+                    logger.error(f"Failed to start server: {stderr.decode()}")
+                    return False
+                
+                # Wait a moment for the server to start
+                await asyncio.sleep(2)
+                
+                # Check the log file to see if there are any errors
+                check_log_cmd = f"cat {log_file}"
+                full_check_log_cmd = f"{ssh_cmd} '{check_log_cmd}'"
+                
+                logger.info(f"Checking server log: {full_check_log_cmd}")
+                process = await asyncio.create_subprocess_shell(
+                    full_check_log_cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                
+                stdout, stderr = await process.communicate()
+                log_content = stdout.decode()
+                
+                if log_content:
+                    logger.info(f"Server log content: {log_content}")
+                    
+                    # Check for errors in the log
+                    if "Error" in log_content or "Exception" in log_content:
+                        logger.warning("Found errors in server log")
+                        return False
+                else:
+                    logger.warning("Server log is empty")
+                
+                if stderr:
+                    logger.warning(f"Server log stderr: {stderr.decode()}")
+                
+                # Check if the server is running
+                if await self._is_server_running():
+                    logger.info(f"Server started successfully with server_main.py")
                     return True
-            
-            logger.error("All server entry points failed")
-            return False
+                
+                logger.warning(f"Server not running after starting with server_main.py")
+                return False
+            else:
+                logger.warning(f"server_main.py not found at {server_main_path}")
+                
+                # Try to find server files as fallback
+                server_files = await self._find_server_files()
+                
+                if not server_files:
+                    logger.error("Could not find server entry points")
+                    return False
+                
+                logger.info(f"Found server entry points: {server_files}")
+                
+                # Try each server entry point until one works
+                for server_file, is_module in server_files:
+                    if await self._try_start_server(server_file, is_module):
+                        return True
+                
+                logger.error("All server entry points failed")
+                return False
             
         except Exception as e:
             logger.error(f"Error starting server: {e}")

@@ -24,19 +24,25 @@ class TestCommandParser(unittest.TestCase):
     def setUp(self):
         """Set up the test environment."""
         # Create mocks
-        self.mock_hardware_integration = MagicMock()
-        self.mock_claude_integration = MagicMock()
+        self.mock_host = 'test-host'
+        self.mock_port = 9999
+        self.mock_config = {
+            'hardware_integration': MagicMock(),
+            'claude_integration': MagicMock()
+        }
         
         # Create the parser
         self.parser = CommandParser(
-            hardware_integration=self.mock_hardware_integration,
-            claude_integration=self.mock_claude_integration
+            host=self.mock_host,
+            port=self.mock_port,
+            config=self.mock_config
         )
     
     def test_init(self):
         """Test initialization."""
-        self.assertEqual(self.parser._hardware_integration, self.mock_hardware_integration)
-        self.assertEqual(self.parser._claude_integration, self.mock_claude_integration)
+        self.assertEqual(self.parser.host, self.mock_host)
+        self.assertEqual(self.parser.port, self.mock_port)
+        self.assertEqual(self.parser.config, self.mock_config)
     
     def test_create_parser(self):
         """Test creating the argument parser."""
@@ -113,7 +119,7 @@ class TestCommandParser(unittest.TestCase):
     async def test_handle_device_command_list(self):
         """Test handling a device list command."""
         # Setup
-        self.mock_hardware_integration.get_devices.return_value = {
+        self.mock_config['hardware_integration'].get_devices.return_value = {
             'test_led': MagicMock(),
             'test_button': MagicMock()
         }
@@ -134,14 +140,14 @@ class TestCommandParser(unittest.TestCase):
         self.assertIn('test_button', result['devices'])
         
         # Verify hardware integration was called
-        self.mock_hardware_integration.get_devices.assert_called_once()
+        self.mock_config['hardware_integration'].get_devices.assert_called_once()
     
     async def test_handle_device_command_info(self):
         """Test handling a device info command."""
         # Setup
         mock_device = MagicMock()
         mock_device.get_info.return_value = {'type': 'led', 'pin': 17}
-        self.mock_hardware_integration.get_device.return_value = mock_device
+        self.mock_config['hardware_integration'].get_device.return_value = mock_device
         
         # Create args
         args = argparse.Namespace()
@@ -160,12 +166,12 @@ class TestCommandParser(unittest.TestCase):
         self.assertEqual(result['device']['pin'], 17)
         
         # Verify hardware integration was called
-        self.mock_hardware_integration.get_device.assert_called_once_with('test_led')
+        self.mock_config['hardware_integration'].get_device.assert_called_once_with('test_led')
     
     async def test_handle_device_command_control(self):
         """Test handling a device control command."""
         # Setup
-        self.mock_hardware_integration.execute_command.return_value = True
+        self.mock_config['hardware_integration'].execute_command.return_value = True
         
         # Create args
         args = argparse.Namespace()
@@ -184,7 +190,7 @@ class TestCommandParser(unittest.TestCase):
         self.assertTrue(result['success'])
         
         # Verify hardware integration was called
-        self.mock_hardware_integration.execute_command.assert_called_once_with(
+        self.mock_config['hardware_integration'].execute_command.assert_called_once_with(
             'test_led',
             'activate',
             brightness=100,
@@ -208,7 +214,7 @@ class TestCommandParser(unittest.TestCase):
     async def test_handle_automation_command_list(self):
         """Test handling an automation list command."""
         # Setup
-        self.mock_hardware_integration.get_automations.return_value = {
+        self.mock_config['hardware_integration'].get_automations.return_value = {
             'test_automation': MagicMock()
         }
         
@@ -229,7 +235,7 @@ class TestCommandParser(unittest.TestCase):
     async def test_handle_automation_command_enable(self):
         """Test handling an automation enable command."""
         # Setup
-        self.mock_hardware_integration.enable_automation.return_value = True
+        self.mock_config['hardware_integration'].enable_automation.return_value = True
         
         # Create args
         args = argparse.Namespace()
@@ -246,7 +252,7 @@ class TestCommandParser(unittest.TestCase):
         self.assertTrue(result['success'])
         
         # Verify hardware integration was called
-        self.mock_hardware_integration.enable_automation.assert_called_once_with('test_automation')
+        self.mock_config['hardware_integration'].enable_automation.assert_called_once_with('test_automation')
     
     async def test_handle_automation_command_unknown(self):
         """Test handling an unknown automation command."""
@@ -265,7 +271,7 @@ class TestCommandParser(unittest.TestCase):
     async def test_handle_system_command_status(self):
         """Test handling a system status command."""
         # Setup
-        self.mock_hardware_integration.get_system_status.return_value = {
+        self.mock_config['hardware_integration'].get_system_status.return_value = {
             'status': 'running',
             'devices': 2,
             'automations': 1
@@ -303,13 +309,13 @@ class TestCommandParser(unittest.TestCase):
     async def test_handle_nl_command(self):
         """Test handling a natural language command."""
         # Setup
-        self.mock_claude_integration.process_command.return_value = {
+        self.mock_config['claude_integration'].process_command.return_value = {
             'command_type': 'device_control',
             'target': 'test_led',
             'action': 'activate',
             'parameters': {}
         }
-        self.mock_hardware_integration.execute_command.return_value = True
+        self.mock_config['hardware_integration'].execute_command.return_value = True
         
         # Create args
         args = argparse.Namespace()
@@ -329,10 +335,10 @@ class TestCommandParser(unittest.TestCase):
         self.assertEqual(result['command']['action'], 'activate')
         
         # Verify Claude integration was called
-        self.mock_claude_integration.process_command.assert_called_once()
+        self.mock_config['claude_integration'].process_command.assert_called_once()
         
         # Verify hardware integration was called
-        self.mock_hardware_integration.execute_command.assert_called_once_with(
+        self.mock_config['hardware_integration'].execute_command.assert_called_once_with(
             'test_led',
             'activate'
         )
@@ -340,7 +346,7 @@ class TestCommandParser(unittest.TestCase):
     async def test_handle_nl_command_error(self):
         """Test handling a natural language command with error."""
         # Setup
-        self.mock_claude_integration.process_command.return_value = {
+        self.mock_config['claude_integration'].process_command.return_value = {
             'error': 'Failed to parse command'
         }
         
@@ -357,10 +363,10 @@ class TestCommandParser(unittest.TestCase):
         self.assertIn('error', result)
         
         # Verify Claude integration was called
-        self.mock_claude_integration.process_command.assert_called_once()
+        self.mock_config['claude_integration'].process_command.assert_called_once()
         
         # Verify hardware integration was not called
-        self.mock_hardware_integration.execute_command.assert_not_called()
+        self.mock_config['hardware_integration'].execute_command.assert_not_called()
     
     def test_parse_parameters(self):
         """Test parsing parameters."""

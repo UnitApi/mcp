@@ -29,24 +29,50 @@ git clone https://gitlab.com/unitmcp/python.git
 cd unitmcp
 ```
 
-2. Utwórz i aktywuj wirtualne środowisko:
+2. Skonfiguruj środowisko używając Conda (zalecane):
+```bash
+# Instalacja Conda (jeśli nie jest zainstalowana)
+# Dla systemów x86_64:
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+# Dla Raspberry Pi:
+wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-$(uname -m).sh -O miniconda.sh
+bash miniconda.sh -b -p $HOME/miniconda
+export PATH="$HOME/miniconda/bin:$PATH"
+conda init bash
+
+# Utworzenie środowiska z pliku environment.yml
+conda env create -f environment.yml
+conda activate unitmcp
+```
+
+Alternatywnie, możesz użyć skryptów automatycznych:
+```bash
+# Linux/macOS
+chmod +x setup_environment.sh
+./setup_environment.sh
+
+# Windows
+setup_environment.bat
+```
+
+3. Alternatywnie, jeśli wolisz używać venv:
 ```bash
 python -m venv venv
 source venv/bin/activate  # Linux/MacOS
 # lub
 venv\Scripts\activate  # Windows
+pip install -r requirements.txt
 ```
 
-3. Zainstaluj pakiet w trybie deweloperskim:
+4. Zainstaluj pakiet w trybie deweloperskim:
 ```bash
 pip install -e ".[dev]"
 ```
 
-4. Sprawdz potrzebne i niezbędne pakiety
+5. Sprawdź potrzebne i niezbędne pakiety (opcjonalnie):
 ```bash
 pipreqs --force .
 ```
-
 
 ## Standardy kodowania
 
