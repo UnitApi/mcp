@@ -1,0 +1,44 @@
+# Example UnitMCP device configuration using YAML DSL
+
+unitmcp:
+  name: "example-controller"
+  platform: raspberry_pi
+  mode: simulation  # Use simulation mode for testing
+
+devices:
+  # LED device
+  status_led:
+    type: led
+    pin: 17
+    initial_state: off
+  
+  # Button device
+  user_button:
+    type: button
+    pin: 27
+    pull_up: true
+    
+  # Traffic light device
+  traffic_light:
+    type: traffic_light
+    red_pin: 22
+    yellow_pin: 23
+    green_pin: 24
+    
+  # Display device
+  status_display:
+    type: display
+    display_type: lcd
+    width: 16
+    height: 2
+    
+# Automation example
+automations:
+  button_led:
+    trigger:
+      platform: state
+      entity_id: user_button
+      to: "on"
+    action:
+      service: activate
+      entity_id: status_led

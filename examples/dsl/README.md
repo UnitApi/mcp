@@ -1,0 +1,240 @@
+# UnitMCP DSL and Claude 3.7 Integration
+
+This directory contains examples and documentation for the UnitMCP Domain-Specific Language (DSL) and Claude 3.7 integration.
+
+## Overview
+
+The UnitMCP DSL and Claude 3.7 integration provides powerful ways to configure and control hardware devices:
+
+1. **YAML-based Configuration**: Define devices and automations using a simple, human-readable format
+2. **Natural Language Processing**: Control devices using plain English commands
+3. **Command-Line Interface**: Interact with UnitMCP from the terminal
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.7 or higher
+- UnitMCP installed
+- (Optional) Claude 3.7 API key for natural language processing
+
+### Installation
+
+If you don't have an API key for Claude 3.7, the system will use a simulation mode that supports basic commands.
+
+To use the real Claude 3.7 API, set your API key as an environment variable:
+
+```bash
+export CLAUDE_API_KEY=your_api_key_here
+```
+
+## Usage Examples
+
+### Device Configuration (YAML DSL)
+
+Create a YAML file with your device configuration:
+
+```yaml
+# device_config.yaml
+unitmcp:
+  name: "example-controller"
+  platform: raspberry_pi
+  mode: simulation  # Use simulation mode for testing
+
+devices:
+  # LED device
+  status_led:
+    type: led
+    pin: 17
+    initial_state: off
+  
+  # Button device
+  user_button:
+    type: button
+    pin: 27
+    pull_up: true
+```
+
+Load the configuration in your Python code:
+
+```python
+from unitmcp.dsl.integration import DslHardwareIntegration
+
+# Create the DSL hardware integration
+integration = DslHardwareIntegration()
+
+# Load the device configuration from YAML file
+result = await integration.load_config_file('device_config.yaml')
+devices = result['devices']
+
+# Initialize all devices
+await integration.initialize_devices()
+
+# Get a device and control it
+led = integration.get_device('status_led')
+await led.activate()
+```
+
+### Automation Configuration (YAML DSL)
+
+Define automations in your YAML file:
+
+```yaml
+# automation_config.yaml
+automations:
+  button_led:
+    trigger:
+      platform: state
+      entity_id: user_button
+      to: "on"
+    action:
+      service: activate
+      entity_id: status_led
+```
+
+### Command-Line Interface
+
+The UnitMCP CLI provides a convenient way to interact with the system:
+
+```bash
+# Control a device
+./unitmcp-cli device control status_led activate
+
+# Load an automation from a file
+./unitmcp-cli automation load automation_config.yaml
+
+# Use natural language command
+./unitmcp-cli nl "Turn on the status LED"
+
+# Start interactive shell
+./unitmcp-cli shell
+```
+
+### Natural Language Commands
+
+Use the Claude 3.7 integration to process natural language commands:
+
+```python
+from unitmcp.llm.claude import ClaudeIntegration
+
+# Create the Claude integration
+claude = ClaudeIntegration()
+
+# Process a natural language command
+result = await claude.process_command("Turn on the kitchen light")
+print(result)
+# Output: {'command_type': 'device_control', 'target': 'kitchen_light', 'action': 'activate', 'parameters': {}}
+```
+
+## Example Files
+
+This directory contains the following example files:
+
+- `device_config.yaml`: Example device configuration
+- `dsl_example.py`: Example of using the DSL integration
+- `cli_example.py`: Example of using the CLI with natural language commands
+- `unitmcp-cli`: Command-line script for UnitMCP
+
+## Running the Examples
+
+To run the DSL example:
+
+```bash
+python dsl_example.py
+```
+
+To run the CLI example:
+
+```bash
+python cli_example.py
+```
+
+To use the CLI:
+
+```bash
+./unitmcp-cli --help
+```
+
+## Supported DSL Formats
+
+### 1. YAML-based Configuration (Home Assistant style)
+
+```yaml
+automation:
+  trigger:
+    platform: time
+    at: "07:00"
+  condition:
+    condition: numeric_state
+    entity_id: sensor.temperature
+    below: 20
+  action:
+    service: light.turn_on
+    entity_id: light.kitchen
+    brightness: 255
+```
+
+### 2. Flow-based Programming (Node-RED style)
+
+```json
+{
+  "nodes": [
+    {
+      "id": "sensor1",
+      "type": "gpio",
+      "pin": 17,
+      "mode": "input"
+    },
+    {
+      "id": "led1",
+      "type": "gpio",
+      "pin": 18,
+      "mode": "output"
+    },
+    {
+      "id": "flow1",
+      "wires": [
+        {
+          "source": "sensor1",
+          "target": "led1",
+          "condition": "value > 0.5"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 3. Hardware Configuration (ESPHome style)
+
+```yaml
+unitmcp:
+  name: "livingroom-controller"
+  platform: raspberry_pi
+  mode: hardware
+
+devices:
+  - platform: gpio
+    name: "living_room_light"
+    pin: 17
+    type: led
+    
+  - platform: gpio
+    name: "motion_sensor"
+    pin: 27
+    type: button
+    pull_up: true
+```
+
+## Security Considerations
+
+The Claude 3.7 integration includes security features to prevent malicious commands:
+
+1. **Command Validation**: All commands generated by Claude 3.7 are validated before execution
+2. **Sandboxing**: LLM-generated commands run in a restricted environment
+3. **Permission System**: Role-based access control for different command types
+4. **Audit Logging**: All commands and their sources are logged for security review
+
+## Further Reading
+
+For more information, see the [DSL Integration Documentation](/docs/DSL_INTEGRATION.md).

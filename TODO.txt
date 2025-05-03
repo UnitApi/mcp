@@ -163,3 +163,88 @@ automation:
 Ta koncepcja łączy najlepsze elementy z Node-RED (wizualny flow), Home Assistant (YAML DSL), MicroPython (abstrakcja sprzętu) i ESPHome (konfiguracja YAML dla ESP), jednocześnie wykorzystując istniejącą architekturę UnitMCP z jej modułami klienta, serwera, protokołów i pipeline'ów.
 
 Kluczowym aspektem jest utrzymanie modularnej struktury, gdzie poszczególne komponenty można łatwo wymieniać lub rozszerzać, przy jednoczesnym zapewnieniu prostego DSL dla użytkowników końcowych, którzy mogą nie być programistami.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Work Still Needed
+
+1. **Complete Hardware Abstraction Layer**
+   - Finalize the event system for device callbacks
+   - Implement comprehensive error handling
+   - Add support for more hardware types (sensors, motors, etc.)
+   - Complete simulation mode for all device types
+
+2. **Enhance Client-Server Communication**
+   - Implement robust error handling and recovery
+   - Add authentication and security features
+   - Optimize protocol for efficiency and reliability
+   - Complete asynchronous event notifications
+
+3. **Docker Testing Environment**
+   - Create Docker images for testing without physical hardware
+   - Implement platform-specific simulations
+   - Set up Docker Compose for multi-component testing
+   - Add configuration examples for containerized testing
+
+4. **GitLab CI/CD Integration**
+   - Create `.gitlab-ci.yml` configuration
+   - Set up platform-specific CI folders
+   - Implement test automation pipelines
+   - Add deployment jobs for Raspberry Pi targets
+
+5. **Web Interface**
+   - Develop a Flask/FastAPI based web interface
+   - Create interactive tutorials
+   - Implement device monitoring and visualization
+   - Add configuration builder tool
+
+6. **Complete DSL System**
+   - Finalize the YAML parser implementation
+   - Add comprehensive schema validation
+   - Complete compilation to device commands
+   - Enhance natural language processing integration
+
+7. **Documentation and Testing**
+   - Comprehensive API documentation
+   - User guides for hardware setup
+   - Automated testing for all components
+   - Example applications and use cases
+
+## Next Immediate Steps
+
+Based on your requirements for working code on Raspberry Pi with industry-standard configuration, I recommend focusing on:
+
+1. **Complete Core Device Functionality**
+   - Ensure all device classes (LED, Button, Display) work correctly on real hardware
+   - Implement robust error handling and recovery mechanisms
+   - Add comprehensive logging for debugging
+
+2. **Containerized Testing Environment**
+   - Create Docker images that simulate hardware interfaces
+   - Implement testing scripts for all device types
+   - Set up CI/CD pipelines for automated testing
+
+3. **Web Interface Prototype**
+   - Develop a simple web UI to demonstrate client-server communication
+   - Add visualization for device states and actions
+   - Create a step-by-step tutorial interface
+
+4. **DSL Script Enhancements**
+   - Improve the YAML configuration format for devices
+   - Create example configurations for common setups
+   - Add validation to prevent configuration errors
+
+This prioritization will get you to a working system on Raspberry Pi hardware while laying the groundwork for containerized testing and CI/CD integration.

@@ -1,0 +1,44 @@
+# Test configuration for UnitMCP DSL tests
+
+unitmcp:
+  name: "test-controller"
+  platform: simulation
+  mode: simulation
+
+devices:
+  # LED device
+  test_led:
+    type: led
+    pin: 17
+    initial_state: off
+  
+  # Button device
+  test_button:
+    type: button
+    pin: 27
+    pull_up: true
+    
+  # Traffic light device
+  test_traffic_light:
+    type: traffic_light
+    red_pin: 22
+    yellow_pin: 23
+    green_pin: 24
+    
+  # Display device
+  test_display:
+    type: display
+    display_type: lcd
+    width: 16
+    height: 2
+    
+# Automation example
+automations:
+  test_automation:
+    trigger:
+      platform: state
+      entity_id: test_button
+      to: "on"
+    action:
+      service: activate
+      entity_id: test_led

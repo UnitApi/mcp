@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.56] - 2025-05-03
+
+### Added
+- Changes in examples/dsl/README.md
+- Changes in examples/dsl/cli_example.py
+- Changes in examples/dsl/device_config.yaml
+- Changes in examples/dsl/dsl_example.py
+- Changes in examples/dsl/unitmcp-cli
+- Changes in src/unitmcp/cli/__init__.py
+- Changes in src/unitmcp/cli/commands/__init__.py
+- Changes in src/unitmcp/cli/commands/automation.py
+- Changes in src/unitmcp/cli/commands/device.py
+- Changes in src/unitmcp/cli/commands/nl.py
+- Changes in src/unitmcp/cli/commands/system.py
+- Changes in src/unitmcp/cli/main.py
+- Changes in src/unitmcp/cli/parser.py
+- Changes in src/unitmcp/dsl/converters/__init__.py
+- Changes in src/unitmcp/dsl/converters/to_devices.py
+- Changes in src/unitmcp/dsl/formats/yaml_parser.py
+- Changes in src/unitmcp/dsl/integration.py
+- Changes in src/unitmcp/llm/__init__.py
+- Changes in src/unitmcp/llm/claude.py
+- Changes in tests/cli/test_parser.py
+- Changes in tests/dsl/test_compiler.py
+- Changes in tests/dsl/test_device_converter.py
+- Changes in tests/dsl/test_integration.py
+- Changes in tests/dsl/test_yaml_parser.py
+- Changes in tests/llm/test_claude.py
+- Changes in tests/run_all_tests.py
+- Changes in tests/test_config.yaml
+
 ## [0.1.55] - 2025-05-03
 
 ### Added
