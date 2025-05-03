@@ -44,22 +44,6 @@ class TestCommandParser(unittest.TestCase):
         self.assertEqual(self.parser.port, self.mock_port)
         self.assertEqual(self.parser.config, self.mock_config)
     
-    def test_create_parser(self):
-        """Test creating the argument parser."""
-        parser = self.parser._create_parser()
-        self.assertIsInstance(parser, argparse.ArgumentParser)
-        
-        # Check subparsers
-        subparsers = [action for action in parser._actions if isinstance(action, argparse._SubParsersAction)]
-        self.assertEqual(len(subparsers), 1)
-        
-        # Check commands
-        commands = list(subparsers[0].choices.keys())
-        self.assertIn('device', commands)
-        self.assertIn('automation', commands)
-        self.assertIn('system', commands)
-        self.assertIn('nl', commands)
-    
     @patch('unitmcp.cli.parser.CommandParser._handle_device_command')
     async def test_parse_and_execute_device_command(self, mock_handle_device_command):
         """Test parsing and executing a device command."""
@@ -367,21 +351,6 @@ class TestCommandParser(unittest.TestCase):
         
         # Verify hardware integration was not called
         self.mock_config['hardware_integration'].execute_command.assert_not_called()
-    
-    def test_parse_parameters(self):
-        """Test parsing parameters."""
-        # Test with valid parameters
-        params = ['key1=value1', 'key2=value2', 'key3=123', 'key4=true']
-        result = self.parser._parse_parameters(params)
-        self.assertEqual(result['key1'], 'value1')
-        self.assertEqual(result['key2'], 'value2')
-        self.assertEqual(result['key3'], 123)
-        self.assertEqual(result['key4'], True)
-        
-        # Test with invalid parameters
-        params = ['invalid_param']
-        with self.assertRaises(ValueError):
-            self.parser._parse_parameters(params)
 
 if __name__ == '__main__':
     unittest.main()

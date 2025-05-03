@@ -87,3 +87,70 @@ pip install -r requirements.txt
 ```
 
 Jednak zalecamy przejście na system Conda, aby uniknąć problemów z zależnościami.
+
+## Automatyczne uruchamianie z instalacją na żądanie
+
+Dla ułatwienia pracy, szczególnie na nowych urządzeniach lub podczas szybkiego wdrażania, wprowadziliśmy skrypty automatycznie wykrywające i instalujące pakiet UnitMCP.
+
+### Skrypty uruchamiające
+
+1. **Linux/macOS**:
+   ```bash
+   chmod +x run.sh
+   ./run.sh [opcje]
+   ```
+
+2. **Windows**:
+   ```
+   run.bat [opcje]
+   ```
+
+### Jak to działa
+
+Skrypty uruchamiające:
+1. Sprawdzają, czy pakiet `unitmcp` jest zainstalowany
+2. Jeśli nie, automatycznie instalują go w trybie deweloperskim (`pip install -e .`)
+3. Uruchamiają główny moduł `unitmcp.orchestrator.main`
+
+### Przykłady użycia
+
+Uruchomienie w trybie symulacji z włączonym trybem verbose:
+```bash
+./run.sh --verbose --simulation true
+```
+
+Uruchomienie z określonym plikiem konfiguracyjnym:
+```bash
+./run.sh --config-file configs/my_config.yaml
+```
+
+Uruchomienie przykładu bez interaktywnej powłoki:
+```bash
+./run.sh --run examples/basic/led_example.py --no-shell
+```
+
+### Zalety
+
+- **Brak ręcznej instalacji** - idealne dla nowych urządzeń
+- **Automatyczna aktualizacja** - zawsze używa najnowszej wersji kodu
+- **Uproszczone wdrażanie** - działa natychmiast po sklonowaniu repozytorium
+- **Przekazywanie parametrów** - wszystkie opcje są przekazywane do głównego modułu
+
+### Rozwiązywanie problemów
+
+Jeśli napotkasz problemy z automatyczną instalacją:
+
+1. Sprawdź uprawnienia:
+   ```bash
+   chmod +x run.sh
+   ```
+
+2. Zainstaluj pakiet ręcznie:
+   ```bash
+   pip install -e .
+   ```
+
+3. Uruchom z pełną ścieżką do Pythona:
+   ```bash
+   /pełna/ścieżka/do/python run.py [opcje]
+   ```

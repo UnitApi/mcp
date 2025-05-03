@@ -11,18 +11,83 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 from typing import Dict, Any
+import asyncio
 
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from unitmcp.dsl.converters.to_devices import DeviceConverter
 
-class TestDeviceConverter(unittest.TestCase):
+class MockDeviceFactory:
+    """Mock implementation of DeviceFactory for testing."""
+    
+    async def create_device(self, device_type, **config):
+        """Create a mock device."""
+        # Sprawdź, czy typ urządzenia jest obsługiwany
+        if device_type not in ['led', 'button', 'display', 'traffic_light']:
+            raise ValueError(f"Unknown device type: {device_type}")
+            
+        # Wywołaj odpowiednią metodę tworzenia urządzenia
+        create_method = getattr(self, f"create_{device_type}")
+        return await create_method(device_id="test_device", **config)
+    
+    async def create_led(self, device_id, **config):
+        """Create a mock LED device."""
+        # Sprawdź wymagane parametry
+        if 'pin' not in config:
+            raise ValueError(f"LED device '{device_id}' requires 'pin' parameter")
+            
+        mock_led = MagicMock()
+        mock_led.device_type = 'led'
+        mock_led.device_id = device_id
+        mock_led.config = config
+        return mock_led
+    
+    async def create_button(self, device_id, **config):
+        """Create a mock button device."""
+        # Sprawdź wymagane parametry
+        if 'pin' not in config:
+            raise ValueError(f"Button device '{device_id}' requires 'pin' parameter")
+            
+        mock_button = MagicMock()
+        mock_button.device_type = 'button'
+        mock_button.device_id = device_id
+        mock_button.config = config
+        return mock_button
+    
+    async def create_display(self, device_id, **config):
+        """Create a mock display device."""
+        # Sprawdź wymagane parametry
+        if 'display_type' not in config:
+            raise ValueError(f"Display device '{device_id}' requires 'display_type' parameter")
+            
+        mock_display = MagicMock()
+        mock_display.device_type = 'display'
+        mock_display.device_id = device_id
+        mock_display.config = config
+        return mock_display
+    
+    async def create_traffic_light(self, device_id, **config):
+        """Create a mock traffic light device."""
+        # Sprawdź wymagane parametry
+        required_params = ['red_pin', 'yellow_pin', 'green_pin']
+        for param in required_params:
+            if param not in config:
+                raise ValueError(f"Traffic light device '{device_id}' requires '{param}' parameter")
+                
+        mock_traffic_light = MagicMock()
+        mock_traffic_light.device_type = 'traffic_light'
+        mock_traffic_light.device_id = device_id
+        mock_traffic_light.config = config
+        return mock_traffic_light
+
+class TestDeviceConverter(unittest.IsolatedAsyncioTestCase):
     """Test cases for the device converter."""
     
     def setUp(self):
         """Set up the test environment."""
-        self.converter = DeviceConverter()
+        self.mock_factory = MockDeviceFactory()
+        self.converter = DeviceConverter(device_factory=self.mock_factory)
         
         # Test data
         self.led_config = {
@@ -51,176 +116,141 @@ class TestDeviceConverter(unittest.TestCase):
             'height': 2
         }
     
-    @patch('unitmcp.hardware.device_factory.LEDDevice')
-    def test_convert_led(self, mock_led_device):
+    async def test_convert_led(self):
         """Test converting LED device configuration."""
-        # Setup mock
-        mock_instance = MagicMock()
-        mock_led_device.return_value = mock_instance
+        # Przygotuj konfigurację z urządzeniem LED
+        config = {
+            'devices': {
+                'test_led': self.led_config
+            }
+        }
         
-        # Convert device
-        device = self.converter.convert('test_led', self.led_config)
+        # Konwertuj urządzenia
+        devices = await self.converter.convert_to_devices(config)
         
-        # Verify
-        self.assertEqual(device, mock_instance)
-        mock_led_device.assert_called_once_with(
-            device_id='test_led',
-            pin=17,
-            initial_state='off'
-        )
+        # Sprawdź, czy urządzenie zostało utworzone poprawnie
+        self.assertIn('test_led', devices)
+        device = devices['test_led']
+        self.assertEqual(device.device_type, 'led')
+        self.assertEqual(device.device_id, 'test_led')
     
-    @patch('unitmcp.hardware.device_factory.ButtonDevice')
-    def test_convert_button(self, mock_button_device):
+    async def test_convert_button(self):
         """Test converting button device configuration."""
-        # Setup mock
-        mock_instance = MagicMock()
-        mock_button_device.return_value = mock_instance
+        # Przygotuj konfigurację z przyciskiem
+        config = {
+            'devices': {
+                'test_button': self.button_config
+            }
+        }
         
-        # Convert device
-        device = self.converter.convert('test_button', self.button_config)
+        # Konwertuj urządzenia
+        devices = await self.converter.convert_to_devices(config)
         
-        # Verify
-        self.assertEqual(device, mock_instance)
-        mock_button_device.assert_called_once_with(
-            device_id='test_button',
-            pin=27,
-            pull_up=True
-        )
+        # Sprawdź, czy urządzenie zostało utworzone poprawnie
+        self.assertIn('test_button', devices)
+        device = devices['test_button']
+        self.assertEqual(device.device_type, 'button')
+        self.assertEqual(device.device_id, 'test_button')
     
-    @patch('unitmcp.hardware.device_factory.TrafficLightDevice')
-    def test_convert_traffic_light(self, mock_traffic_light_device):
+    async def test_convert_traffic_light(self):
         """Test converting traffic light device configuration."""
-        # Setup mock
-        mock_instance = MagicMock()
-        mock_traffic_light_device.return_value = mock_instance
+        # Przygotuj konfigurację z sygnalizatorem
+        config = {
+            'devices': {
+                'test_traffic_light': self.traffic_light_config
+            }
+        }
         
-        # Convert device
-        device = self.converter.convert('test_traffic_light', self.traffic_light_config)
+        # Konwertuj urządzenia
+        devices = await self.converter.convert_to_devices(config)
         
-        # Verify
-        self.assertEqual(device, mock_instance)
-        mock_traffic_light_device.assert_called_once_with(
-            device_id='test_traffic_light',
-            red_pin=22,
-            yellow_pin=23,
-            green_pin=24
-        )
+        # Sprawdź, czy urządzenie zostało utworzone poprawnie
+        self.assertIn('test_traffic_light', devices)
+        device = devices['test_traffic_light']
+        self.assertEqual(device.device_type, 'traffic_light')
+        self.assertEqual(device.device_id, 'test_traffic_light')
     
-    @patch('unitmcp.hardware.device_factory.DisplayDevice')
-    def test_convert_display(self, mock_display_device):
+    async def test_convert_display(self):
         """Test converting display device configuration."""
-        # Setup mock
-        mock_instance = MagicMock()
-        mock_display_device.return_value = mock_instance
+        # Przygotuj konfigurację z wyświetlaczem
+        config = {
+            'devices': {
+                'test_display': self.display_config
+            }
+        }
         
-        # Convert device
-        device = self.converter.convert('test_display', self.display_config)
+        # Konwertuj urządzenia
+        devices = await self.converter.convert_to_devices(config)
         
-        # Verify
-        self.assertEqual(device, mock_instance)
-        mock_display_device.assert_called_once_with(
-            device_id='test_display',
-            display_type='lcd',
-            width=16,
-            height=2
-        )
+        # Sprawdź, czy urządzenie zostało utworzone poprawnie
+        self.assertIn('test_display', devices)
+        device = devices['test_display']
+        self.assertEqual(device.device_type, 'display')
+        self.assertEqual(device.device_id, 'test_display')
     
-    def test_convert_unknown_type(self):
+    async def test_convert_unknown_type(self):
         """Test converting unknown device type."""
+        # Przygotuj konfigurację z nieznanym typem urządzenia
         config = {
-            'type': 'unknown',
-            'pin': 17
+            'devices': {
+                'test_unknown': {
+                    'type': 'unknown',
+                    'pin': 17
+                }
+            }
         }
         
+        # Sprawdź, czy zostanie zgłoszony wyjątek
         with self.assertRaises(ValueError):
-            self.converter.convert('test_unknown', config)
+            await self.converter.convert_to_devices(config)
     
-    def test_convert_missing_required_param(self):
+    async def test_convert_missing_required_param(self):
         """Test converting device with missing required parameter."""
+        # Przygotuj konfigurację z brakującym parametrem
         config = {
-            'type': 'led'
-            # Missing required pin
+            'devices': {
+                'test_led': {
+                    'type': 'led'
+                    # Brak wymaganego parametru pin
+                }
+            }
         }
         
+        # Sprawdź, czy zostanie zgłoszony wyjątek
         with self.assertRaises(ValueError):
-            self.converter.convert('test_led', config)
+            await self.converter.convert_to_devices(config)
     
-    def test_get_device_class(self):
-        """Test getting device class."""
-        # LED
-        device_class = self.converter._get_device_class('led')
-        self.assertEqual(device_class.__name__, 'LEDDevice')
+    async def test_missing_devices_section(self):
+        """Test converting configuration without devices section."""
+        # Przygotuj konfigurację bez sekcji devices
+        config = {}
         
-        # Button
-        device_class = self.converter._get_device_class('button')
-        self.assertEqual(device_class.__name__, 'ButtonDevice')
-        
-        # Traffic light
-        device_class = self.converter._get_device_class('traffic_light')
-        self.assertEqual(device_class.__name__, 'TrafficLightDevice')
-        
-        # Display
-        device_class = self.converter._get_device_class('display')
-        self.assertEqual(device_class.__name__, 'DisplayDevice')
-        
-        # Unknown
+        # Sprawdź, czy zostanie zgłoszony wyjątek
         with self.assertRaises(ValueError):
-            self.converter._get_device_class('unknown')
+            await self.converter.convert_to_devices(config)
     
-    def test_get_required_params(self):
-        """Test getting required parameters for device type."""
-        # LED
-        required_params = self.converter._get_required_params('led')
-        self.assertIn('pin', required_params)
-        
-        # Button
-        required_params = self.converter._get_required_params('button')
-        self.assertIn('pin', required_params)
-        
-        # Traffic light
-        required_params = self.converter._get_required_params('traffic_light')
-        self.assertIn('red_pin', required_params)
-        self.assertIn('yellow_pin', required_params)
-        self.assertIn('green_pin', required_params)
-        
-        # Display
-        required_params = self.converter._get_required_params('display')
-        self.assertIn('display_type', required_params)
-        
-        # Unknown
-        with self.assertRaises(ValueError):
-            self.converter._get_required_params('unknown')
-    
-    def test_validate_config(self):
-        """Test validating device configuration."""
-        # Valid LED
-        self.assertTrue(self.converter._validate_config('led', self.led_config))
-        
-        # Invalid LED (missing pin)
-        invalid_led = {
-            'type': 'led',
-            'initial_state': 'off'
+    async def test_list_format_devices(self):
+        """Test converting devices in list format."""
+        # Przygotuj konfigurację z urządzeniami w formacie listy
+        config = {
+            'devices': [
+                {
+                    'name': 'test_led',
+                    'type': 'led',
+                    'pin': 17,
+                    'initial_state': 'off'
+                }
+            ]
         }
-        with self.assertRaises(ValueError):
-            self.converter._validate_config('led', invalid_led)
         
-        # Valid button
-        self.assertTrue(self.converter._validate_config('button', self.button_config))
+        # Konwertuj urządzenia
+        devices = await self.converter.convert_to_devices(config)
         
-        # Valid traffic light
-        self.assertTrue(self.converter._validate_config('traffic_light', self.traffic_light_config))
-        
-        # Invalid traffic light (missing yellow_pin)
-        invalid_traffic_light = {
-            'type': 'traffic_light',
-            'red_pin': 22,
-            'green_pin': 24
-        }
-        with self.assertRaises(ValueError):
-            self.converter._validate_config('traffic_light', invalid_traffic_light)
-        
-        # Valid display
-        self.assertTrue(self.converter._validate_config('display', self.display_config))
+        # Sprawdź, czy urządzenie zostało utworzone poprawnie
+        self.assertIn('test_led', devices)
+        device = devices['test_led']
+        self.assertEqual(device.device_type, 'led')
+        self.assertEqual(device.device_id, 'test_led')
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,6 +1,6 @@
 """MCP Hardware Access Library."""
 
-__version__ = "0.1.59"
+__version__ = "0.1.60"
 
 from .client.client import MCPHardwareClient
 from .client.shell import MCPShell

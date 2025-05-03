@@ -50,6 +50,38 @@ setup_environment.bat
 
 For more details, see [INSTALLATION.md](INSTALLATION.md).
 
+### 🚀 Quick Start with Auto-Installation
+
+We've added convenient runner scripts that automatically detect if the UnitMCP package is installed and install it if needed:
+
+```bash
+# Linux/macOS
+./run.sh [options]
+
+# Windows
+run.bat [options]
+```
+
+These scripts will:
+1. Check if the UnitMCP package is installed
+2. Install it automatically if it's not found
+3. Run the UnitMCP orchestrator with any provided options
+
+This is especially useful for:
+- First-time setup on new devices
+- Running on Raspberry Pi without manual installation
+- Quick deployment in development environments
+
+All command-line options are passed through to the UnitMCP orchestrator, so you can use them exactly as you would with the standard command:
+
+```bash
+./run.sh --verbose --simulation true
+```
+
+For more details on installation and running options, see [INSTALLATION.md](INSTALLATION.md).
+
+## 📚 Documentation
+
 ### 📁 New Project Structure
 
 The project has been reorganized to improve clarity and reduce duplication:
