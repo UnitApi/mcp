@@ -1,0 +1,56 @@
+# UnitMCP Runner Default Configuration
+
+# Server configuration
+server:
+  enabled: true
+  host: localhost
+  port: 8888
+  simulation: false
+  verbose: false
+  auto_setup: true
+  optimize_rpi: true
+  # Remote server configuration (optional)
+  is_remote: false
+  remote_host: raspberrypi.local
+  remote_user: pi
+  remote_key: ~/.ssh/id_rsa
+
+# Client configuration
+client:
+  enabled: true
+  server_host: localhost
+  server_port: 8888
+  # Device configurations (optional, will be discovered from server if not specified)
+  devices:
+    led1:
+      type: led
+      pin: 17
+      name: Status LED
+    button1:
+      type: button
+      pin: 27
+      name: Control Button
+    sensor1:
+      type: temperature
+      pin: 4
+      name: Temperature Sensor
+
+# LLM configuration
+llm:
+  enabled: true
+  type: ollama  # Options: ollama, claude
+  model: llama3
+  host: localhost
+  port: 11434
+  system_prompt: |
+    You are an AI assistant that helps control hardware devices through the UnitMCP system.
+    You can control devices like LEDs, buttons, sensors, and more.
+    When given a natural language command, convert it to a structured format that UnitMCP can understand.
+    Always respond with valid JSON that includes the device, action, and any parameters needed.
+
+# Runner configuration
+runner:
+  interactive: true
+  log_level: info
+  auto_reconnect: true
+  reconnect_interval: 5  # seconds

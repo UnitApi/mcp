@@ -59,13 +59,18 @@ class RemoteProtocol(ABC):
     async def receive_message(self) -> Optional[Any]:
         """
         Receive a message using the protocol.
-
+        
         Returns
         -------
         Optional[Any]
             Received message or None if no message is available
         """
         pass
+
+
+# Alias for backward compatibility
+Protocol = RemoteProtocol
+
 
 class JSONProtocol(RemoteProtocol):
     """

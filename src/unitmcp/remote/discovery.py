@@ -306,6 +306,37 @@ class NetworkScanner(DeviceDiscovery):
         
         return "unknown"
 
+class NetworkScanDiscovery(DeviceDiscovery):
+    """
+    Network scan-based device discovery.
+    
+    This class discovers devices by scanning the network using the NetworkScanner.
+    It provides a simplified interface for the NetworkScanner.
+    """
+    
+    def __init__(self, network: str = "192.168.1.0/24", ports: Optional[List[int]] = None):
+        """
+        Initialize network scan discovery.
+        
+        Args:
+            network: Network to scan in CIDR notation (e.g., "192.168.1.0/24")
+            ports: List of ports to scan (e.g., [22, 80, 443])
+        """
+        super().__init__()
+        self.scanner = NetworkScanner(network, ports)
+    
+    async def discover(self, timeout: int = 30) -> Dict[str, Dict[str, Any]]:
+        """
+        Discover devices by scanning the network.
+        
+        Args:
+            timeout: Discovery timeout in seconds
+            
+        Returns:
+            Dict[str, Dict[str, Any]]: Dictionary of discovered devices
+        """
+        return await self.scanner.discover(timeout)
+
 class DeviceDiscoveryManager:
     """
     Device discovery manager.

@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.60] - 2025-05-03
+
+### Added
+- Changes in configs/yaml/runner/claude_runner.yaml
+- Changes in configs/yaml/runner/default_runner.yaml
+- Changes in configs/yaml/runner/led_control.yaml
+- Changes in examples/runner/README.md
+- Changes in examples/runner/runner.py
+- Changes in examples/runner/standalone_runner.py
+- Changes in src/unitmcp/runner/claude_interface.py
+- Changes in src/unitmcp/runner/client_setup.py
+- Changes in src/unitmcp/runner/llm_interface.py
+- Changes in src/unitmcp/runner/main.py
+- Changes in src/unitmcp/runner/ollama_interface.py
+- Changes in src/unitmcp/runner/server_setup.py
+- Changes in test_env_loader_fix.py
+
 ## [0.1.59] - 2025-05-03
 
 ### Added

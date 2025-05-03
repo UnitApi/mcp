@@ -1,0 +1,65 @@
+# UnitMCP Runner LED Control Configuration
+
+# Server configuration
+server:
+  enabled: true
+  host: localhost
+  port: 8888
+  simulation: false
+  verbose: false
+  auto_setup: true
+  optimize_rpi: true
+
+# Client configuration
+client:
+  enabled: true
+  server_host: localhost
+  server_port: 8888
+  # LED-specific device configurations
+  devices:
+    red_led:
+      type: led
+      pin: 17
+      name: Red LED
+    green_led:
+      type: led
+      pin: 18
+      name: Green LED
+    blue_led:
+      type: led
+      pin: 27
+      name: Blue LED
+    status_led:
+      type: led
+      pin: 22
+      name: Status LED
+
+# LLM configuration
+llm:
+  enabled: true
+  type: ollama
+  model: llama3
+  host: localhost
+  port: 11434
+  system_prompt: |
+    You are an AI assistant that helps control LED devices through the UnitMCP system.
+    You can control the following LEDs:
+    - red_led: Red LED on pin 17
+    - green_led: Green LED on pin 18
+    - blue_led: Blue LED on pin 27
+    - status_led: Status LED on pin 22
+    
+    When given a natural language command, convert it to a structured format that UnitMCP can understand.
+    Always respond with valid JSON that includes the device, action, and any parameters needed.
+    
+    Examples:
+    - "Turn on the red LED" -> {"device": "red_led", "action": "turn_on"}
+    - "Turn off all LEDs" -> [{"device": "red_led", "action": "turn_off"}, {"device": "green_led", "action": "turn_off"}, {"device": "blue_led", "action": "turn_off"}, {"device": "status_led", "action": "turn_off"}]
+    - "Make the blue LED blink" -> {"device": "blue_led", "action": "custom", "parameters": {"method": "blink", "args": {"count": 5, "interval": 0.5}}}
+
+# Runner configuration
+runner:
+  interactive: true
+  log_level: info
+  auto_reconnect: true
+  reconnect_interval: 5  # seconds

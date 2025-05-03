@@ -1016,9 +1016,47 @@ def create_platform_adapter(platform_type: str, **kwargs) -> Optional[PlatformAd
     ValueError
         If the platform type is not supported
     """
-    if platform_type == "raspberry_pi":
+    if platform_type.lower() == "raspberry_pi":
         return RaspberryPiAdapter(**kwargs)
-    elif platform_type == "arduino":
+    elif platform_type.lower() == "arduino":
         return ArduinoAdapter(**kwargs)
     else:
         raise ValueError(f"Unsupported platform type: {platform_type}")
+
+
+# Helper function to get a platform adapter
+def get_platform_adapter(platform_type: str = None, **kwargs) -> Optional[PlatformAdapter]:
+    """
+    Get a platform adapter of the specified type.
+    
+    If no platform type is specified, the function will try to detect the platform.
+    
+    Parameters
+    ----------
+    platform_type : str, optional
+        Type of platform adapter to get (raspberry_pi, arduino)
+    **kwargs
+        Platform adapter parameters
+    
+    Returns
+    -------
+    Optional[PlatformAdapter]
+        An instance of the appropriate platform adapter class, or None if creation failed
+    """
+    # If no platform type is specified, try to detect the platform
+    if platform_type is None:
+        # Try to detect if we're running on a Raspberry Pi
+        try:
+            import platform
+            if "armv" in platform.machine():
+                logger.info("Detected Raspberry Pi platform")
+                return create_platform_adapter("raspberry_pi", **kwargs)
+        except Exception as e:
+            logger.warning(f"Error detecting platform: {e}")
+    
+    # If platform type is specified or detection failed, use the specified type
+    try:
+        return create_platform_adapter(platform_type, **kwargs)
+    except Exception as e:
+        logger.error(f"Error creating platform adapter: {e}")
+        return None

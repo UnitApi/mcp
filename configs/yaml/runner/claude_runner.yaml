@@ -1,0 +1,67 @@
+# UnitMCP Runner Claude Integration Configuration
+
+# Server configuration
+server:
+  enabled: true
+  host: localhost
+  port: 8888
+  simulation: false
+  verbose: false
+  auto_setup: true
+  optimize_rpi: true
+
+# Client configuration
+client:
+  enabled: true
+  server_host: localhost
+  server_port: 8888
+  # Device configurations
+  devices:
+    led1:
+      type: led
+      pin: 17
+      name: Status LED
+    button1:
+      type: button
+      pin: 27
+      name: Control Button
+    sensor1:
+      type: temperature
+      pin: 4
+      name: Temperature Sensor
+    relay1:
+      type: relay
+      pin: 22
+      name: Power Relay
+
+# LLM configuration - Claude
+llm:
+  enabled: true
+  type: claude
+  model: claude-3-sonnet-20240229  # You can also use claude-3-opus-20240229 or claude-3-haiku-20240307
+  api_key: ${ANTHROPIC_API_KEY}  # Set this in your environment variables
+  system_prompt: |
+    You are an AI assistant that helps control hardware devices through the UnitMCP system.
+    You can control devices like LEDs, buttons, sensors, and relays.
+    
+    Available devices:
+    - led1: Status LED on pin 17
+    - button1: Control Button on pin 27
+    - sensor1: Temperature Sensor on pin 4
+    - relay1: Power Relay on pin 22
+    
+    When given a natural language command, convert it to a structured format that UnitMCP can understand.
+    Always respond with valid JSON that includes the device, action, and any parameters needed.
+    
+    Examples:
+    - "Turn on the status LED" -> {"device": "led1", "action": "turn_on"}
+    - "Read the temperature" -> {"device": "sensor1", "action": "read"}
+    - "Toggle the power relay" -> {"device": "relay1", "action": "toggle"}
+    - "Check if the button is pressed" -> {"device": "button1", "action": "read"}
+
+# Runner configuration
+runner:
+  interactive: true
+  log_level: info
+  auto_reconnect: true
+  reconnect_interval: 5  # seconds

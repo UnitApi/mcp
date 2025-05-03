@@ -11,7 +11,7 @@ import os
 import re
 import logging
 import yaml
-from typing import Dict, Any, Optional, Union, List
+from typing import Dict, Any, Optional, Union, List, Tuple
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -231,6 +231,10 @@ class EnvLoader:
             return {k: self.resolve_env_vars(v) for k, v in value.items()}
         elif isinstance(value, list):
             return [self.resolve_env_vars(item) for item in value]
+        elif isinstance(value, set):
+            return {self.resolve_env_vars(item) for item in value}
+        elif isinstance(value, tuple):
+            return tuple(self.resolve_env_vars(item) for item in value)
         else:
             return value
 
@@ -335,7 +339,6 @@ class ConfigLoader:
         else:
             logger.error(f"Unsupported configuration file format: {self.config_file}")
             return {}
-{{ ... }}
 
 
 # Create a singleton instance for easy access

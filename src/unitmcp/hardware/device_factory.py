@@ -150,6 +150,54 @@ class HardwareDeviceFactory(DeviceFactory):
             return None
 
 
+class GPIODeviceFactory(HardwareDeviceFactory):
+    """
+    Factory for GPIO-based hardware devices.
+    
+    This class provides functionality for creating hardware devices that use GPIO pins,
+    such as LEDs, buttons, and traffic lights.
+    """
+    
+    async def create_device(
+        self, 
+        device_id: str, 
+        device_type: Union[DeviceType, str], 
+        mode: Union[DeviceMode, str] = None,
+        **kwargs
+    ) -> Optional[Device]:
+        """
+        Create a GPIO-based hardware device of the specified type.
+        
+        Args:
+            device_id: Unique identifier for the device
+            device_type: Type of device to create (LED, BUTTON, TRAFFIC_LIGHT)
+            mode: Operation mode (hardware, simulation, remote, mock)
+            **kwargs: Device parameters
+            
+        Returns:
+            An instance of the appropriate device class, or None if creation failed
+        """
+        # Only support GPIO-compatible device types
+        if isinstance(device_type, str):
+            try:
+                device_type = DeviceType(device_type.upper())
+            except ValueError:
+                logger.error(f"Invalid device type: {device_type}")
+                return None
+        
+        if device_type not in [DeviceType.LED, DeviceType.BUTTON, DeviceType.TRAFFIC_LIGHT]:
+            logger.error(f"Device type {device_type} is not compatible with GPIO")
+            return None
+        
+        # Ensure GPIO pin is specified
+        if 'pin' not in kwargs and 'pins' not in kwargs:
+            logger.error(f"GPIO pin(s) must be specified for device {device_id}")
+            return None
+        
+        # Create the device using the parent class method
+        return await super().create_device(device_id, device_type, mode, **kwargs)
+
+
 class SimulationDeviceFactory(HardwareDeviceFactory):
     """
     Factory for simulation devices.
@@ -248,7 +296,8 @@ device_factories = {
     "hardware": HardwareDeviceFactory(),
     "simulation": SimulationDeviceFactory(),
     "remote": RemoteDeviceFactory(),
-    "mock": MockDeviceFactory()
+    "mock": MockDeviceFactory(),
+    "gpio": GPIODeviceFactory()
 }
 
 

@@ -73,6 +73,26 @@ class EventListener(ABC):
         pass
 
 
+class AsyncEventListener(EventListener):
+    """
+    Abstract base class for asynchronous event listeners.
+    
+    This class defines the interface for event listeners that handle events asynchronously.
+    """
+    
+    @abstractmethod
+    async def on_event(self, event: Event) -> None:
+        """
+        Handle an event asynchronously.
+        
+        Parameters
+        ----------
+        event : Event
+            Event to handle
+        """
+        pass
+
+
 class EventBus:
     """
     Event bus implementation.
