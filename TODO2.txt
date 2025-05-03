@@ -52,20 +52,52 @@ w examples/shell_cli/README.md nie jest opisany runner.py, popraw w innych przyk
 jak pobrac dane konfiguracyjne dla servera z .env lub z command line poprzez start runnera konfigurujacego srodowisko
 
 
-stworzylem polaczenie z rasberry pi server remote co mam dalej robic? gdzie to jest opisane?
-stworz dokumentacje w examples/shell_cli/README.md
-$ python simple_remote_shell.py --host 192.168.188.154 --port 22 --ssh --username pi
-Remote Device Control Shell. Type help or ? to list commands.
-
-(remote)
-
-w poniszych plikach jest zaszyta odpowiedzialnosc runnera  z unitmcp, ktory powinien zainstalowac zaleznosci i pozwolic na uztyweanie sprzetu
+w poniszych plikach jest zaszyta odpowiedzialnosc runnera z paczki unitmcp, ktory powinien zainstalowac zaleznosci i pozwolic na uztyweanie sprzetu
 simple_remote_shell.py
 rpi_gpio_helper.py
+process_manager.py
+w przypadku dzialania shell interaktywnego moga pojawic sie rozne problemy z czasem, gdyby zostaly uruchomione wiele procesow jednoczesnie, monitoruj co sie dzieje i jesli to jakas anomalia to stworz rozwiazanie
 
 
+(remote) connect 192.168.188.154 --ssh --username pi --password pi
+Invalid port: --ssh
+(remote) connect 192.168.188.154 --port 22 --ssh --username pi --password pi
+Invalid port: --port
+(remote) connect 192.168.188.154 22 --ssh --username pi --password pi
+SSH support not available. Install paramiko for SSH functionality.
+(remote)
 
-poszerz dzialanie runnera, aby instalowal zaleznosci i ruchamial  aplikacje i skrypty shell,  nodejs, python, php, static html poprzez podanie tylko adresu git, rozszerzenie powinni pobrac repo na wskazana maszyne (po adresie lub jako istnejacy client, server)
+add real time streaming for each hardware device such for GPIO Streaming: Added real-time GPIO streaming from Raspberry Pi to client PC
+
+
+poszerz dzialanie runnera, aby instalowal zaleznosci i uruchamial  aplikacje i skrypty shell,  nodejs, python, php, static html poprzez podanie tylko adresu git,
+rozszerzenie powinni pobrac repo na wskazana maszyne (po adresie lub jako istnejacy client, server)
 powinna byc mozliwosc uruhcmiania automatycznie, zwlaszzca jesli sa tam rozne ci dla github lub gitlab,
 jesli sa jakies dane potrtzebne to interaktywnie user powinien byc zapytany, np. jesli chodzi o zmienne w .env do tego projektu git
 oraz gdy po uruchomieniu tej aplikacji z git cos nie dziala poprawnie, powinny byc logi i inteligentne podpowiedzi po analizie logow
+
+
+bazujac na aktualnym kodzie z folderu ./runner sprawdz czy ta implementacja runnera jest poprawna i przenies to co sie da do ./src/unitmcp aby przykładdy były proste
+a cała implementacja była w bibliotece, aby runner insttalowal zaleznosci i uruchamial  aplikacje i skrypty shell,  nodejs, python, php, static html poprzez podanie tylko adresu git,
+
+przenies src/unitmcp/orchestrator/README.md do examples/orchestrator/README.md i stworz kilka przykładów aoraz rozszerz dokumentacje
+
+
+
+zwieksz ilsoc przykladow dla kazdej komendy orchestratora w dokumenatcji: examples/orchestrator/README.md
+
+
+popraw problem z tox
+]$ tox
+ROOT: will run in automatically provisioned tox, host /home/tom/github/UnitApi/mcp/venv/bin/python3.12 is missing [requires (has)]: setuptools_scm>=6.2
+ROOT: provision> .tox/.tox/bin/python -m tox
+py311: recreate env because requirements removed: tabulate
+py311: remove tox env folder /home/tom/github/UnitApi/mcp/.tox/py311
+py311: install_deps> python -I -m pip install 'pyautogui>=0.9.54' 'pytest-asyncio>=0.23.0' 'pytest-cov>=4.1.0' 'pytest-mock>=3.12.0' 'pytest-timeout>=2.2.0' 'pytest>=8.3.5' -r requirements.txt -r requirements-dev.txt
+^CROOT: [160661] KeyboardInterrupt - teardown started
+ROOT: interrupt tox environment: py311
+ROOT: requested interrupt of 160701 from 160661, activate in 0.00
+ROOT: send signal SIGINT(2) to 160701 from 160661 with timeout 0.30
+(venv) (base) [tom@devop mcp]$
+
+

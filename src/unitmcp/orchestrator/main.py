@@ -12,9 +12,11 @@ def main():
     parser = argparse.ArgumentParser(description="UnitMCP Orchestrator")
     parser.add_argument("--examples-dir", help="Path to examples directory")
     parser.add_argument("--config-file", help="Path to configuration file")
-    parser.add_argument("--log-level", default="INFO", 
+    parser.add_argument("--log-level", default="WARNING", 
                       choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
                       help="Set the logging level")
+    parser.add_argument("--verbose", action="store_true", 
+                      help="Enable verbose output (sets log level to INFO)")
     parser.add_argument("--no-shell", action="store_true", 
                       help="Don't start interactive shell")
     parser.add_argument("--run", help="Run an example")
@@ -29,16 +31,28 @@ def main():
     
     args = parser.parse_args()
     
-    # Configure logging
+    # Set log level to INFO if verbose flag is set
+    if args.verbose:
+        log_level = "INFO"
+    else:
+        log_level = args.log_level
+    
+    # Configure logging with minimal format for non-debug levels
+    if log_level == "DEBUG":
+        log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    else:
+        log_format = "%(levelname)s: %(message)s"
+    
     logging.basicConfig(
-        level=getattr(logging, args.log_level),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        level=getattr(logging, log_level),
+        format=log_format
     )
     
-    # Create orchestrator
+    # Create orchestrator with minimal output
     orchestrator = Orchestrator(
         examples_dir=args.examples_dir,
-        config_file=args.config_file
+        config_file=args.config_file,
+        quiet=not args.verbose
     )
     
     # Run example if specified

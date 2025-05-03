@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.65] - 2025-05-03
+
+### Added
+- Changes in docs/documentation_standards.md
+- Changes in examples/orchestrator/README.md
+- Changes in examples/orchestrator/basic_orchestrator.py
+- Changes in examples/orchestrator/custom_shell.py
+- Changes in examples/orchestrator/remote_control.py
+- Changes in examples/runner/README_GIT_RUNNER.md
+- Changes in examples/runner/examples/README.md
+- Changes in examples/runner/examples/run_git_example.py
+- Changes in examples/runner/git_runner.py
+- Changes in examples/runner/git_runner_integration.py
+- Changes in examples/shell_cli/process_manager.py
+- Changes in examples/shell_cli/refactored_remote_shell.py
+- Changes in src/unitmcp/utils/config_manager.py
+- Changes in src/unitmcp/utils/exceptions.py
+- Changes in src/unitmcp/utils/logging_utils.py
+- Changes in src/unitmcp/utils/resource_manager.py
+
+### Changed
+- Changes in src/unitmcp/orchestrator/shell.py
+
+### Removed
+- Changes in src/unitmcp/orchestrator/README.md
+
+### Fixed
+- Changes in src/unitmcp/orchestrator/main.py
+- Changes in src/unitmcp/orchestrator/orchestrator.py
+
 ## [0.1.64] - 2025-05-03
 
 ### Added

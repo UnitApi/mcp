@@ -6,9 +6,16 @@ This script provides a command-line interface for controlling GPIO pins and LEDs
 on a Raspberry Pi. It is designed to be used with the simple_remote_shell.py
 script for remote control.
 
+Features:
+- GPIO pin control (input/output, read/write)
+- LED control (setup, on, off, blink)
+- System information retrieval
+- Real-time GPIO streaming
+
 Usage:
     python rpi_gpio_helper.py gpio <pin> <mode> [value]
     python rpi_gpio_helper.py led <name> <action> [params]
+    python rpi_gpio_helper.py stream <pin1,pin2,...> [interval]
 """
 
 import sys
@@ -16,6 +23,9 @@ import time
 import argparse
 import json
 import os
+import threading
+import socket
+import signal
 from pathlib import Path
 
 # Try to import RPi.GPIO, use simulation mode if not available
@@ -28,6 +38,10 @@ except ImportError:
 
 # LED configuration storage
 LED_CONFIG_FILE = Path.home() / ".led_config.json"
+
+# Streaming configuration
+DEFAULT_STREAM_PORT = 8765
+DEFAULT_STREAM_INTERVAL = 0.1  # seconds
 
 def setup_gpio():
     """Set up GPIO module."""
@@ -283,11 +297,308 @@ def handle_system(args):
     
     return 0
 
+def handle_stream(args):
+    """
+    Handle GPIO streaming.
+    
+    This function sets up a streaming server that continuously monitors
+    the specified GPIO pins and sends updates to connected clients.
+    """
+    if not args:
+        print("Usage: stream <pin1,pin2,...> [interval] [port]")
+        return 1
+    
+    # Parse pins
+    try:
+        pins = [int(pin.strip()) for pin in args[0].split(',')]
+    except ValueError:
+        print("Invalid pin format. Use comma-separated numbers (e.g., 17,18,27)")
+        return 1
+    
+    # Parse interval
+    interval = DEFAULT_STREAM_INTERVAL
+    if len(args) > 1:
+        try:
+            interval = float(args[1])
+            if interval < 0.01:
+                print("Warning: Very short intervals may cause high CPU usage")
+                interval = 0.01
+        except ValueError:
+            print(f"Invalid interval: {args[1]}. Using default: {DEFAULT_STREAM_INTERVAL}s")
+    
+    # Parse port
+    port = DEFAULT_STREAM_PORT
+    if len(args) > 2:
+        try:
+            port = int(args[2])
+        except ValueError:
+            print(f"Invalid port: {args[2]}. Using default: {DEFAULT_STREAM_PORT}")
+    
+    if SIMULATION:
+        print(f"[SIMULATION] Starting GPIO streaming server for pins {pins} with interval {interval}s on port {port}")
+        try:
+            # Create a simulation streaming server
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind(('0.0.0.0', port))
+            server.listen(5)
+            print(f"[SIMULATION] Streaming server started on port {port}")
+            
+            # Set up signal handler for clean shutdown
+            def signal_handler(sig, frame):
+                print("\n[SIMULATION] Stopping streaming server...")
+                server.close()
+                sys.exit(0)
+            
+            signal.signal(signal.SIGINT, signal_handler)
+            
+            # Accept connections and handle them
+            while True:
+                client, addr = server.accept()
+                print(f"[SIMULATION] Client connected: {addr}")
+                
+                # Start a thread to handle this client
+                threading.Thread(
+                    target=handle_simulation_client,
+                    args=(client, addr, pins, interval),
+                    daemon=True
+                ).start()
+        
+        except Exception as e:
+            print(f"[SIMULATION] Error in streaming server: {e}")
+            return 1
+        
+        return 0
+    
+    # Real GPIO streaming
+    setup_gpio()
+    
+    # Set up pins for input
+    for pin in pins:
+        try:
+            GPIO.setup(pin, GPIO.IN)
+            print(f"Set up GPIO {pin} for streaming")
+        except Exception as e:
+            print(f"Error setting up GPIO {pin}: {e}")
+            return 1
+    
+    try:
+        # Create a streaming server
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind(('0.0.0.0', port))
+        server.listen(5)
+        print(f"GPIO streaming server started on port {port}")
+        
+        # Set up signal handler for clean shutdown
+        def signal_handler(sig, frame):
+            print("\nStopping streaming server...")
+            server.close()
+            GPIO.cleanup()
+            sys.exit(0)
+        
+        signal.signal(signal.SIGINT, signal_handler)
+        
+        # Accept connections and handle them
+        while True:
+            client, addr = server.accept()
+            print(f"Client connected: {addr}")
+            
+            # Start a thread to handle this client
+            threading.Thread(
+                target=handle_client,
+                args=(client, addr, pins, interval),
+                daemon=True
+            ).start()
+    
+    except Exception as e:
+        print(f"Error in streaming server: {e}")
+        return 1
+    
+    return 0
+
+def handle_client(client, addr, pins, interval):
+    """Handle a client connection for GPIO streaming."""
+    try:
+        # Send initial configuration
+        config = {
+            'pins': pins,
+            'interval': interval,
+            'timestamp': time.time()
+        }
+        client.send((json.dumps(config) + '\n').encode())
+        
+        # Track previous states to only send updates on changes
+        prev_states = {pin: None for pin in pins}
+        
+        while True:
+            # Read current pin states
+            states = {}
+            changed = False
+            
+            for pin in pins:
+                try:
+                    state = GPIO.input(pin)
+                    states[pin] = state
+                    
+                    # Check if state changed
+                    if prev_states[pin] != state:
+                        changed = True
+                        prev_states[pin] = state
+                except Exception as e:
+                    states[pin] = "error"
+                    print(f"Error reading GPIO {pin}: {e}")
+            
+            # Send update if any state changed or periodically
+            if changed or time.time() % 1 < interval:
+                update = {
+                    'timestamp': time.time(),
+                    'states': states
+                }
+                try:
+                    client.send((json.dumps(update) + '\n').encode())
+                except:
+                    # Client disconnected
+                    break
+            
+            time.sleep(interval)
+    
+    except Exception as e:
+        print(f"Error handling client {addr}: {e}")
+    finally:
+        try:
+            client.close()
+            print(f"Client disconnected: {addr}")
+        except:
+            pass
+
+def handle_simulation_client(client, addr, pins, interval):
+    """Handle a client connection for simulated GPIO streaming."""
+    try:
+        # Send initial configuration
+        config = {
+            'pins': pins,
+            'interval': interval,
+            'timestamp': time.time(),
+            'simulation': True
+        }
+        client.send((json.dumps(config) + '\n').encode())
+        
+        # Generate simulated pin states
+        import random
+        
+        # Start with random states
+        states = {pin: random.randint(0, 1) for pin in pins}
+        
+        # Periodically update and send states
+        while True:
+            # Randomly change some states (20% chance per pin)
+            for pin in pins:
+                if random.random() < 0.2:
+                    states[pin] = 1 - states[pin]  # Toggle between 0 and 1
+            
+            # Send update
+            update = {
+                'timestamp': time.time(),
+                'states': states,
+                'simulation': True
+            }
+            try:
+                client.send((json.dumps(update) + '\n').encode())
+            except:
+                # Client disconnected
+                break
+            
+            time.sleep(interval)
+    
+    except Exception as e:
+        print(f"[SIMULATION] Error handling client {addr}: {e}")
+    finally:
+        try:
+            client.close()
+            print(f"[SIMULATION] Client disconnected: {addr}")
+        except:
+            pass
+
+def handle_stream_client(args):
+    """
+    Connect to a GPIO streaming server as a client.
+    
+    This function connects to a remote GPIO streaming server and
+    displays real-time updates of GPIO pin states.
+    """
+    if len(args) < 1:
+        print("Usage: stream_client <host> [port]")
+        return 1
+    
+    host = args[0]
+    port = DEFAULT_STREAM_PORT
+    
+    if len(args) > 1:
+        try:
+            port = int(args[1])
+        except ValueError:
+            print(f"Invalid port: {args[1]}. Using default: {DEFAULT_STREAM_PORT}")
+    
+    try:
+        # Connect to the streaming server
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        print(f"Connecting to {host}:{port}...")
+        client.connect((host, port))
+        print("Connected to GPIO streaming server")
+        
+        # Set up signal handler for clean shutdown
+        def signal_handler(sig, frame):
+            print("\nDisconnecting from streaming server...")
+            client.close()
+            sys.exit(0)
+        
+        signal.signal(signal.SIGINT, signal_handler)
+        
+        # Receive and display updates
+        buffer = ""
+        while True:
+            data = client.recv(4096).decode()
+            if not data:
+                break
+            
+            buffer += data
+            
+            # Process complete JSON objects
+            while '\n' in buffer:
+                line, buffer = buffer.split('\n', 1)
+                try:
+                    update = json.loads(line)
+                    
+                    # Display initial configuration
+                    if 'pins' in update:
+                        print(f"Streaming configuration:")
+                        print(f"  Pins: {update['pins']}")
+                        print(f"  Interval: {update['interval']}s")
+                        if update.get('simulation'):
+                            print("  Mode: SIMULATION")
+                        print("\nPin states (1=HIGH, 0=LOW):")
+                    
+                    # Display pin state updates
+                    elif 'states' in update:
+                        timestamp = time.strftime('%H:%M:%S', time.localtime(update['timestamp']))
+                        states_str = ", ".join([f"GPIO {pin}={state}" for pin, state in update['states'].items()])
+                        print(f"[{timestamp}] {states_str}")
+                
+                except json.JSONDecodeError:
+                    print(f"Error parsing update: {line}")
+    
+    except Exception as e:
+        print(f"Error in streaming client: {e}")
+        return 1
+    
+    return 0
+
 def main():
     """Main entry point."""
     if len(sys.argv) < 2:
         print("Usage: rpi_gpio_helper.py <command> [args...]")
-        print("Commands: gpio, led, system")
+        print("Commands: gpio, led, system, stream, stream_client")
         return 1
     
     command = sys.argv[1].lower()
@@ -299,6 +610,10 @@ def main():
         return handle_led(args)
     elif command == "system":
         return handle_system(args)
+    elif command == "stream":
+        return handle_stream(args)
+    elif command == "stream_client":
+        return handle_stream_client(args)
     else:
         print(f"Unknown command: {command}")
         return 1

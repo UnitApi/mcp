@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Optional, Union, Any
 
-from ..utils.logger import setup_logger
+from ..utils.logger import setup_logging as setup_logger
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +24,16 @@ class Orchestrator:
     - Manage simulation vs. real hardware modes
     """
     
-    def __init__(self, examples_dir: Optional[str] = None, config_file: Optional[str] = None):
+    def __init__(self, examples_dir: Optional[str] = None, config_file: Optional[str] = None, quiet: bool = False):
         """
         Initialize the Orchestrator.
         
         Args:
             examples_dir: Path to the examples directory. If None, uses default.
             config_file: Path to the configuration file. If None, uses default.
+            quiet: If True, minimize log output and suppress non-essential messages
         """
+        self.quiet = quiet
         self.examples_dir = examples_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))))), "examples")
         
@@ -51,7 +53,8 @@ class Orchestrator:
         # Discover available examples
         self._discover_examples()
         
-        logger.info(f"Orchestrator initialized with {len(self.examples)} examples")
+        if not self.quiet:
+            logger.info(f"Orchestrator initialized with {len(self.examples)} examples")
     
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file or create default."""
@@ -60,7 +63,8 @@ class Orchestrator:
                 with open(self.config_file, 'r') as f:
                     return json.load(f)
             except Exception as e:
-                logger.warning(f"Failed to load config file: {e}")
+                if not self.quiet:
+                    logger.warning(f"Failed to load config file: {e}")
         
         # Default configuration
         default_config = {
@@ -96,14 +100,16 @@ class Orchestrator:
             with open(self.config_file, 'w') as f:
                 json.dump(config, f, indent=2)
         except Exception as e:
-            logger.warning(f"Failed to save config file: {e}")
+            if not self.quiet:
+                logger.warning(f"Failed to save config file: {e}")
     
     def _discover_examples(self) -> None:
         """Discover available examples in the examples directory."""
         self.examples = {}
         
         if not os.path.exists(self.examples_dir):
-            logger.warning(f"Examples directory not found: {self.examples_dir}")
+            if not self.quiet:
+                logger.warning(f"Examples directory not found: {self.examples_dir}")
             return
         
         # Get all directories in examples directory
@@ -136,7 +142,8 @@ class Orchestrator:
                             
                             description = " ".join(lines)
                     except Exception as e:
-                        logger.warning(f"Failed to read README for {item}: {e}")
+                        if not self.quiet:
+                            logger.warning(f"Failed to read README for {item}: {e}")
                 
                 # Add example to registry
                 self.examples[item] = {
@@ -243,7 +250,8 @@ class Orchestrator:
                     arg_name = key[4:]  # Remove "arg_" prefix
                     cmd.extend([f"--{arg_name}", str(value)])
             
-            logger.info(f"Starting runner for example '{name}': {' '.join(cmd)}")
+            if not self.quiet:
+                logger.info(f"Starting runner for example '{name}': {' '.join(cmd)}")
             
             try:
                 process = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -263,7 +271,8 @@ class Orchestrator:
                 
                 return runner_info
             except Exception as e:
-                logger.error(f"Failed to start runner for example '{name}': {e}")
+                if not self.quiet:
+                    logger.error(f"Failed to start runner for example '{name}': {e}")
                 runner_info["status"] = "failed"
                 runner_info["error"] = str(e)
                 return runner_info
@@ -277,7 +286,8 @@ class Orchestrator:
                     arg_name = key[4:]  # Remove "arg_" prefix
                     cmd.extend([f"--{arg_name}", str(value)])
             
-            logger.info(f"Starting server for example '{name}': {' '.join(cmd)}")
+            if not self.quiet:
+                logger.info(f"Starting server for example '{name}': {' '.join(cmd)}")
             
             try:
                 process = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -296,7 +306,8 @@ class Orchestrator:
                 
                 return runner_info
             except Exception as e:
-                logger.error(f"Failed to start server for example '{name}': {e}")
+                if not self.quiet:
+                    logger.error(f"Failed to start server for example '{name}': {e}")
                 runner_info["status"] = "failed"
                 runner_info["error"] = str(e)
                 return runner_info
@@ -308,12 +319,14 @@ class Orchestrator:
     def stop_runner(self, runner_id: str) -> bool:
         """Stop a running example."""
         if runner_id not in self.active_runners:
-            logger.warning(f"Runner '{runner_id}' not found")
+            if not self.quiet:
+                logger.warning(f"Runner '{runner_id}' not found")
             return False
         
         runner_info = self.active_runners[runner_id]
         if runner_info["status"] != "running":
-            logger.warning(f"Runner '{runner_id}' is not running")
+            if not self.quiet:
+                logger.warning(f"Runner '{runner_id}' is not running")
             return False
         
         try:
@@ -328,7 +341,8 @@ class Orchestrator:
             runner_info["status"] = "stopped"
             return True
         except Exception as e:
-            logger.error(f"Failed to stop runner '{runner_id}': {e}")
+            if not self.quiet:
+                logger.error(f"Failed to stop runner '{runner_id}': {e}")
             return False
     
     def get_runner_status(self, runner_id: str) -> Dict[str, Any]:
@@ -378,7 +392,7 @@ class Orchestrator:
         from ..client.client import MCPHardwareClient
         
         try:
-            client = MCPHardwareClient(host=host, port=port, use_ssl=ssl_enabled)
+            client = MCPHardwareClient(host=host, port=port)
             client.connect()
             
             # Add server to recent list
@@ -397,7 +411,8 @@ class Orchestrator:
                 "client": client
             }
         except Exception as e:
-            logger.error(f"Failed to connect to server {host}:{port}: {e}")
+            if not self.quiet:
+                logger.error(f"Failed to connect to server {host}:{port}: {e}")
             return {
                 "host": host,
                 "port": port,
@@ -477,7 +492,8 @@ class Orchestrator:
                             key, value = line.split('=', 1)
                             env_content[key.strip()] = value.strip()
             except Exception as e:
-                logger.warning(f"Failed to read .env.example for {example_name}: {e}")
+                if not self.quiet:
+                    logger.warning(f"Failed to read .env.example for {example_name}: {e}")
         
         # Update with our values
         env_content["SIMULATION"] = "1" if simulation else "0"
@@ -495,5 +511,6 @@ class Orchestrator:
                     f.write(f"{key}={value}\n")
             return env_file
         except Exception as e:
-            logger.error(f"Failed to create .env file for {example_name}: {e}")
+            if not self.quiet:
+                logger.error(f"Failed to create .env file for {example_name}: {e}")
             return None

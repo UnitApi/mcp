@@ -139,7 +139,7 @@ The `simple_remote_shell.py` script provides a lightweight shell for connecting 
 
 ```bash
 # Connect via SSH
-python simple_remote_shell.py --host 192.168.1.2 --port 22 --ssh --username pi
+python simple_remote_shell.py --host 192.168.188.154 --port 22 --ssh --username pi
 
 # You should see this prompt after successful connection:
 Remote Device Control Shell. Type help or ? to list commands.

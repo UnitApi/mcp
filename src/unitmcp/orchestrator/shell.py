@@ -31,16 +31,12 @@ class OrchestratorShell(cmd.Cmd):
     """
     
     intro = f"""
-{Fore.GREEN}╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║  {Fore.YELLOW}UnitMCP Orchestrator Shell{Fore.GREEN}                                ║
-║                                                              ║
-║  Type '{Fore.CYAN}help{Fore.GREEN}' or '{Fore.CYAN}?{Fore.GREEN}' to list commands.                        ║
-║  Type '{Fore.CYAN}exit{Fore.GREEN}' or '{Fore.CYAN}quit{Fore.GREEN}' to exit.                             ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝{Style.RESET_ALL}
+{Fore.GREEN}╔═════════════════════════════════════════════╗
+║  {Fore.YELLOW}UnitMCP Orchestrator{Fore.GREEN}                       ║
+║  {Fore.CYAN}Type 'help' for commands | 'exit' to quit{Fore.GREEN}  ║
+╚═════════════════════════════════════════════╝{Style.RESET_ALL}
 """
-    prompt = f"{Fore.BLUE}orchestrator> {Style.RESET_ALL}"
+    prompt = f"{Fore.BLUE}mcp> {Style.RESET_ALL}"
     
     def __init__(self, orchestrator: Optional[Orchestrator] = None):
         """
@@ -258,7 +254,7 @@ class OrchestratorShell(cmd.Cmd):
         print(f"{Fore.GREEN}Selected example: {example_name}{Style.RESET_ALL}")
         
         # Update prompt
-        self.prompt = f"{Fore.BLUE}orchestrator ({example_name})> {Style.RESET_ALL}"
+        self.prompt = f"{Fore.BLUE}mcp ({example_name})> {Style.RESET_ALL}"
     
     def do_run(self, arg):
         """
@@ -464,7 +460,7 @@ class OrchestratorShell(cmd.Cmd):
                 self.current_server = connection_info
                 
                 # Update prompt
-                self.prompt = f"{Fore.BLUE}orchestrator ({host}:{port})> {Style.RESET_ALL}"
+                self.prompt = f"{Fore.BLUE}mcp ({host}:{port})> {Style.RESET_ALL}"
             else:
                 print(f"{Fore.RED}Connection failed: {connection_info.get('error', 'Unknown error')}{Style.RESET_ALL}")
                 
@@ -492,9 +488,9 @@ class OrchestratorShell(cmd.Cmd):
             
             # Update prompt based on current example
             if self.current_example:
-                self.prompt = f"{Fore.BLUE}orchestrator ({self.current_example})> {Style.RESET_ALL}"
+                self.prompt = f"{Fore.BLUE}mcp ({self.current_example})> {Style.RESET_ALL}"
             else:
-                self.prompt = f"{Fore.BLUE}orchestrator> {Style.RESET_ALL}"
+                self.prompt = f"{Fore.BLUE}mcp> {Style.RESET_ALL}"
                 
         except Exception as e:
             print(f"{Fore.RED}Failed to disconnect: {e}{Style.RESET_ALL}")

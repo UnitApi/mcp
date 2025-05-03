@@ -69,6 +69,8 @@ setup(
         "redis>=4.0.0",
         "pydantic>=1.9.0",
         "click>=8.0.0",
+        "tabulate>=0.9.0",
+        "asyncssh>=2.21.0",
     ],
     extras_require={
         "dev": [

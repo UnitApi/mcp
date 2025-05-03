@@ -10,6 +10,7 @@ UnitMCP Runner is a comprehensive service that configures and runs both client a
 - **Interactive Mode**: Issue commands and receive responses in real-time
 - **Simulation Mode**: Test your setup without physical hardware
 - **Raspberry Pi Optimization**: Automatic performance optimization for Raspberry Pi
+- **Git Repository Integration**: Clone, configure, and run applications directly from Git repositories
 
 ## Directory Structure
 
@@ -29,6 +30,9 @@ UnitMCP Runner
 │   └── claude_runner.yaml        # Claude integration configuration
 └── examples/runner/              # Example implementations
     ├── runner.py                 # Command-line runner
+    ├── git_runner.py             # Git repository runner
+    ├── git_runner_integration.py # Git runner with UnitMCP integration
+    ├── README_GIT_RUNNER.md      # Git runner documentation
     ├── tests/                    # Test cases
     └── docs/                     # Documentation
 ```
@@ -158,6 +162,33 @@ runner:
    > Turn on the status LED and read the temperature
    > If the button is pressed, toggle the power relay
    ```
+
+## Git Runner
+
+UnitMCP Git Runner is an extension to the UnitMCP Runner that allows you to clone, configure, and run applications directly from Git repositories. It supports various application types including shell scripts, Node.js, Python, PHP, and static HTML.
+
+### Git Runner Features
+
+- **Automatic Application Type Detection**: Automatically detect the type of application in the repository
+- **Dependency Installation**: Install dependencies for different application types
+- **Environment Variable Configuration**: Configure environment variables from .env files or interactively
+- **Intelligent Log Analysis**: Monitor logs and provide intelligent suggestions for troubleshooting
+- **UnitMCP Integration**: Seamlessly integrate with UnitMCP for client-server applications
+- **CI/CD System Detection**: Detect and use CI/CD configurations from GitHub, GitLab, etc.
+
+### Git Runner Usage
+
+Basic usage:
+```
+python examples/runner/git_runner.py https://github.com/username/repo.git
+```
+
+With UnitMCP integration:
+```
+python examples/runner/git_runner_integration.py https://github.com/username/repo.git
+```
+
+For more details, see [Git Runner Documentation](README_GIT_RUNNER.md).
 
 ## Contributing
 
