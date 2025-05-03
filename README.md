@@ -973,3 +973,206 @@ Below you'll find links to documentation throughout the project:
 - [Security Examples](/examples/security/README.md) - Security implementation examples
 - [UnitMCP Core](/examples/unitmcp/README.md) - Core UnitMCP functionality examples
 - [UnitMCP Bridges](/examples/unitmcp/bridges/README.md) - Integration bridges to external systems
+
+## Mermaid Diagrams
+
+UnitMCP documentation uses Mermaid for creating diagrams. Below are examples of different diagram types you can create:
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant MCPServer
+    participant DeviceManager
+    participant Device
+
+    Client->>MCPServer: connect()
+    MCPServer->>Client: connection_established
+    Client->>MCPServer: control_device(device_id, command)
+    MCPServer->>DeviceManager: get_device(device_id)
+    DeviceManager->>MCPServer: device
+    MCPServer->>Device: execute_command(command)
+    Device->>MCPServer: result
+    MCPServer->>Client: command_result
+```
+
+### Flowchart
+
+```mermaid
+flowchart TD
+    A[Start] --> B{Is Hardware Available?}
+    B -->|Yes| C[Initialize Hardware]
+    B -->|No| D[Start Simulation]
+    C --> E[Setup Devices]
+    D --> E
+    E --> F[Start Server]
+    F --> G[Wait for Connections]
+    G --> H{Connection Request?}
+    H -->|Yes| I[Handle Connection]
+    H -->|No| G
+    I --> J[Process Commands]
+    J --> G
+```
+
+### Class Diagram
+
+```mermaid
+classDiagram
+    class Device {
+        +String device_id
+        +DeviceType type
+        +Boolean is_connected
+        +connect()
+        +disconnect()
+        +execute_command()
+    }
+    
+    class LEDDevice {
+        +int pin
+        +Boolean state
+        +turn_on()
+        +turn_off()
+        +blink()
+    }
+    
+    class ButtonDevice {
+        +int pin
+        +Boolean state
+        +read_state()
+        +wait_for_press()
+    }
+    
+    Device <|-- LEDDevice
+    Device <|-- ButtonDevice
+```
+
+### State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Disconnected
+    Disconnected --> Connecting: connect()
+    Connecting --> Connected: success
+    Connecting --> Error: failure
+    Connected --> Processing: receive_command()
+    Processing --> Connected: command_complete
+    Connected --> Disconnecting: disconnect()
+    Error --> Disconnected: reset()
+    Disconnecting --> Disconnected: complete
+    Disconnected --> [*]
+```
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    SERVER ||--o{ DEVICE : manages
+    SERVER {
+        string server_id
+        int port
+        boolean ssl_enabled
+    }
+    DEVICE {
+        string device_id
+        string type
+        boolean is_connected
+    }
+    DEVICE ||--o{ PROPERTY : has
+    PROPERTY {
+        string name
+        string value
+        string data_type
+    }
+    USER ||--o{ SERVER : connects
+    USER {
+        string username
+        string password_hash
+        string role
+    }
+```
+
+### Gantt Chart
+
+```mermaid
+gantt
+    title UnitMCP Development Timeline
+    dateFormat  YYYY-MM-DD
+    
+    section Planning
+    Requirements Analysis    :a1, 2025-01-01, 30d
+    Architecture Design      :a2, after a1, 45d
+    
+    section Development
+    Core Framework           :d1, after a2, 60d
+    Hardware Abstraction     :d2, after a2, 45d
+    Server Implementation    :d3, after d1, 30d
+    
+    section Testing
+    Unit Testing             :t1, after d2, 20d
+    Integration Testing      :t2, after d3, 30d
+    User Acceptance Testing  :t3, after t2, 15d
+    
+    section Deployment
+    Documentation            :p1, after t3, 15d
+    Release                  :milestone, after p1, 0d
+```
+
+### Pie Chart
+
+```mermaid
+pie
+    title UnitMCP Component Distribution
+    "Hardware Abstraction" : 30
+    "Server Framework" : 25
+    "Client Libraries" : 15
+    "Documentation" : 10
+    "Testing" : 15
+    "Utilities" : 5
+```
+
+### Git Graph
+
+```mermaid
+gitGraph
+    commit
+    branch develop
+    checkout develop
+    commit
+    commit
+    branch feature/hardware
+    checkout feature/hardware
+    commit
+    commit
+    checkout develop
+    merge feature/hardware
+    branch feature/server
+    checkout feature/server
+    commit
+    checkout develop
+    merge feature/server
+    checkout main
+    merge develop
+    commit
+```
+
+### User Journey
+
+```mermaid
+journey
+    title UnitMCP User Journey
+    section Installation
+      Download Package: 5: User
+      Install Dependencies: 3: User
+      Run Setup Script: 4: User
+    section Configuration
+      Edit Config File: 3: User
+      Set Up Devices: 4: User
+      Configure Network: 3: User
+    section Usage
+      Start Server: 5: User
+      Connect Client: 4: User
+      Control Devices: 5: User
+```
+
+These diagrams can be used throughout the documentation to visualize system architecture, processes, and relationships between components.
