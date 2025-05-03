@@ -32,8 +32,9 @@ async def main():
     integration = DslHardwareIntegration()
     
     try:
-        # Load the device configuration from YAML file
-        config_path = os.path.join(os.path.dirname(__file__), 'device_config.yaml')
+        # Load the device configuration from YAML file in the new structure
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+        config_path = os.path.join(project_root, 'configs', 'yaml', 'devices', 'default.yaml')
         logger.info(f"Loading configuration from {config_path}")
         
         result = await integration.load_config_file(config_path)

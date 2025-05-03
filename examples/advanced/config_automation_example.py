@@ -67,7 +67,13 @@ class ConfigAutomation:
             host: Host address of the Raspberry Pi
             port: Port number for the MCP server
         """
-        self.config_file = config_file or env.get('CONFIG_FILE', 'my_custom_config.yaml')
+        if config_file:
+            self.config_file = config_file
+        else:
+            # Use the new configuration path
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+            self.config_file = os.path.join(project_root, "configs", "yaml", "automation", "default.yaml")
+            
         self.host = host or env.get('RPI_HOST', 'localhost')
         self.port = port or env.get_int('RPI_PORT', 8080)
         self.client = MCPHardwareClient(self.host, self.port)

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.59] - 2025-05-03
+
+### Added
+- Changes in src/unitmcp/runner/__init__.py
+
 ## [0.1.58] - 2025-05-03
 
 ### Added
