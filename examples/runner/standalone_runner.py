@@ -14,6 +14,13 @@ import logging
 import yaml
 from pathlib import Path
 
+# Add parent directory to Python path
+project_root = str(Path(__file__).resolve().parent.parent.parent)
+sys.path.insert(0, project_root)
+
+# Import the base runner
+from examples.runner.base_runner import BaseRunner
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -22,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class StandaloneRunner:
+class StandaloneRunner(BaseRunner):
     """
     Standalone implementation of the UnitMCP Runner.
     
@@ -30,42 +37,81 @@ class StandaloneRunner:
     that doesn't rely on the UnitMCP package structure.
     """
     
-    def __init__(self, config):
-        """Initialize the runner with the given configuration."""
-        self.config = config
-        self.running = False
-        self.logger = logging.getLogger("StandaloneRunner")
+    def __init__(self, config_path, env_file=None):
+        """
+        Initialize the standalone runner.
         
-    async def start(self):
-        """Start the runner."""
-        self.logger.info("Starting UnitMCP Standalone Runner")
-        self.running = True
+        Parameters
+        ----------
+        config_path : str
+            Path to the configuration file
+        env_file : str, optional
+            Path to the environment file
+        """
+        # Load environment variables if specified
+        if env_file:
+            if not load_env_file(env_file):
+                logger.error(f"Failed to load environment from {env_file}")
+                raise RuntimeError(f"Failed to load environment from {env_file}")
         
-        # Print the configuration
-        self.logger.info("Configuration:")
-        for section, settings in self.config.items():
-            if isinstance(settings, dict):
-                self.logger.info(f"  {section}:")
-                for key, value in settings.items():
-                    if not isinstance(value, dict) and not isinstance(value, list):
-                        self.logger.info(f"    {key}: {value}")
-            else:
-                self.logger.info(f"  {section}: {settings}")
-                
-        return True
-        
-    async def stop(self):
-        """Stop the runner."""
-        self.logger.info("Stopping UnitMCP Standalone Runner")
-        self.running = False
-        return True
-        
-    async def run_interactive(self):
-        """Run the runner in interactive mode."""
-        if not self.running:
-            await self.start()
+        # Resolve the configuration path
+        if not os.path.isabs(config_path):
+            # If it's a relative path, try to resolve it relative to the project root
+            project_root = Path(__file__).resolve().parent.parent.parent
+            config_path = os.path.join(project_root, config_path)
             
-        self.logger.info("Running in interactive mode. Enter commands or 'exit' to quit.")
+        if not os.path.exists(config_path):
+            logger.error(f"Configuration file not found: {config_path}")
+            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        
+        # Load the configuration
+        self.config = load_config(config_path)
+        if not self.config:
+            logger.error(f"Failed to load configuration from {config_path}")
+            raise ValueError(f"Failed to load configuration from {config_path}")
+        
+        # Extract server and client configurations
+        server_config = self.config.get('server', {})
+        client_config = self.config.get('client', {})
+        
+        # Create temporary config files for server and client
+        import tempfile
+        self.temp_dir = tempfile.TemporaryDirectory()
+        
+        server_config_path = os.path.join(self.temp_dir.name, 'server.yaml')
+        with open(server_config_path, 'w') as f:
+            yaml.dump(server_config, f)
+        
+        client_config_path = os.path.join(self.temp_dir.name, 'client.yaml')
+        with open(client_config_path, 'w') as f:
+            yaml.dump(client_config, f)
+        
+        # Initialize the base runner
+        super().__init__(
+            server_config_path=server_config_path,
+            client_config_path=client_config_path
+        )
+    
+    def __del__(self):
+        """Clean up temporary files."""
+        if hasattr(self, 'temp_dir'):
+            self.temp_dir.cleanup()
+    
+    async def run_interactive(self):
+        """
+        Run the runner in interactive mode.
+        
+        Returns
+        -------
+        int
+            Exit code (0 for success, non-zero for failure)
+        """
+        if not self.running:
+            if not self.start_server() or not self.start_client():
+                return 1
+            self.running = True
+            
+        logger.info("Running in interactive mode. Enter commands or 'exit' to quit.")
         
         while self.running:
             try:
@@ -74,22 +120,57 @@ class StandaloneRunner:
                 )
                 
                 if command.lower() in ['exit', 'quit']:
-                    self.logger.info("Exiting interactive mode")
+                    logger.info("Exiting interactive mode")
                     break
                     
-                self.logger.info(f"Processing command: {command}")
+                logger.info(f"Processing command: {command}")
                 
                 # In a real implementation, we would process the command here
                 # For now, just echo it back
-                self.logger.info(f"Command received: {command}")
+                logger.info(f"Command received: {command}")
                 
             except KeyboardInterrupt:
-                self.logger.info("Interrupted by user")
+                logger.info("Interrupted by user")
                 break
             except Exception as e:
-                self.logger.error(f"Error processing command: {e}")
+                logger.error(f"Error processing command: {e}")
                 
-        await self.stop()
+        self.stop_processes()
+        return 0
+    
+    async def run_command(self, command):
+        """
+        Run a single command.
+        
+        Parameters
+        ----------
+        command : str
+            Command to run
+            
+        Returns
+        -------
+        int
+            Exit code (0 for success, non-zero for failure)
+        """
+        if not self.running:
+            if not self.start_server() or not self.start_client():
+                return 1
+            self.running = True
+            
+        try:
+            logger.info(f"Processing command: {command}")
+            
+            # In a real implementation, we would process the command here
+            # For now, just echo it back
+            logger.info(f"Command received: {command}")
+            
+            self.stop_processes()
+            return 0
+            
+        except Exception as e:
+            logger.error(f"Error processing command: {e}")
+            self.stop_processes()
+            return 1
 
 
 def load_config(config_path):
@@ -186,62 +267,27 @@ async def main():
     # Set logging level based on verbose flag
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
+    
+    try:
+        # Create the runner
+        runner = StandaloneRunner(
+            config_path=args.config,
+            env_file=args.env
+        )
         
-    # Load environment variables if specified
-    if args.env:
-        if not load_env_file(args.env):
-            logger.error(f"Failed to load environment from {args.env}")
-            return 1
+        # Run in interactive mode if specified
+        if args.interactive:
+            return await runner.run_interactive()
+        elif args.command:
+            # Run a single command if specified
+            return await runner.run_command(args.command)
+        else:
+            # Otherwise, just run the example
+            return runner.run()
             
-    # Resolve the configuration path
-    config_path = args.config
-    if not os.path.isabs(config_path):
-        # If it's a relative path, try to resolve it relative to the project root
-        project_root = Path(__file__).resolve().parent.parent.parent
-        config_path = os.path.join(project_root, config_path)
-        
-    if not os.path.exists(config_path):
-        logger.error(f"Configuration file not found: {config_path}")
+    except Exception as e:
+        logger.error(f"Error creating StandaloneRunner: {e}")
         return 1
-        
-    # Load the configuration
-    config = load_config(config_path)
-    if not config:
-        logger.error("Failed to load configuration")
-        return 1
-        
-    # Create and start the runner
-    runner = StandaloneRunner(config)
-    
-    # Start the runner
-    if not await runner.start():
-        logger.error("Failed to start UnitMCP Standalone Runner")
-        return 1
-    
-    # If a command is specified, execute it and exit
-    if args.command:
-        logger.info(f"Executing command: {args.command}")
-        # In a real implementation, we would process the command here
-        logger.info(f"Command received: {args.command}")
-        await runner.stop()
-        return 0
-    
-    # Run in interactive mode if specified and we're in a terminal
-    if args.interactive and sys.stdin.isatty():
-        await runner.run_interactive()
-    else:
-        # Otherwise, just start the runner and keep it running
-        logger.info("UnitMCP Standalone Runner started. Press Ctrl+C to stop.")
-        
-        try:
-            # Keep the runner running until interrupted
-            while True:
-                await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            logger.info("Stopping UnitMCP Standalone Runner...")
-            await runner.stop()
-            
-    return 0
 
 
 if __name__ == "__main__":
@@ -249,7 +295,7 @@ if __name__ == "__main__":
         exit_code = asyncio.run(main())
         sys.exit(exit_code)
     except KeyboardInterrupt:
-        logger.info("UnitMCP Standalone Runner stopped by user")
+        logger.info("StandaloneRunner stopped by user")
         sys.exit(0)
     except Exception as e:
         logger.error(f"Unhandled exception: {e}")

@@ -1,82 +1,63 @@
-# Voice Assistant Server Configuration
-
-# AI model settings
 ai:
-  # Language model settings
   llm:
-    provider: "ollama"  # Options: "ollama", "claude", "openai"
-    model: "llama2"  # Model name
-    temperature: 0.7
     max_tokens: 1024
-    system_prompt: "You are a helpful voice assistant for a home automation system. Keep responses concise and helpful. If asked to control a device, respond with the appropriate command."
-  
-  # Speech-to-text settings
-  stt:
-    provider: "whisper"  # Options: "whisper", "google_speech"
-    model: "base"  # For Whisper: "tiny", "base", "small", "medium", "large"
-    language: "en"
-  
-  # Text-to-speech settings
-  tts:
-    provider: "pyttsx3"  # Options: "pyttsx3", "gtts"
-    voice: null  # null for default voice
-    rate: 150
-    volume: 1.0
-  
-  # NLP settings
+    model: llama2
+    provider: ollama
+    system_prompt: You are a helpful voice assistant for a home automation system.
+      Keep responses concise and helpful. If asked to control a device, respond with
+      the appropriate command.
+    temperature: 0.7
   nlp:
-    provider: "spacy"  # Options: "spacy", "huggingface"
-    model: "en_core_web_sm"
     extract_entities: true
     extract_intents: true
-
-# Command handling
+    model: en_core_web_sm
+    provider: spacy
+  stt:
+    language: en
+    model: base
+    provider: whisper
+  tts:
+    provider: pyttsx3
+    rate: 150
+    voice: null
+    volume: 1.0
 commands:
-  # Device control commands
   devices:
-    enabled: true
-    command_prefix: "turn"
-    locations:
-      - "living room"
-      - "kitchen"
-      - "bedroom"
-      - "bathroom"
+    command_prefix: turn
     device_types:
-      - "light"
-      - "fan"
-      - "tv"
-      - "thermostat"
-  
-  # Information commands
+    - light
+    - fan
+    - tv
+    - thermostat
+    enabled: true
+    locations:
+    - living room
+    - kitchen
+    - bedroom
+    - bathroom
   information:
     enabled: true
-    weather: true
-    time: true
-    news: false
-    jokes: true
     facts: true
-
-# Server settings
-server:
-  host: "0.0.0.0"
-  port: 8765
-  max_connections: 5
-  timeout: 30.0  # seconds
-
-# Hardware control
+    jokes: true
+    news: false
+    time: true
+    weather: true
 hardware:
-  enabled: false  # Set to true if hardware control is available
-  platform: "raspberry_pi"  # Options: "raspberry_pi", "arduino", "mock"
+  enabled: false
   gpio_pins:
-    living_room_light: 17
-    kitchen_light: 18
-    bedroom_light: 22
     bathroom_light: 23
+    bedroom_light: 22
     fan: 24
+    kitchen_light: 18
+    living_room_light: 17
     tv_relay: 25
-
-# Logging settings
+  platform: raspberry_pi
 logging:
-  level: "INFO"
-  file: "server.log"
   console: true
+  file: server.log
+  level: INFO
+server:
+  host: 0.0.0.0
+  max_connections: 5
+  port: 9523
+  timeout: 30.0

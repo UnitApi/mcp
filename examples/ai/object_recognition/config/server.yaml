@@ -1,69 +1,53 @@
-# Object Recognition Server Configuration
-
-# Vision model settings
-vision:
-  # Object detection settings
-  object_detection:
-    provider: "yolo"  # Options: "yolo"
-    model: "yolov8n"  # Options: "yolov8n", "yolov8s", "yolov8m", "yolov8l", "yolov8x"
-    confidence_threshold: 0.5
-    nms_threshold: 0.4
-    device: null  # null for auto-detection (CPU/GPU)
-  
-  # Image processing settings
-  image_processing:
-    resize: [640, 640]  # Width, height
-    normalize: true
-    grayscale: false
-    blur: null  # Gaussian blur kernel size (null for no blur)
-    edges: false  # Apply edge detection
-
-# Object classes of interest
-objects:
-  # Classes to highlight or trigger actions for
-  highlight:
-    - "person"
-    - "car"
-    - "bicycle"
-    - "dog"
-    - "cat"
-    - "laptop"
-    - "cell phone"
-  
-  # Actions to trigger when specific objects are detected
-  actions:
-    person:
-      enabled: true
-      min_confidence: 0.7
-      action: "log"  # Options: "log", "alert", "trigger_gpio"
-      message: "Person detected"
-    
-    car:
-      enabled: true
-      min_confidence: 0.7
-      action: "log"
-      message: "Vehicle detected"
-
-# Server settings
-server:
-  host: "0.0.0.0"
-  port: 8765
-  max_connections: 5
-  timeout: 30.0  # seconds
-  max_fps: 10  # Maximum frames per second to process
-
-# Hardware control
 hardware:
-  enabled: false  # Set to true if hardware control is available
-  platform: "raspberry_pi"  # Options: "raspberry_pi", "arduino", "mock"
+  enabled: false
   gpio_pins:
-    person_detected: 17
-    car_detected: 18
     alert_led: 22
     buzzer: 23
-
-# Logging settings
+    car_detected: 18
+    person_detected: 17
+  platform: raspberry_pi
 logging:
-  level: "INFO"
-  file: "server.log"
   console: true
+  file: server.log
+  level: INFO
+objects:
+  actions:
+    car:
+      action: log
+      enabled: true
+      message: Vehicle detected
+      min_confidence: 0.7
+    person:
+      action: log
+      enabled: true
+      message: Person detected
+      min_confidence: 0.7
+  highlight:
+  - person
+  - car
+  - bicycle
+  - dog
+  - cat
+  - laptop
+  - cell phone
+server:
+  host: 0.0.0.0
+  max_connections: 5
+  max_fps: 10
+  port: 9524
+  timeout: 30.0
+vision:
+  image_processing:
+    blur: null
+    edges: false
+    grayscale: false
+    normalize: true
+    resize:
+    - 640
+    - 640
+  object_detection:
+    confidence_threshold: 0.5
+    device: null
+    model: yolov8n
+    nms_threshold: 0.4
+    provider: yolo

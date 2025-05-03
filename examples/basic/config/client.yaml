@@ -1,0 +1,29 @@
+advanced:
+  queue_size: 50
+  worker_threads: 2
+client:
+  id: client-001
+  name: example-client
+connection:
+  retry_attempts: 3
+  retry_delay: 5
+  server_host: localhost
+  server_port: 9518
+  timeout: 30
+data:
+  compression: false
+  encryption: false
+  format: json
+io:
+  buffer_size: 1024
+  input_device: ''
+  output_device: ''
+logging:
+  file: ''
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  level: info
+ui:
+  enabled: true
+  refresh_rate: 1.0
+  theme: default
+  type: console

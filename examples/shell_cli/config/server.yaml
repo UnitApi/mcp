@@ -1,0 +1,26 @@
+advanced:
+  queue_size: 100
+  worker_threads: 4
+commands:
+  allowed:
+  - status
+  - help
+  default: help
+hardware:
+  devices: []
+  enabled: false
+  simulation: true
+logging:
+  file: ''
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  level: info
+model:
+  api_key: ''
+  enabled: false
+  path: ''
+  type: local
+server:
+  host: localhost
+  max_connections: 10
+  port: 9506
+  timeout: 30

@@ -1,62 +1,65 @@
-# Object Recognition Client Configuration
-
-# Camera settings
 camera:
-  device: 0  # Camera device index (0 for default webcam)
-  width: 640
-  height: 480
-  fps: 30
+  device: 0
   flip_horizontal: false
   flip_vertical: false
-  rotation: 0  # Rotation in degrees (0, 90, 180, 270)
-
-# Display settings
-display:
-  enabled: true
-  window_name: "UnitMCP Object Recognition"
-  fullscreen: false
-  width: 800
-  height: 600
-  show_fps: true
-  show_confidence: true
-  font_scale: 0.5
-  line_thickness: 2
-  
-  # Colors for bounding boxes (B, G, R format)
-  colors:
-    default: [0, 255, 0]  # Green
-    person: [0, 165, 255]  # Orange
-    car: [0, 0, 255]  # Red
-    bicycle: [255, 0, 0]  # Blue
-    dog: [255, 0, 255]  # Purple
-    cat: [255, 255, 0]  # Cyan
-
-# Connection settings
+  fps: 30
+  height: 480
+  rotation: 0
+  width: 640
 connection:
-  server_host: "localhost"
-  server_port: 8765
-  timeout: 10.0  # seconds
-  reconnect_attempts: 3
-  reconnect_delay: 2.0  # seconds
-  
-  # Image compression settings for network transfer
   compression:
     enabled: true
-    format: "jpg"
-    quality: 90  # JPEG quality (0-100)
-
-# Recording settings
-recording:
-  enabled: false
-  trigger_on_detection: true  # Start recording when objects are detected
-  output_directory: "./recordings"
-  format: "mp4"
-  codec: "mp4v"
-  fps: 30
-  duration: 10  # Recording duration in seconds
-
-# Logging settings
+    format: jpg
+    quality: 90
+  reconnect_attempts: 3
+  reconnect_delay: 2.0
+  server_host: localhost
+  server_port: 9524
+  timeout: 10.0
+display:
+  colors:
+    bicycle:
+    - 255
+    - 0
+    - 0
+    car:
+    - 0
+    - 0
+    - 255
+    cat:
+    - 255
+    - 255
+    - 0
+    default:
+    - 0
+    - 255
+    - 0
+    dog:
+    - 255
+    - 0
+    - 255
+    person:
+    - 0
+    - 165
+    - 255
+  enabled: true
+  font_scale: 0.5
+  fullscreen: false
+  height: 600
+  line_thickness: 2
+  show_confidence: true
+  show_fps: true
+  width: 800
+  window_name: UnitMCP Object Recognition
 logging:
-  level: "INFO"
-  file: "client.log"
   console: true
+  file: client.log
+  level: INFO
+recording:
+  codec: mp4v
+  duration: 10
+  enabled: false
+  format: mp4
+  fps: 30
+  output_directory: ./recordings
+  trigger_on_detection: true
