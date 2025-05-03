@@ -29,8 +29,7 @@ The command parser processes command-line instructions for both device control a
 ## Examples
 
 ### Quickstart Demo
-The `quickstart_demo.py` script demonstrates the core functionality of the UnitMCP DSL system:
-
+The 
 ```bash
 # Run in simulation mode with verbose logging
 SIMULATION=1 VERBOSE=1 python quickstart_demo.py

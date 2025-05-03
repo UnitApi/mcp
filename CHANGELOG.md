@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.63] - 2025-05-03
+
+### Added
+- Changes in examples/shell_cli/simple_remote_shell.py
+- Changes in examples/tests/example_execution_report.json
+- Changes in examples/tests/test_run_all_examples.py
+- Changes in examples/update/CHANGELOG.md
+
 ## [0.1.62] - 2025-05-03
 
 ### Added

@@ -25,6 +25,9 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
 - **Mock Device Factory**: Created mock implementations for testing
 - **Comprehensive Testing**: All integration tests now passing
 - **Claude UnitMCP Plugin**: New plugin for advanced natural language hardware control
+- **Remote Device Control**: Enhanced shell CLI for interactive remote device control
+- **GPIO Streaming**: Added real-time GPIO streaming from Raspberry Pi to client PC
+- **SSH/TCP Support**: Added support for both SSH and TCP connections to remote devices
 
 ### 📁 New Project Structure
 
@@ -49,38 +52,43 @@ See the [Migration Guide](docs/MIGRATION_GUIDE.md) for details on the changes an
 
 2. **Server System**
    - `MCPServer`: Main server framework
-   - Hardware-specific servers (GPIO, Input, Audio, Camera)
-   - Protocol handling and routing
+   - `DeviceManager`: Hardware device management
+   - `SecurityManager`: Authentication and authorization
 
-3. **Hardware Abstraction Layer**
-   - Consistent interface for all hardware devices
-   - Support for multiple operational modes (hardware, simulation, remote, mock)
-   - Device implementations:
-     - `LEDDevice`: Control LEDs with on/off, brightness, and blinking capabilities
-     - `ButtonDevice`: Handle button presses with event callbacks and debouncing
-     - `TrafficLightDevice`: Composite device for controlling traffic light sequences
-     - `DisplayDevice`: Interface for LCD, OLED, and other display types
-   - `DeviceFactory`: Factory pattern for creating device instances based on configuration
-   - `MockDeviceFactory`: Simulation-friendly device creation for testing
+3. **Hardware Abstraction**
+   - Platform-specific implementations
+   - Simulation support for development
+   - Device discovery and configuration
 
-4. **Security Layer**
+4. **Remote Control**
+   - Shell-based remote control interface
+   - WebSocket-based real-time updates
+   - SSH and TCP connection options
+   - GPIO streaming from Raspberry Pi to client PC
+
+5. **Domain-Specific Language**
+   - YAML-based device configuration
+   - Natural language command processing
+   - Pipeline definition language
+
+6. **Security Layer**
    - Permission management system
    - Client authentication
    - Operation auditing
 
-5. **Pipeline System**
+7. **Pipeline System**
    - Automated command sequences
    - Conditional execution
    - Error handling and retries
    - Variable substitution
 
-6. **DSL System** 
+8. **DSL System** 
    - Domain-Specific Language for hardware configuration
    - YAML-based device definitions
    - Natural language command processing via Claude 3.7
    - Command parsing and execution
 
-7. **Claude UnitMCP Plugin**
+9. **Claude UnitMCP Plugin**
    - Advanced natural language processing for hardware control
    - Multi-turn conversation support with context awareness
    - Robust error handling with conversational recovery
@@ -168,6 +176,58 @@ UnitMCP/
     ├── system/             # System tests
     └── performance/        # Performance tests
 ```
+
+## 🔌 Remote Device Control and GPIO Streaming
+
+UnitMCP provides powerful capabilities for remote device control and real-time GPIO streaming:
+
+### Interactive Shell Control
+
+The `shell_cli` module provides an interactive shell interface for controlling remote devices:
+
+```bash
+# Start the interactive shell
+cd examples/shell_cli
+python shell_cli_demo.py --interactive
+
+# In the shell
+mcp> connect 192.168.1.100 8888
+mcp> gpio_setup 17 OUT
+mcp> led_setup led1 17
+mcp> led led1 on
+```
+
+For simpler implementations, a lightweight shell is also available:
+
+```bash
+# Connect via TCP
+python simple_remote_shell.py --host 192.168.1.100 --port 8888
+
+# Connect via SSH (requires paramiko)
+python simple_remote_shell.py --host 192.168.1.100 --port 22 --ssh
+```
+
+### Real-time GPIO Streaming
+
+The `rpi_control` module enables real-time streaming of GPIO pin states from a Raspberry Pi to a client PC:
+
+```bash
+# On the Raspberry Pi
+cd examples/rpi_control
+python server.py --stream-gpio
+
+# On the client PC
+cd examples/rpi_control
+python client.py --host <raspberry_pi_ip> --monitor-gpio
+```
+
+This provides:
+- Low-latency updates when GPIO states change
+- Bidirectional communication for remote control
+- Event-driven architecture for responsive applications
+- Support for multiple clients monitoring the same GPIO pins
+
+See the [examples/rpi_control/README.md](examples/rpi_control/README.md) for detailed documentation.
 
 ## 💡 Key Features
 

@@ -1,0 +1,66 @@
+{
+  "name": "led_blink_sequence",
+  "description": "Blink LED in a pattern",
+  "steps": [
+    {
+      "command": "setup",
+      "method": "gpio.setupLED",
+      "params": {
+        "device_id": "led1",
+        "pin": 17
+      },
+      "expectations": [
+        {
+          "type": "equals",
+          "field": "status",
+          "value": "success",
+          "message": "LED setup failed"
+        }
+      ],
+      "description": "Setup LED on pin 17"
+    },
+    {
+      "command": "blink_fast",
+      "method": "gpio.controlLED",
+      "params": {
+        "device_id": "led1",
+        "action": "blink",
+        "on_time": 0.1,
+        "off_time": 0.1
+      },
+      "description": "Fast blink"
+    },
+    {
+      "command": "wait",
+      "method": "system.sleep",
+      "params": {
+        "duration": 2
+      },
+      "description": "Wait 2 seconds"
+    },
+    {
+      "command": "blink_slow",
+      "method": "gpio.controlLED",
+      "params": {
+        "device_id": "led1",
+        "action": "blink",
+        "on_time": 0.5,
+        "off_time": 0.5
+      },
+      "description": "Slow blink"
+    },
+    {
+      "command": "off",
+      "method": "gpio.controlLED",
+      "params": {
+        "device_id": "led1",
+        "action": "off"
+      },
+      "description": "Turn off LED"
+    }
+  ],
+  "variables": {
+    "led_pin": 17,
+    "device_id": "led1"
+  }
+}

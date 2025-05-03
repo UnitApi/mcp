@@ -18,8 +18,7 @@ The Claude UnitMCP Plugin enables sophisticated natural language understanding f
 
 ### Quickstart Demo
 
-The `quickstart_demo.py` script demonstrates the core functionality of the UnitMCP Claude Plugin, including:
-
+The 
 - Natural language command processing
 - Hardware control in simulation mode
 - Multi-turn conversation support

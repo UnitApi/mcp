@@ -3,6 +3,12 @@
 This directory contains a template for creating new examples in the UnitMCP project. It follows the standardized structure with client-server architecture and a runner to simplify startup.
 
 ## Structure
+- `led_demo.py` — Moved from another example directory
+
+- `button_demo.py` — Moved from another example directory
+
+- `traffic_light_demo.py` — Moved from another example directory
+
 
 - `runner.py`: Manages the execution of the client and server components
 - `client.py`: Implements the client-side functionality

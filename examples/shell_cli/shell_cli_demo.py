@@ -5,13 +5,23 @@ shell_cli_demo.py
 """Example usage of the MCP Hardware Shell CLI."""
 
 import asyncio
+import os
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.append(str(Path(__file__).parent.parent))
+# Add project root to path for imports
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, "src"))
 
-from mcp_hardware.client.shell import MCPShell
+try:
+    from unitmcp.client.shell import MCPShell
+except ImportError:
+    print("Error: Could not import unitmcp module.")
+    print("Make sure the UnitMCP project is in your Python path.")
+    print(f"Current Python path: {sys.path}")
+    print("Try installing the package with: pip install -e /path/to/UnitApi/mcp")
+    sys.exit(1)
 
 
 def demonstrate_shell_features():

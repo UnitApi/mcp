@@ -1,0 +1,60 @@
+{
+  "name": "automation_test",
+  "description": "Test automation features",
+  "steps": [
+    {
+      "command": "open_notepad",
+      "method": "input.hotkey",
+      "params": {
+        "keys": [
+          "win",
+          "r"
+        ]
+      },
+      "description": "Open Run dialog"
+    },
+    {
+      "command": "type_notepad",
+      "method": "input.typeText",
+      "params": {
+        "text": "notepad"
+      },
+      "description": "Type notepad"
+    },
+    {
+      "command": "launch",
+      "method": "input.pressKey",
+      "params": {
+        "key": "enter"
+      },
+      "description": "Press Enter"
+    },
+    {
+      "command": "wait_for_notepad",
+      "method": "system.sleep",
+      "params": {
+        "duration": 2
+      },
+      "description": "Wait for Notepad to open"
+    },
+    {
+      "command": "type_message",
+      "method": "input.typeText",
+      "params": {
+        "text": "Hello from MCP Hardware Automation!"
+      },
+      "description": "Type message"
+    },
+    {
+      "command": "save_dialog",
+      "method": "input.hotkey",
+      "params": {
+        "keys": [
+          "ctrl",
+          "s"
+        ]
+      },
+      "description": "Open save dialog"
+    }
+  ]
+}

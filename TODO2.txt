@@ -33,5 +33,19 @@ convert_example_structure.py to update examples to follow the standard structure
 
 sprawdz czy nie ma duplikatow examples po stworzeniu template,
 wszysteki przyklady i pliki powinny byc rozne
-jesli nei sa to stworz plan refaktoryzacji i wykonaj zmiany a na koneic przetestuj wszystkie przyklady w examples/
+jesli nie sa to stworz plan refaktoryzacji i wykonaj zmiany w opaparciu o istniejace pliki w examples
+a na koneic przetestuj wszystkie przyklady w examples/
+zaktualizuj readme.md w examples/ i w projekcie
+czy istnieja przyklady z uzyciem shella, aby polaczyc sie ze zdalnym urzadzeniem i interaktywnie sterowac?
+czego brakuje albo co mozna polepszyc w projekcie?
+
+---
+
+znajdz przyklad ze streowaniem gpio na rasberry pi z klienta na PC
+czy aktualne przyklady z portem dzialaja na tej zasadzie co ze skryptow, porownaj
+zaktualizuj dokumentacje przykladow w examples, czy w shell mozna uruchomic zdalny serwer a potem sie do niego podlaczy aby sterowac GPIO?
+
+check tox and pytes and fix
+
+
 
