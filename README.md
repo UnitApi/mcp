@@ -1176,3 +1176,23 @@ journey
 ```
 
 These diagrams can be used throughout the documentation to visualize system architecture, processes, and relationships between components.
+
+
+
+
+
+ [<span style='font-size:20px;'>&#x270D;</span>](git@github.com:UnitApi/python/edit/main/docs/footer.md)
+<script type="module">    
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  //import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10.8.0/dist/mermaid.min.js';
+  mermaid.initialize({
+    startOnReady:true,
+    theme: 'forest',
+    flowchart:{
+            useMaxWidth:false,
+            htmlLabels:true
+        }
+  });
+  mermaid.init(undefined, '.language-mermaid');
+</script>
+
