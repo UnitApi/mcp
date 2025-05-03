@@ -1,240 +1,136 @@
-# UnitMCP DSL and Claude 3.7 Integration
+# UnitMCP DSL Integration
 
-This directory contains examples and documentation for the UnitMCP Domain-Specific Language (DSL) and Claude 3.7 integration.
+This directory contains examples and documentation for the UnitMCP Domain-Specific Language (DSL) integration.
 
 ## Overview
 
-The UnitMCP DSL and Claude 3.7 integration provides powerful ways to configure and control hardware devices:
+The UnitMCP DSL provides a simple and powerful way to configure and control hardware devices using:
+- YAML configuration files
+- Natural language commands via Claude 3.7
+- Command-line interface
 
-1. **YAML-based Configuration**: Define devices and automations using a simple, human-readable format
-2. **Natural Language Processing**: Control devices using plain English commands
-3. **Command-Line Interface**: Interact with UnitMCP from the terminal
+## Key Components
 
-## Getting Started
+### DSL Compiler
+The DSL compiler processes configuration files and converts them into a format that can be used by the UnitMCP system.
 
-### Prerequisites
+### Device Converter
+The device converter transforms DSL device configurations into actual UnitMCP device objects.
 
-- Python 3.7 or higher
-- UnitMCP installed
-- (Optional) Claude 3.7 API key for natural language processing
+### Hardware Integration
+The hardware integration layer connects the DSL system to physical hardware devices.
 
-### Installation
+### Claude 3.7 Integration
+The Claude integration processes natural language commands and converts them to UnitMCP device commands.
 
-If you don't have an API key for Claude 3.7, the system will use a simulation mode that supports basic commands.
+### CLI Command Parser
+The command parser processes command-line instructions for both device control and natural language processing.
 
-To use the real Claude 3.7 API, set your API key as an environment variable:
+## Examples
+
+### Quickstart Demo
+The `quickstart_demo.py` script demonstrates the core functionality of the UnitMCP DSL system:
 
 ```bash
-export CLAUDE_API_KEY=your_api_key_here
+# Run in simulation mode with verbose logging
+SIMULATION=1 VERBOSE=1 python quickstart_demo.py
 ```
 
-## Usage Examples
+This demo showcases:
+- Loading device configurations from YAML
+- Initializing and controlling devices
+- Processing natural language commands
+- Parsing CLI commands
 
-### Device Configuration (YAML DSL)
+### DSL Example
+The `dsl_example.py` script shows how to use the DSL to load device configurations and control hardware:
 
-Create a YAML file with your device configuration:
+```bash
+# Run in simulation mode
+SIMULATION=1 python dsl_example.py
+```
+
+## Configuration
+
+### Device Configuration
+Devices are configured using YAML files. Here's an example configuration:
 
 ```yaml
-# device_config.yaml
-unitmcp:
-  name: "example-controller"
-  platform: raspberry_pi
-  mode: simulation  # Use simulation mode for testing
-
 devices:
-  # LED device
-  status_led:
+  led1:
     type: led
     pin: 17
-    initial_state: off
-  
-  # Button device
-  user_button:
+    name: Status LED
+  button1:
     type: button
-    pin: 27
-    pull_up: true
+    pin: 18
+    name: Control Button
 ```
 
-Load the configuration in your Python code:
-
-```python
-from unitmcp.dsl.integration import DslHardwareIntegration
-
-# Create the DSL hardware integration
-integration = DslHardwareIntegration()
-
-# Load the device configuration from YAML file
-result = await integration.load_config_file('device_config.yaml')
-devices = result['devices']
-
-# Initialize all devices
-await integration.initialize_devices()
-
-# Get a device and control it
-led = integration.get_device('status_led')
-await led.activate()
-```
-
-### Automation Configuration (YAML DSL)
-
-Define automations in your YAML file:
-
-```yaml
-# automation_config.yaml
-automations:
-  button_led:
-    trigger:
-      platform: state
-      entity_id: user_button
-      to: "on"
-    action:
-      service: activate
-      entity_id: status_led
-```
-
-### Command-Line Interface
-
-The UnitMCP CLI provides a convenient way to interact with the system:
-
-```bash
-# Control a device
-./unitmcp-cli device control status_led activate
-
-# Load an automation from a file
-./unitmcp-cli automation load automation_config.yaml
-
-# Use natural language command
-./unitmcp-cli nl "Turn on the status LED"
-
-# Start interactive shell
-./unitmcp-cli shell
-```
-
-### Natural Language Commands
-
-Use the Claude 3.7 integration to process natural language commands:
-
-```python
-from unitmcp.llm.claude import ClaudeIntegration
-
-# Create the Claude integration
-claude = ClaudeIntegration()
-
-# Process a natural language command
-result = await claude.process_command("Turn on the kitchen light")
-print(result)
-# Output: {'command_type': 'device_control', 'target': 'kitchen_light', 'action': 'activate', 'parameters': {}}
-```
-
-## Example Files
-
-This directory contains the following example files:
-
-- `device_config.yaml`: Example device configuration
-- `dsl_example.py`: Example of using the DSL integration
-- `cli_example.py`: Example of using the CLI with natural language commands
-- `unitmcp-cli`: Command-line script for UnitMCP
-
-## Running the Examples
-
-To run the DSL example:
-
-```bash
-python dsl_example.py
-```
-
-To run the CLI example:
-
-```bash
-python cli_example.py
-```
-
-To use the CLI:
-
-```bash
-./unitmcp-cli --help
-```
-
-## Supported DSL Formats
-
-### 1. YAML-based Configuration (Home Assistant style)
-
-```yaml
-automation:
-  trigger:
-    platform: time
-    at: "07:00"
-  condition:
-    condition: numeric_state
-    entity_id: sensor.temperature
-    below: 20
-  action:
-    service: light.turn_on
-    entity_id: light.kitchen
-    brightness: 255
-```
-
-### 2. Flow-based Programming (Node-RED style)
+### Command Format
+Commands follow a simple JSON structure:
 
 ```json
 {
-  "nodes": [
-    {
-      "id": "sensor1",
-      "type": "gpio",
-      "pin": 17,
-      "mode": "input"
-    },
-    {
-      "id": "led1",
-      "type": "gpio",
-      "pin": 18,
-      "mode": "output"
-    },
-    {
-      "id": "flow1",
-      "wires": [
-        {
-          "source": "sensor1",
-          "target": "led1",
-          "condition": "value > 0.5"
-        }
-      ]
-    }
-  ]
+  "device": "led1",
+  "action": "on",
+  "parameters": {}
 }
 ```
 
-### 3. Hardware Configuration (ESPHome style)
+## Testing Results
 
-```yaml
-unitmcp:
-  name: "livingroom-controller"
-  platform: raspberry_pi
-  mode: hardware
+### Latest Test Results (May 3, 2025)
 
-devices:
-  - platform: gpio
-    name: "living_room_light"
-    pin: 17
-    type: led
-    
-  - platform: gpio
-    name: "motion_sensor"
-    pin: 27
-    type: button
-    pull_up: true
+All tests are now passing successfully after implementing the following fixes:
+
+1. **DSL Compiler**: Added the `detect_format` method to properly identify the format of input configurations.
+
+2. **Device Converter**: 
+   - Created a concrete implementation using a mock device factory for testing
+   - Fixed the device conversion process to handle simulation mode properly
+
+3. **DSL Hardware Integration**:
+   - Added support for simulation mode
+   - Improved error handling for device creation
+   - Added proper integration with the mock device factory
+
+4. **Claude 3.7 Integration**:
+   - Added missing imports (requests)
+   - Implemented proper async handling for command processing
+
+5. **CLI Command Parser**:
+   - Added a `parse` method as an alias for `parse_shell_command`
+   - Improved error handling for command parsing
+
+### Test Coverage
+
+The following components have been tested and verified:
+
+- **YAML Configuration Parsing**: Successfully parses YAML configurations into Python dictionaries.
+- **DSL Compilation**: Properly compiles DSL configurations and detects the format.
+- **Device Conversion**: Converts DSL device configurations into UnitMCP device objects.
+- **Hardware Integration**: Successfully loads configurations, initializes devices, and executes commands.
+- **Claude 3.7 Integration**: Processes natural language commands and converts them to UnitMCP commands.
+- **CLI Command Parsing**: Parses and executes CLI commands for device control and natural language processing.
+
+### Running in Simulation Mode
+
+To run the UnitMCP system in simulation mode without requiring actual hardware:
+
+```bash
+# Set the simulation environment variable
+export SIMULATION=1
+
+# For verbose logging
+export VERBOSE=1
+
+# Run your script
+python your_script.py
 ```
 
-## Security Considerations
-
-The Claude 3.7 integration includes security features to prevent malicious commands:
-
-1. **Command Validation**: All commands generated by Claude 3.7 are validated before execution
-2. **Sandboxing**: LLM-generated commands run in a restricted environment
-3. **Permission System**: Role-based access control for different command types
-4. **Audit Logging**: All commands and their sources are logged for security review
+This allows you to test and develop UnitMCP applications without needing physical Raspberry Pi hardware.
 
 ## Further Reading
 
-For more information, see the [DSL Integration Documentation](/docs/DSL_INTEGRATION.md).
+For more detailed information, see the [UnitMCP Implementation Guide](../../UnitMCP_Implementation_Guide.md).

@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.57] - 2025-05-03
+
+### Added
+- Changes in UnitMCP_Implementation_Guide.md
+- Changes in detailed_tests.py
+- Changes in examples/dsl/quickstart_demo.py
+- Changes in examples/plugin/README.md
+- Changes in examples/plugin/quickstart_demo.py
+- Changes in fix_implementation.py
+- Changes in fix_source_files.py
+- Changes in src/unitmcp/dsl/converters/mock_factory.py
+- Changes in src/unitmcp/plugin/core/dsl_integration.py
+- Changes in src/unitmcp/plugin/core/error_handling.py
+- Changes in src/unitmcp/plugin/core/hardware_client.py
+- Changes in src/unitmcp/plugin/main.py
+- Changes in src/unitmcp/plugin/nl/parser.py
+- Changes in src/unitmcp/plugin/state/conversation_state.py
+- Changes in test_unitmcp_integration.py
+
 ## [0.1.56] - 2025-05-03
 
 ### Added

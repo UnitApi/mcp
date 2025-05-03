@@ -5,6 +5,7 @@ This directory contains a Docker Compose setup for testing hardware control with
 1. A virtual hardware server that simulates hardware devices like GPIO, camera, and audio
 2. An Ollama LLM server for natural language processing
 3. A client that connects to both the hardware server and the LLM to enable natural language control of virtual hardware
+4. Support for the new Claude UnitMCP Plugin for enhanced natural language processing
 
 ## Prerequisites
 
@@ -76,6 +77,7 @@ You can configure the system using environment variables in the `docker-compose.
 - `OLLAMA_HOST`: The hostname of the Ollama server (default: `ollama`)
 - `OLLAMA_PORT`: The port of the Ollama server (default: `11434`)
 - `OLLAMA_MODEL`: The LLM model to use (default: `llama2`)
+- `ENABLE_CLAUDE_PLUGIN`: Enable the Claude UnitMCP Plugin (default: `0`)
 
 ## Available Virtual Hardware
 
@@ -99,6 +101,44 @@ The virtual hardware server simulates the following hardware devices:
 ### Input
 - Virtual keyboard for typing text
 - Virtual mouse for cursor control
+
+## Claude UnitMCP Plugin (New in May 2025)
+
+The system now includes support for the Claude UnitMCP Plugin, which provides enhanced natural language processing capabilities:
+
+### Features
+
+- More sophisticated natural language understanding
+- Multi-turn conversation support
+- Context-aware command processing
+- Integration with the UnitMCP DSL system
+- Robust error handling with conversational recovery
+
+### Using the Claude Plugin
+
+To use the Claude Plugin in the Docker environment:
+
+1. Ensure the `ENABLE_CLAUDE_PLUGIN` environment variable is set to `1` in your docker-compose.yml:
+
+```yaml
+hardware-client:
+  environment:
+    - ENABLE_CLAUDE_PLUGIN=1
+```
+
+2. Restart the containers with the updated configuration:
+
+```bash
+docker-compose down
+docker-compose up
+```
+
+3. The client will now use the Claude Plugin for natural language processing, enabling more complex interactions and multi-turn conversations.
+
+Example complex commands supported by the Claude Plugin:
+- "Turn on the kitchen light and set it to 50% brightness"
+- "Create a traffic light sequence that cycles every 5 seconds"
+- "Show the temperature on the display and update it every minute"
 
 ## Extending the System
 

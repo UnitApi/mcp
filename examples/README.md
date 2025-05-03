@@ -6,10 +6,12 @@ This directory contains various examples demonstrating the capabilities of the U
 
 - **audio/** - Audio recording, playback, and processing examples
 - **automation/** - Automation scripts, pipelines, and workflow examples
+- **dsl/** - Domain-Specific Language for hardware configuration and natural language control
 - **hardware_demos/** - Hardware integration demonstrations (LEDs, sensors, actuators)
 - **input_devices/** - Keyboard and mouse automation examples
 - **integrated_demo/** - Complex demos integrating multiple features
 - **ollama_integration/** - Examples showing integration with Ollama LLM
+- **plugin/** - Claude UnitMCP Plugin for advanced natural language hardware control
 - **rpi_control/** - Raspberry Pi GPIO and hardware control demonstrations
 - **security/** - Security systems and monitoring examples
 - **server/** - Server startup and configuration examples
@@ -42,28 +44,34 @@ You can set environment variables in three ways:
 |----------|-------------|---------|
 | `RPI_HOST` | Hostname or IP address of the MCP server | localhost |
 | `RPI_PORT` | Port number of the MCP server | 8080 |
-| `SIMULATION_MODE` | Run in simulation mode without hardware | false |
+| `SIMULATION` | Run in simulation mode without hardware | 0 |
+| `VERBOSE` | Enable verbose logging | 0 |
 | `LOG_LEVEL` | Logging level (INFO, DEBUG, WARNING, ERROR) | INFO |
+| `ENABLE_CLAUDE_PLUGIN` | Enable the Claude UnitMCP Plugin | 0 |
 
 ## Quick Start
 
 To run any example, navigate to its directory and execute the Python script:
 
 ```bash
-# Run with default settings (uses .env file if present)
-python examples/hardware_demos/led_control.py
-
-# Run with specific environment variables
-RPI_HOST=192.168.1.100 python examples/hardware_demos/led_control.py
-
-# Run with custom environment file
-python examples/automation/pipeline_demo.py --env-file custom.env
+cd examples/dsl
+SIMULATION=1 python quickstart_demo.py
 ```
 
-Make sure you have installed the required dependencies:
+### New Quickstart Demo (May 2025)
+
+We've added a new quickstart demo that showcases the latest features:
+
+- **DSL Configuration**: Load and control devices using YAML configurations
+- **Natural Language Control**: Process natural language commands with Claude 3.7
+- **CLI Command Parsing**: Parse and execute CLI commands
+- **Simulation Mode**: Run without requiring physical hardware
+
+To run the quickstart demo:
+
 ```bash
-pip install -e .
-pip install -e ".[ollama]"  # For Ollama integration examples
+cd examples/dsl
+SIMULATION=1 VERBOSE=1 python quickstart_demo.py
 ```
 
 ## Running Examples

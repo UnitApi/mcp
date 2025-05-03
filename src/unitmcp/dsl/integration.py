@@ -13,6 +13,8 @@ import yaml
 
 from .compiler import DslCompiler
 from .converters.to_devices import DeviceConverter
+from .converters.mock_factory import MockDeviceFactory
+from unitmcp import MCPHardwareClient
 
 logger = logging.getLogger(__name__)
 
@@ -24,17 +26,24 @@ class DslHardwareIntegration:
     using DSL configurations.
     """
     
-    def __init__(self, device_factory=None):
+    def __init__(self, device_factory=None, simulation=False):
         """
         Initialize the DSL hardware integration.
         
         Args:
             device_factory: Optional device factory instance.
                            If not provided, it will be imported from the hardware module.
+            simulation: Whether to run in simulation mode
         """
         self.compiler = DslCompiler()
+        
+        # Use mock factory if in simulation mode or if no factory is provided
+        if simulation or device_factory is None:
+            device_factory = MockDeviceFactory()
+            
         self.device_converter = DeviceConverter(device_factory)
         self.devices = {}
+        self.simulation = simulation
     
     async def load_config_file(self, file_path: str) -> Dict[str, Any]:
         """

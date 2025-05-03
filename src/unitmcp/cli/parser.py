@@ -111,6 +111,19 @@ class CommandParser:
             logger.error(f"Error parsing command: {e}")
             return None
     
+    def parse(self, command_str: str) -> Optional[argparse.Namespace]:
+        """
+        Parse a command string into a structured command.
+        This is an alias for parse_shell_command.
+        
+        Args:
+            command_str: Command string
+            
+        Returns:
+            Parsed arguments, or None if parsing failed
+        """
+        return self.parse_shell_command(command_str)
+    
     async def _handle_device_command(self, args: argparse.Namespace) -> Dict[str, Any]:
         """
         Handle a device command.

@@ -238,3 +238,34 @@ class DslCompiler:
         # For now, just return the command as-is
         # In the future, this will map to the command system format
         return command
+
+    def detect_format(self, content: str) -> str:
+        """
+        Detect the format of the DSL content.
+        
+        Args:
+            content: The DSL content to analyze
+                
+        Returns:
+            str: The detected format ('yaml', 'json', or 'unknown')
+        """
+        content = content.strip()
+        
+        # Try to parse as YAML
+        try:
+            import yaml
+            yaml.safe_load(content)
+            return 'yaml'
+        except yaml.YAMLError:
+            pass
+        
+        # Try to parse as JSON
+        try:
+            import json
+            json.loads(content)
+            return 'json'
+        except json.JSONDecodeError:
+            pass
+        
+        # Unknown format
+        return 'unknown'

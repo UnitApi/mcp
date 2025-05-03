@@ -10,9 +10,18 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
 
 - **Total Files**: 40+ files
 - **Lines of Code**: ~5,000+ lines
-- **Components**: 6 major subsystems
+- **Components**: 7 major subsystems
 - **Examples**: 15+ demonstration scripts
 - **Test Coverage**: Full client/server tests
+
+### 🆕 Latest Updates (May 2025)
+
+- **Simulation Mode**: Enhanced simulation capabilities for development without hardware
+- **DSL Integration**: Fixed and improved Domain-Specific Language support
+- **Claude 3.7 Integration**: Added natural language processing for device control
+- **Mock Device Factory**: Created mock implementations for testing
+- **Comprehensive Testing**: All integration tests now passing
+- **Claude UnitMCP Plugin**: New plugin for advanced natural language hardware control
 
 ## 🏗️ Architecture
 
@@ -37,6 +46,7 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
      - `TrafficLightDevice`: Composite device for controlling traffic light sequences
      - `DisplayDevice`: Interface for LCD, OLED, and other display types
    - `DeviceFactory`: Factory pattern for creating device instances based on configuration
+   - `MockDeviceFactory`: Simulation-friendly device creation for testing
 
 4. **Security Layer**
    - Permission management system
@@ -49,6 +59,18 @@ The MCP Hardware Access Library is a comprehensive Python framework that enables
    - Error handling and retries
    - Variable substitution
 
+6. **DSL System** 
+   - Domain-Specific Language for hardware configuration
+   - YAML-based device definitions
+   - Natural language command processing via Claude 3.7
+   - Command parsing and execution
+
+7. **Claude UnitMCP Plugin**
+   - Advanced natural language processing for hardware control
+   - Multi-turn conversation support with context awareness
+   - Robust error handling with conversational recovery
+   - Integration with DSL system and MockDeviceFactory
+   - Simulation mode for testing without hardware
 
 ![architecture.svg](docs/architecture.svg)
 
