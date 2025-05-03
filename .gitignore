@@ -1,6 +1,7 @@
 .idea
 venv_test
 mcp_test
+unitmcp-0
 test_output.txt
 .env
 .wav
