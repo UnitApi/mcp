@@ -1,6 +1,6 @@
 """MCP Hardware Access Library."""
 
-__version__ = "0.1.54"
+__version__ = "0.1.55"
 
 from .client.client import MCPHardwareClient
 from .client.shell import MCPShell
@@ -8,6 +8,8 @@ from .server.base import MCPServer
 from .security.permissions import PermissionManager
 from .pipeline.pipeline import Pipeline, PipelineManager
 from .protocols.llm_mcp import LLMMCPHardwareServer
+from .orchestrator.orchestrator import Orchestrator
+from .orchestrator.shell import OrchestratorShell
 
 __all__ = [
     "MCPHardwareClient",
@@ -17,4 +19,6 @@ __all__ = [
     "Pipeline",
     "PipelineManager",
     "LLMMCPHardwareServer",
+    "Orchestrator",
+    "OrchestratorShell",
 ]

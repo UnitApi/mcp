@@ -47,7 +47,7 @@ show_help() {
     echo "Opcje:"
     echo "  -h, --help              Wyświetl tę pomoc"
     echo "  -u, --user UŻYTKOWNIK   Nazwa użytkownika SSH (domyślnie: pi)"
-    echo "  -s, --server IP         Adres IP serwera (domyślnie: 192.168.188.154)"
+    echo "  -s, --server IP         Adres IP serwera (domyślnie: 192.168.1.2)"
     echo "  -p, --password HASŁO    Hasło do logowania SSH"
     echo "  -P, --port PORT         Port SSH (domyślnie: 22)"
     echo "  -i, --identity PLIK     Plik klucza prywatnego do autoryzacji"
@@ -68,7 +68,7 @@ show_help() {
 
 # Domyślne wartości
 USERNAME="pi"
-SERVER_IP="192.168.188.154"
+SERVER_IP="192.168.1.2"
 PASSWORD=""
 SSH_PORT="22"
 IDENTITY_FILE=""

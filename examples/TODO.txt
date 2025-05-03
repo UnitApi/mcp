@@ -41,7 +41,7 @@ Successfully published version 0.1.5
 (base) [tom@devop mcp-examples]$ cd rpi_control/
 (base) [tom@devop rpi_control]$ bash install_remote.sh pi@raspberry
 ssh: Could not resolve hostname raspberry: Name or service not known
-(base) [tom@devop rpi_control]$ bash install_remote.sh pi@192.168.188.154
+(base) [tom@devop rpi_control]$ bash install_remote.sh pi@192.168.1.2
 audio_record.py                                                                                                                                                                                                                                                                     100% 2329     1.5MB/s   00:00
 client.sh                                                                                                                                                                                                                                                                           100%  249   312.3KB/s   00:00
 full_demo.py                                                                                                                                                                                                                                                                        100% 1177     1.3MB/s   00:00
@@ -62,7 +62,7 @@ Defaulting to user installation because normal site-packages is not writeable
 ERROR: Could not open requirements file: [Errno 2] No such file or directory: 'requirements.txt'
 WARNING: You are using pip version 21.0.1; however, version 25.0.1 is available.
 You should consider upgrading via the '/usr/local/bin/python -m pip install --upgrade pip' command.
-(base) [tom@devop rpi_control]$ bash install_remote.sh pi@192.168.188.154
+(base) [tom@devop rpi_control]$ bash install_remote.sh pi@192.168.1.2
 audio_record.py                                                                                                                                                                                                                                                                     100% 2329     1.8MB/s   00:00
 client.sh                                                                                                                                                                                                                                                                           100%  249   270.8KB/s   00:00
 full_demo.py                                                                                                                                                                                                                                                                        100% 1177     1.3MB/s   00:00

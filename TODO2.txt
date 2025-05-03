@@ -48,4 +48,24 @@ zaktualizuj dokumentacje przykladow w examples, czy w shell mozna uruchomic zdal
 check tox and pytes and fix
 
 
+w examples/shell_cli/README.md nie jest opisany runner.py, popraw w innych przykladach, jesli dokumentacja jest niekompletna, nie opisuje kazdego pliku i sposobu uzycia a takze konfgiugracji oraz
+jak pobrac dane konfiguracyjne dla servera z .env lub z command line poprzez start runnera konfigurujacego srodowisko
 
+
+stworzylem polaczenie z rasberry pi server remote co mam dalej robic? gdzie to jest opisane?
+stworz dokumentacje w examples/shell_cli/README.md
+$ python simple_remote_shell.py --host 192.168.188.154 --port 22 --ssh --username pi
+Remote Device Control Shell. Type help or ? to list commands.
+
+(remote)
+
+w poniszych plikach jest zaszyta odpowiedzialnosc runnera  z unitmcp, ktory powinien zainstalowac zaleznosci i pozwolic na uztyweanie sprzetu
+simple_remote_shell.py
+rpi_gpio_helper.py
+
+
+
+poszerz dzialanie runnera, aby instalowal zaleznosci i ruchamial  aplikacje i skrypty shell,  nodejs, python, php, static html poprzez podanie tylko adresu git, rozszerzenie powinni pobrac repo na wskazana maszyne (po adresie lub jako istnejacy client, server)
+powinna byc mozliwosc uruhcmiania automatycznie, zwlaszzca jesli sa tam rozne ci dla github lub gitlab,
+jesli sa jakies dane potrtzebne to interaktywnie user powinien byc zapytany, np. jesli chodzi o zmienne w .env do tego projektu git
+oraz gdy po uruchomieniu tej aplikacji z git cos nie dziala poprawnie, powinny byc logi i inteligentne podpowiedzi po analizie logow

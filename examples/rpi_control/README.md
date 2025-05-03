@@ -45,6 +45,80 @@ This example uses the following environment variables which can be configured in
 | `STREAM_UPDATES` | Enable real-time GPIO state streaming | `true` |
 | `UPDATE_INTERVAL` | Interval for GPIO state updates in ms | `100` |
 
+## Files in This Directory
+
+- `hardware_client.py` - Client for controlling Raspberry Pi hardware
+- `gpio_example.py` - Example demonstrating GPIO streaming functionality
+- `config_automation_example.py` - Example for configuration-based automation
+- `server.py` - Server implementation for handling GPIO requests
+- `client.py` - Client implementation for connecting to the server
+- `runner.py` - Unified runner script to manage both client and server components
+- `run_examples.sh` - Shell script to run all examples in sequence
+- `config/` - Directory containing configuration files:
+  - `client.yaml` - Client configuration settings
+  - `server.yaml` - Server configuration settings
+
+## Using the Runner
+
+The `runner.py` script provides a standardized way to start and manage both client and server components:
+
+```bash
+# Run both client and server with default configuration
+python runner.py
+
+# Run only the server
+python runner.py --server-only
+
+# Run only the client
+python runner.py --client-only
+
+# Specify custom configuration files
+python runner.py --server-config config/custom_server.yaml --client-config config/custom_client.yaml
+
+# Enable verbose logging
+python runner.py --verbose
+```
+
+### Environment Configuration
+
+The runner and example scripts can be configured using:
+
+1. **Environment Variables (.env file)**: Create a `.env` file in the example directory with configuration values:
+
+```
+# Server configuration
+RPI_HOST=192.168.1.100
+RPI_PORT=8080
+LOG_LEVEL=INFO
+
+# Hardware configuration
+LED_PIN=17
+BUTTON_PIN=27
+RED_PIN=17
+YELLOW_PIN=27
+GREEN_PIN=22
+SIMULATION=1
+STREAM_UPDATES=true
+```
+
+2. **Command Line Arguments**: Pass configuration values directly to the runner:
+
+```bash
+# Configure server host and port
+RPI_HOST=192.168.1.100 RPI_PORT=8888 python runner.py
+
+# Enable simulation mode
+SIMULATION=1 python runner.py
+```
+
+3. **Configuration Files**: Specify custom YAML configuration files:
+
+```bash
+python runner.py --server-config config/custom_server.yaml
+```
+
+The configuration precedence is: Command Line > .env File > Default Configuration Files
+
 ## How to Run
 
 ```bash

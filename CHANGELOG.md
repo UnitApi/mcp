@@ -2,6 +2,64 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.64] - 2025-05-03
+
+### Added
+- Changes in docs/ENVIRONMENT_CONFIGURATION.md
+- Changes in examples/advanced/.env.example
+- Changes in examples/ai/.env.example
+- Changes in examples/ai/object_recognition/.env.example
+- Changes in examples/ai/voice_assistant/.env.example
+- Changes in examples/audio/.env.example
+- Changes in examples/automation/.env.example
+- Changes in examples/basic/.env.example
+- Changes in examples/dsl/.env.example
+- Changes in examples/hardware_demos/.env.example
+- Changes in examples/input_devices/.env.example
+- Changes in examples/install/.env.example
+- Changes in examples/integrated_demo/.env.example
+- Changes in examples/llm/.env.example
+- Changes in examples/ollama_integration/.env.example
+- Changes in examples/platforms/README.md
+- Changes in examples/platforms/raspberry_pi/.env.example
+- Changes in examples/plugin/.env.example
+- Changes in examples/runner/.env.example
+- Changes in examples/security/.env.example
+- Changes in examples/server/.env.example
+- Changes in examples/shell_cli/.env.example
+- Changes in examples/shell_cli/rpi_gpio_helper.py
+- Changes in examples/template/.env.example
+- Changes in examples/tts/.env.example
+- Changes in examples/unitmcp/.env.example
+- Changes in examples/unitmcp/bridges/.env.example
+- Changes in examples/update/.env.example
+- Changes in examples/voice_assistant/.env.example
+- Changes in src/unitmcp/orchestrator/README.md
+- Changes in src/unitmcp/orchestrator/__init__.py
+- Changes in src/unitmcp/orchestrator/example_manager.py
+- Changes in src/unitmcp/orchestrator/main.py
+- Changes in src/unitmcp/orchestrator/orchestrator.py
+- Changes in src/unitmcp/orchestrator/runner_manager.py
+- Changes in src/unitmcp/orchestrator/shell.py
+
+### Changed
+- Changes in examples/README.md
+- Changes in examples/advanced/README.md
+- Changes in examples/audio/README.md
+- Changes in examples/basic/README.md
+- Changes in examples/hardware_demos/README.md
+- Changes in examples/rpi_control/.env.example
+- Changes in examples/rpi_control/README.md
+- Changes in examples/shell_cli/README.md
+- Changes in examples/shell_cli/simple_remote_shell.py
+
+### Fixed
+- Changes in TODO2.txt
+
+### Security
+- Changes in examples/input_devices/README.md
+- Changes in examples/llm/README.md
+
 ## [0.1.63] - 2025-05-03
 
 ### Added

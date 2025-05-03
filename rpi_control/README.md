@@ -559,17 +559,17 @@ This will:
 ### 1. Sync Project to Raspberry Pi
 
 - Make sure your project directory contains `.env`, `remote/`, `examples/`, etc.
-- From your local machine, sync the entire project to your Pi (replace `pi@192.168.188.154` with your Pi's address):
+- From your local machine, sync the entire project to your Pi (replace `pi@192.168.1.2` with your Pi's address):
 
   ```bash
-  rsync -avz --exclude 'venv' --exclude '.git' --exclude '__pycache__' . pi@192.168.188.154:/home/pi/
+  rsync -avz --exclude 'venv' --exclude '.git' --exclude '__pycache__' . pi@192.168.1.2:/home/pi/
   ```
 
 ### 2. Install Dependencies on the Pi
 
 - SSH into your Pi:
   ```bash
-  ssh pi@192.168.188.154
+  ssh pi@192.168.1.2
   cd remote
   bash install.sh
   ```

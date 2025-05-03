@@ -34,16 +34,16 @@ You can also set up hardware on a remote Raspberry Pi using the `remote_setup.py
 
 ```bash
 # Set up LCD display on a remote Raspberry Pi
-python3 remote_setup.py --host 192.168.188.154 --user pi --component lcd
+python3 remote_setup.py --host 192.168.1.2 --user pi --component lcd
 
 # Set up all components on a remote Raspberry Pi
-python3 remote_setup.py --host 192.168.188.154 --user pi --all
+python3 remote_setup.py --host 192.168.1.2 --user pi --all
 
 # Set up I2C interface and reboot if necessary
-python3 remote_setup.py --host 192.168.188.154 --user pi --component i2c --force-reboot
+python3 remote_setup.py --host 192.168.1.2 --user pi --component i2c --force-reboot
 
 # Run setup in simulation mode (no physical hardware or sudo required)
-python3 remote_setup.py --host 192.168.188.154 --user pi --component oled --simulation
+python3 remote_setup.py --host 192.168.1.2 --user pi --component oled --simulation
 ```
 
 The remote setup script:

@@ -40,13 +40,15 @@ class RemoteShell(cmd.Cmd):
     intro = "Remote Device Control Shell. Type help or ? to list commands.\n"
     prompt = "(remote) "
     
-    def __init__(self, host="localhost", port=22, use_ssh=False, simulation=False):
+    def __init__(self, host="localhost", port=22, use_ssh=False, simulation=False, username="pi", key_path=None):
         """Initialize the remote shell."""
         super().__init__()
         self.host = host
         self.port = port
         self.use_ssh = use_ssh
         self.simulation = simulation
+        self.username = username
+        self.key_path = key_path
         self.connected = False
         self.ssh_client = None
         self.tcp_socket = None
@@ -64,9 +66,11 @@ class RemoteShell(cmd.Cmd):
     def do_connect(self, arg):
         """
         Connect to a remote device.
-        Usage: connect [host] [port] [--ssh]
+        Usage: connect [host] [port] [--ssh] [--username USERNAME] [--key-path KEY_PATH] [--password PASSWORD]
         """
         args = arg.split()
+        password = None
+        
         if len(args) >= 1:
             self.host = args[0]
         if len(args) >= 2:
@@ -77,6 +81,24 @@ class RemoteShell(cmd.Cmd):
                 return
         if "--ssh" in args:
             self.use_ssh = True
+            
+        # Check for username parameter
+        if "--username" in args:
+            username_index = args.index("--username")
+            if username_index + 1 < len(args):
+                self.username = args[username_index + 1]
+                
+        # Check for key-path parameter
+        if "--key-path" in args:
+            key_path_index = args.index("--key-path")
+            if key_path_index + 1 < len(args):
+                self.key_path = args[key_path_index + 1]
+        
+        # Check for password parameter
+        if "--password" in args:
+            password_index = args.index("--password")
+            if password_index + 1 < len(args):
+                password = args[password_index + 1]
         
         if self.simulation:
             print(f"[SIMULATION] Connecting to {self.host}:{self.port} via {'SSH' if self.use_ssh else 'TCP'}")
@@ -92,8 +114,44 @@ class RemoteShell(cmd.Cmd):
                 
                 self.ssh_client = paramiko.SSHClient()
                 self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                print(f"Connecting to {self.host}:{self.port} via SSH...")
-                self.ssh_client.connect(self.host, port=self.port, timeout=5)
+                print(f"Connecting to {self.host}:{self.port} via SSH with username '{self.username}'...")
+                
+                # Connect with the appropriate authentication method
+                if self.key_path:
+                    self.ssh_client.connect(self.host, port=self.port, username=self.username, key_filename=self.key_path, timeout=5)
+                elif password:
+                    self.ssh_client.connect(self.host, port=self.port, username=self.username, password=password, timeout=5)
+                else:
+                    self.ssh_client.connect(self.host, port=self.port, username=self.username, timeout=5)
+                
+                # Upload the helper script to the remote device
+                sftp = self.ssh_client.open_sftp()
+                local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rpi_gpio_helper.py")
+                remote_path = "/tmp/rpi_gpio_helper.py"
+                
+                try:
+                    sftp.put(local_path, remote_path)
+                    sftp.chmod(remote_path, 0o755)  # Make executable
+                    print(f"Uploaded GPIO helper script to {remote_path}")
+                    
+                    # Check if RPi.GPIO is installed and install if needed
+                    print("Checking for required libraries...")
+                    stdin, stdout, stderr = self.ssh_client.exec_command("python3 -c 'import RPi.GPIO' 2>/dev/null || echo 'NOT_INSTALLED'")
+                    if 'NOT_INSTALLED' in stdout.read().decode():
+                        print("RPi.GPIO not found. Installing...")
+                        stdin, stdout, stderr = self.ssh_client.exec_command("sudo apt-get update && sudo apt-get install -y python3-rpi.gpio")
+                        while not stdout.channel.exit_status_ready():
+                            if stdout.channel.recv_ready():
+                                data = stdout.channel.recv(1024).decode('utf-8')
+                                print(data, end='')
+                        print("Installation complete.")
+                    else:
+                        print("RPi.GPIO is already installed.")
+                except Exception as e:
+                    print(f"Warning: Could not upload GPIO helper script or install libraries: {e}")
+                finally:
+                    sftp.close()
+                
                 self.connected = True
             else:
                 self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -200,9 +258,11 @@ class RemoteShell(cmd.Cmd):
                 print(f"[SIMULATION] Reading GPIO {pin}: {'1' if int(pin) % 2 == 0 else '0'}")
             return
         
-        command = f"gpio {pin} {mode}"
+        # Use the helper script for GPIO control
         if value:
-            command += f" {value}"
+            command = f"python3 -c \"import sys; sys.path.append('/tmp'); from rpi_gpio_helper import handle_gpio; handle_gpio(['{pin}', '{mode}', '{value}'])\""
+        else:
+            command = f"python3 -c \"import sys; sys.path.append('/tmp'); from rpi_gpio_helper import handle_gpio; handle_gpio(['{pin}', '{mode}'])\""
         
         self.do_exec(command)
     
@@ -242,9 +302,12 @@ class RemoteShell(cmd.Cmd):
                 print(f"[SIMULATION] Blinking LED {name} with on_time={on_time}, off_time={off_time}")
             return
         
-        command = f"led {name} {action}"
-        if params:
-            command += " " + " ".join(params)
+        # Use the helper script for LED control
+        params_str = ", ".join([f"'{p}'" for p in params])
+        if params_str:
+            command = f"python3 -c \"import sys; sys.path.append('/tmp'); from rpi_gpio_helper import handle_led; handle_led(['{name}', '{action}', {params_str}])\""
+        else:
+            command = f"python3 -c \"import sys; sys.path.append('/tmp'); from rpi_gpio_helper import handle_led; handle_led(['{name}', '{action}'])\""
         
         self.do_exec(command)
     
@@ -322,7 +385,7 @@ class RemoteShell(cmd.Cmd):
             print("==========================")
             print("This shell allows you to control remote devices over SSH or TCP.")
             print("\nConnection Commands:")
-            print("  connect [host] [port] [--ssh] - Connect to a remote device")
+            print("  connect [host] [port] [--ssh] [--username USERNAME] [--key-path KEY_PATH] [--password PASSWORD] - Connect to a remote device")
             print("  disconnect                    - Disconnect from the remote device")
             print("  status                        - Show connection status")
             print("\nDevice Control Commands:")
@@ -338,12 +401,52 @@ class RemoteShell(cmd.Cmd):
             print("  exit, quit                    - Exit the shell")
             print("  help, ?                       - Show this help message")
             print("\nExamples:")
-            print("  connect 192.168.1.100 22 --ssh")
+            print("  connect 192.168.1.100 22 --ssh --username pi --key-path /path/to/key")
             print("  gpio 17 out 1")
             print("  led led1 setup 17")
             print("  led led1 on")
             print("  set pin 17")
             print("  led led1 setup ${pin}")
+    
+    def do_system(self, arg):
+        """
+        Execute system commands on the remote device.
+        Usage: system <action> [params]
+        Examples:
+            system info    # Show system information
+            system temp    # Show CPU temperature
+        """
+        if not self.connected:
+            print("Not connected. Use 'connect' first.")
+            return
+        
+        if not arg:
+            print("Usage: system <action> [params]")
+            return
+        
+        args = arg.split()
+        action = args[0].lower()
+        params = args[1:] if len(args) > 1 else []
+        
+        if self.simulation:
+            if action == "info":
+                print("[SIMULATION] System Information:")
+                print("  CPU: 4-core ARM Cortex-A72")
+                print("  Memory: 4GB RAM")
+                print("  Disk: 32GB SD Card (16GB used)")
+                print("  OS: Raspberry Pi OS Bullseye")
+            elif action == "temp":
+                print("[SIMULATION] CPU Temperature: 42.5°C")
+            return
+        
+        # Use the helper script for system commands
+        params_str = ", ".join([f"'{p}'" for p in params])
+        if params_str:
+            command = f"python3 -c \"import sys; sys.path.append('/tmp'); from rpi_gpio_helper import handle_system; handle_system(['{action}', {params_str}])\""
+        else:
+            command = f"python3 -c \"import sys; sys.path.append('/tmp'); from rpi_gpio_helper import handle_system; handle_system(['{action}'])\""
+        
+        self.do_exec(command)
 
 def main():
     """Main entry point for the remote shell."""
@@ -351,6 +454,9 @@ def main():
     parser.add_argument("--host", default="localhost", help="Hostname or IP address")
     parser.add_argument("--port", type=int, default=22, help="Port number")
     parser.add_argument("--ssh", action="store_true", help="Use SSH for connection")
+    parser.add_argument("--username", default="pi", help="Username for SSH connection")
+    parser.add_argument("--key-path", help="Path to SSH private key file")
+    parser.add_argument("--password", help="Password for SSH connection")
     parser.add_argument("--simulation", action="store_true", help="Run in simulation mode")
     args = parser.parse_args()
     
@@ -359,7 +465,9 @@ def main():
         host=args.host,
         port=args.port,
         use_ssh=args.ssh,
-        simulation=args.simulation
+        simulation=args.simulation,
+        username=args.username,
+        key_path=args.key_path
     )
     shell.cmdloop()
 

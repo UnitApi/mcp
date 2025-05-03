@@ -1,58 +1,144 @@
-# UnitMCP Llm Example
+# UnitMCP LLM Integration Examples
 
-This directory contains a template for creating new examples in the UnitMCP project. It follows the standardized structure with client-server architecture and a runner to simplify startup.
+This directory contains examples demonstrating how to integrate Large Language Models (LLMs) with the UnitMCP hardware control framework.
 
-## Structure
-- `claude_plugin_demo.py` — Moved from another example directory
+## Available Examples
 
-- `ollama_integration.py` — Moved from another example directory
+### Claude Plugin Demo
 
-
-- `runner.py`: Manages the execution of the client and server components
-- `client.py`: Implements the client-side functionality
-- `server.py`: Implements the server-side functionality
-- `config/`: Contains configuration files for the client and server
-  - `client.yaml`: Client configuration
-  - `server.yaml`: Server configuration
-- `tests/`: Contains unit tests for the example
-
-## How to Use This Template
-
-1. Copy this entire directory to create a new example
-2. Rename it to reflect your example's purpose
-3. Modify the files to implement your specific functionality
-4. Update this README.md with details about your example
-
-## Running the Example
-
-To run this example, execute the runner script:
+The `claude_plugin_demo.py` demonstrates how to use the Claude UnitMCP Plugin for natural language hardware control:
 
 ```bash
-python runner.py
+# Run the Claude plugin demo
+python claude_plugin_demo.py
+
+# Run with verbose logging
+python claude_plugin_demo.py --verbose
 ```
 
-This will start both the client and server components according to the configuration files.
+This example shows how to:
+- Connect to Claude API for natural language processing
+- Parse hardware commands from natural language
+- Execute hardware control actions based on language input
+- Handle ambiguous or unclear instructions
+- Provide feedback and confirmation in natural language
+
+### Ollama Integration
+
+The `ollama_integration.py` demonstrates how to integrate locally-hosted LLMs using Ollama:
+
+```bash
+# Run the Ollama integration example
+python ollama_integration.py
+
+# Specify a different model
+python ollama_integration.py --model llama3:8b
+```
+
+This example showcases:
+- Setting up a connection to a local Ollama instance
+- Using different models for hardware control
+- Processing hardware commands with reduced latency
+- Handling offline operation without internet connectivity
+- Fine-tuning models for hardware-specific terminology
+
+## Key Features
+
+### 1. Natural Language Command Processing
+
+The examples demonstrate how to process natural language commands for hardware control:
+
+```python
+# Example natural language processing
+response = llm_client.process("Turn on the red LED and make it blink slowly")
+
+# Extract structured commands
+commands = command_parser.parse(response)
+
+# Execute the commands
+for cmd in commands:
+    hardware_client.execute(cmd)
+```
+
+### 2. Context-Aware Interactions
+
+The examples show how to maintain context across multiple interactions:
+
+```python
+# Initialize conversation context
+context = ConversationContext()
+
+# First interaction
+context.add_user_message("Connect to my Raspberry Pi")
+response = llm_client.process_with_context(context)
+context.add_assistant_message(response)
+
+# Second interaction with context
+context.add_user_message("Turn on the LED connected to pin 17")
+response = llm_client.process_with_context(context)
+```
+
+### 3. Hardware Abstraction
+
+The examples demonstrate how LLMs can work with hardware abstractions:
+
+```python
+# Define hardware abstractions
+devices = {
+    "living_room_light": {"type": "led", "pin": 17},
+    "kitchen_light": {"type": "led", "pin": 18},
+    "front_door": {"type": "sensor", "pin": 27}
+}
+
+# Process natural language with hardware context
+response = llm_client.process("Turn on the living room light", 
+                             hardware_context=devices)
+```
+
+## Running the Examples
+
+To run these examples, you'll need:
+
+- Python 3.7+
+- UnitMCP library installed (`pip install -e .` from the project root)
+- For Claude integration: Anthropic API key set as `ANTHROPIC_API_KEY` environment variable
+- For Ollama integration: Ollama installed and running locally
+
+For Claude integration:
+```bash
+export ANTHROPIC_API_KEY=your_api_key_here
+python claude_plugin_demo.py
+```
+
+For Ollama integration:
+```bash
+# Start Ollama server (in a separate terminal)
+ollama serve
+
+# Run the example
+python ollama_integration.py
+```
 
 ## Configuration
 
-The example can be configured by modifying the YAML files in the `config/` directory:
+The LLM examples can be configured using YAML files in the `config/` directory:
 
-- `client.yaml`: Configure client-specific settings
-- `server.yaml`: Configure server-specific settings
+- `claude.yaml`: Configuration for Claude API integration
+- `ollama.yaml`: Configuration for Ollama integration
+- `prompts.yaml`: Template prompts for different scenarios
 
-## Customization
+## Security Considerations
 
-When creating your own example based on this template:
+When using LLMs for hardware control, consider these security practices:
 
-1. Implement the server functionality in `server.py`
-2. Implement the client functionality in `client.py`
-3. Adjust the configuration files as needed
-4. Update the runner if necessary for your specific needs
+1. **Command Validation**: Always validate commands before execution
+2. **Restricted Access**: Limit which hardware can be controlled
+3. **Confirmation**: Require confirmation for potentially dangerous operations
+4. **Monitoring**: Log all commands and actions for review
+5. **Fallbacks**: Implement safe fallback behaviors for unclear instructions
 
-## Testing
+## Additional Resources
 
-The example includes unit tests in the `tests/` directory. Run them with:
-
-```bash
-python -m unittest discover tests
-```
+- [Claude API Documentation](https://docs.anthropic.com/claude/reference/getting-started-with-the-api)
+- [Ollama GitHub Repository](https://github.com/ollama/ollama)
+- [UnitMCP LLM Integration Guide](../../docs/integrations/llm_integration.md)

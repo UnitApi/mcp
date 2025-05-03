@@ -23,6 +23,201 @@ This directory contains various examples demonstrating the capabilities of the U
 
 Each subdirectory contains its own README with specific instructions and explanations.
 
+## Environment Configuration
+
+UnitMCP examples can be configured using environment variables, which provide a flexible way to customize behavior without changing code. There are three main ways to configure the environment:
+
+### 1. Using .env Files
+
+The `.env` file is a simple text file containing key-value pairs that define environment variables. Each example directory includes an `.env.example` file that you can copy and customize:
+
+```bash
+# Copy the example file to create your own .env file
+cp .env.example .env
+
+# Edit the .env file with your preferred settings
+nano .env
+```
+
+When you run any UnitMCP example, it will automatically load the variables from the `.env` file in the current directory.
+
+#### How .env Files Work
+
+1. The `.env` file is loaded at the start of execution
+2. Variables defined in the file are made available to the application
+3. These variables override default values but can be overridden by command-line arguments
+4. Comments in the file start with `#` and are ignored
+
+#### Example .env File (Simulation Mode)
+
+```
+# Server configuration
+SERVER_HOST=localhost
+SERVER_PORT=8080
+LOG_LEVEL=INFO
+
+# Hardware configuration
+SIMULATION=1
+GPIO_PINS=17,18,27
+LED_PINS=17,22
+```
+
+#### Example .env File (Real Hardware)
+
+```
+# Server configuration
+SERVER_HOST=192.168.1.2  # IP address of your Raspberry Pi
+SERVER_PORT=8080
+LOG_LEVEL=INFO
+
+# Hardware configuration
+SIMULATION=0
+GPIO_PINS=17,18,27
+LED_PINS=18
+```
+
+### 2. Using Command-Line Environment Variables
+
+You can also set environment variables directly when running a command:
+
+```bash
+# Run with simulation enabled
+SIMULATION=1 python runner.py
+
+# Connect to a specific Raspberry Pi
+SERVER_HOST=192.168.1.2 SERVER_PORT=8888 python runner.py
+```
+
+This method overrides any values set in the `.env` file.
+
+### 3. Using YAML Configuration Files
+
+For more complex configurations, UnitMCP supports YAML files. Each example includes default configuration files in the `config/` directory:
+
+```bash
+# Run with a custom server configuration
+python runner.py --server-config config/custom_server.yaml
+```
+
+#### Example YAML Configuration (Server)
+
+```yaml
+# server.yaml
+server:
+  host: 0.0.0.0
+  port: 8080
+  log_level: INFO
+  
+hardware:
+  simulation: true
+  gpio_pins: [17, 18, 27]
+  led_pins: [17, 22]
+```
+
+#### Example YAML Configuration (Client)
+
+```yaml
+# client.yaml
+client:
+  host: 192.168.1.2
+  port: 8080
+  timeout: 30
+  
+commands:
+  aliases:
+    led_on: "gpio 18 out 1"
+    led_off: "gpio 18 out 0"
+```
+
+### Configuration Precedence
+
+When multiple configuration methods are used, the precedence order is:
+
+1. Command-line environment variables (highest priority)
+2. `.env` file variables
+3. YAML configuration files
+4. Default values in code (lowest priority)
+
+## Simulation vs. Real Hardware
+
+UnitMCP allows you to easily switch between simulation mode and real hardware:
+
+### Simulation Mode
+
+Simulation mode allows you to test your code without physical hardware. Enable it by setting `SIMULATION=1`:
+
+```bash
+# Via .env file
+echo "SIMULATION=1" >> .env
+
+# Via command line
+SIMULATION=1 python runner.py
+```
+
+In simulation mode:
+- GPIO operations are simulated in memory
+- Hardware interactions are logged but not actually performed
+- You can test your code on any computer without physical hardware
+
+### Real Hardware Mode
+
+To control real hardware (like a Raspberry Pi), disable simulation by setting `SIMULATION=0`:
+
+```bash
+# Via .env file
+echo "SIMULATION=0" >> .env
+
+# Via command line
+SIMULATION=0 python runner.py
+```
+
+When using real hardware:
+- Make sure to set the correct `SERVER_HOST` to your device's IP address
+- Ensure you have the proper permissions to access GPIO pins
+- Connect the physical hardware according to your pin configuration
+
+### Example: Controlling an LED
+
+#### Simulation Mode
+
+```bash
+# .env file
+SERVER_HOST=localhost
+SERVER_PORT=8080
+SIMULATION=1
+LED_PINS=18
+
+# Command
+python examples/shell_cli/runner.py
+```
+
+Output:
+```
+[INFO] Running in simulation mode
+[INFO] LED on pin 18 turned ON (simulated)
+[INFO] LED on pin 18 turned OFF (simulated)
+```
+
+#### Real Hardware Mode
+
+```bash
+# .env file
+SERVER_HOST=192.168.1.2
+SERVER_PORT=8080
+SIMULATION=0
+LED_PINS=18
+
+# Command
+python examples/shell_cli/runner.py
+```
+
+Output:
+```
+[INFO] Connected to hardware at 192.168.1.2:8080
+[INFO] LED on pin 18 turned ON
+[INFO] LED on pin 18 turned OFF
+```
+
 ## Remote Device Control with Shell CLI
 
 The `shell_cli` directory contains examples for connecting to and controlling remote devices interactively:
@@ -59,6 +254,18 @@ mcp> status                      # Check connection status
 mcp> gpio_setup 17 OUT           # Set up GPIO pin
 mcp> led_setup led1 17           # Configure LED on pin 17
 mcp> led led1 on                 # Turn on the LED
+```
+
+For SSH connections to a Raspberry Pi, you need to specify the username:
+
+```bash
+# Connect via SSH to Raspberry Pi
+cd examples/shell_cli
+python simple_remote_shell.py --host 192.168.1.2 --port 22 --ssh --username pi
+
+# Or set in .env file
+# RPI_USERNAME=pi
+# python simple_remote_shell.py --host 192.168.1.2 --port 22 --ssh
 ```
 
 ### Interactive Remote Device Control
