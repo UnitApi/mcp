@@ -17,9 +17,33 @@ import platform
 import os
 import base64
 import tempfile
+import sys
 from typing import Optional
 
-from unitmcp import MCPHardwareClient
+# Add the project's src directory to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+
+try:
+    from unitmcp import MCPHardwareClient
+    from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_audio_dir, get_default_volume, get_simulation_mode
+except ImportError:
+    print(f"Error: Could not import unitmcp module.")
+    print(f"Make sure the UnitMCP project is in your Python path.")
+    print(f"Current Python path: {sys.path}")
+    print(f"Trying to add {os.path.join(project_root, 'src')} to Python path...")
+    sys.path.insert(0, os.path.join(project_root, 'src'))
+    try:
+        from unitmcp import MCPHardwareClient
+        from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_audio_dir, get_default_volume, get_simulation_mode
+        print("Successfully imported unitmcp module after path adjustment.")
+    except ImportError:
+        print("Failed to import unitmcp module even after path adjustment.")
+        print("Please ensure the UnitMCP project is properly installed.")
+        sys.exit(1)
+
+# Load environment variables
+env = EnvLoader()
 
 # Check if we're on a Raspberry Pi
 IS_RPI = platform.machine() in ["armv7l", "aarch64"]
@@ -28,15 +52,21 @@ IS_RPI = platform.machine() in ["armv7l", "aarch64"]
 class AudioExample:
     """Audio playback example class."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 8888):
+    def __init__(self, host: str = None, port: int = None, 
+                 audio_dir: str = None, default_volume: int = None):
         """Initialize the audio example.
         
         Args:
-            host: The hostname or IP address of the MCP server
-            port: The port of the MCP server
+            host: The hostname or IP address of the MCP server (overrides env var)
+            port: The port of the MCP server (overrides env var)
+            audio_dir: Directory containing audio files (overrides env var)
+            default_volume: Default volume level (0-100) (overrides env var)
         """
-        self.host = host
-        self.port = port
+        # Use parameters or environment variables with defaults
+        self.host = host or get_rpi_host()
+        self.port = port or get_rpi_port()
+        self.audio_dir = audio_dir or get_audio_dir()
+        self.default_volume = default_volume or get_default_volume()
         self.client: Optional[MCPHardwareClient] = None
         self.temp_files = []
         
@@ -253,7 +283,7 @@ class AudioExample:
             await self.client.disconnect()
             print("Disconnected from MCP server")
             
-    async def run_demo(self):
+    async def run_demo(self, sound_file: str = None, tts_text: str = None):
         """Run the complete audio demo."""
         try:
             await self.connect()
@@ -264,24 +294,31 @@ class AudioExample:
             # Get current volume
             await self.get_volume()
             
-            # Text-to-speech demo
-            await self.text_to_speech("Welcome to the UnitMCP audio example. This demonstrates text to speech functionality.")
-            await asyncio.sleep(1)
-            
-            # Generate tones
-            await self.generate_tone(440, 0.5)  # A4
-            await asyncio.sleep(0.1)
-            await self.generate_tone(523, 0.5)  # C5
-            await asyncio.sleep(0.1)
-            await self.generate_tone(659, 0.5)  # E5
-            await asyncio.sleep(0.1)
-            await self.generate_tone(784, 1.0)  # G5
-            
-            # Volume control demo
-            await self.volume_demo()
-            
-            # Final message
-            await self.text_to_speech("Audio example completed. Thank you for listening!")
+            if sound_file:
+                # Play the specified sound file
+                await self.play_sound_file(sound_file)
+            elif tts_text:
+                # Do text-to-speech
+                await self.text_to_speech(tts_text)
+            else:
+                # Text-to-speech demo
+                await self.text_to_speech("Welcome to the UnitMCP audio example. This demonstrates text to speech functionality.")
+                await asyncio.sleep(1)
+                
+                # Generate tones
+                await self.generate_tone(440, 0.5)  # A4
+                await asyncio.sleep(0.1)
+                await self.generate_tone(523, 0.5)  # C5
+                await asyncio.sleep(0.1)
+                await self.generate_tone(659, 0.5)  # E5
+                await asyncio.sleep(0.1)
+                await self.generate_tone(784, 1.0)  # G5
+                
+                # Volume control demo
+                await self.volume_demo()
+                
+                # Final message
+                await self.text_to_speech("Audio example completed. Thank you for listening!")
             
         finally:
             await self.cleanup()
@@ -290,34 +327,33 @@ class AudioExample:
 async def main():
     """Main function to run the audio example."""
     parser = argparse.ArgumentParser(description="UnitMCP Audio Playback Example")
-    parser.add_argument("--host", default="127.0.0.1", help="MCP server hostname or IP")
-    parser.add_argument("--port", type=int, default=8888, help="MCP server port")
+    parser.add_argument("--host", default=None, help="MCP server hostname or IP (overrides env var)")
+    parser.add_argument("--port", type=int, default=None, help="MCP server port (overrides env var)")
     parser.add_argument("--sound-file", help="Path to a sound file to play")
     parser.add_argument("--tts", help="Text to convert to speech")
+    parser.add_argument("--audio-dir", default=None, help="Directory containing audio files (overrides env var)")
+    parser.add_argument("--volume", type=int, default=None, help="Default volume level (0-100) (overrides env var)")
+    parser.add_argument("--env-file", default=None, help="Path to .env file")
     args = parser.parse_args()
     
-    if not IS_RPI:
+    # Load environment variables from specified file if provided
+    if args.env_file:
+        env = EnvLoader(args.env_file)
+    
+    if not IS_RPI and get_simulation_mode():
         print("Not running on a Raspberry Pi. Using simulation mode.")
     
-    example = AudioExample(host=args.host, port=args.port)
+    example = AudioExample(
+        host=args.host, 
+        port=args.port,
+        audio_dir=args.audio_dir,
+        default_volume=args.volume
+    )
     
-    if args.sound_file:
-        # Just play the specified sound file
-        await example.connect()
-        try:
-            await example.play_sound_file(args.sound_file)
-        finally:
-            await example.cleanup()
-    elif args.tts:
-        # Just do text-to-speech
-        await example.connect()
-        try:
-            await example.text_to_speech(args.tts)
-        finally:
-            await example.cleanup()
-    else:
-        # Run the full demo
-        await example.run_demo()
+    try:
+        await example.run_demo(sound_file=args.sound_file, tts_text=args.tts)
+    finally:
+        await example.cleanup()
 
 
 if __name__ == "__main__":
@@ -325,3 +361,7 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\nExiting audio example...")
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()

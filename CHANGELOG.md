@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.53] - 2025-05-03
+
+### Added
+- Changes in .env.development
+- Changes in src/unitmcp/utils/env_loader.py
+
+### Changed
+- Changes in src/unitmcp/utils/__init__.py
+
 ## [0.1.52] - 2025-05-03
 
 ### Added

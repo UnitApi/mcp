@@ -16,9 +16,34 @@ import argparse
 import platform
 import time
 import datetime
+import os
+import sys
 from typing import Optional, List
 
-from unitmcp import MCPHardwareClient
+# Add the project's src directory to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+
+try:
+    from unitmcp import MCPHardwareClient
+    from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_simulation_mode
+except ImportError:
+    print(f"Error: Could not import unitmcp module.")
+    print(f"Make sure the UnitMCP project is in your Python path.")
+    print(f"Current Python path: {sys.path}")
+    print(f"Trying to add {os.path.join(project_root, 'src')} to Python path...")
+    sys.path.insert(0, os.path.join(project_root, 'src'))
+    try:
+        from unitmcp import MCPHardwareClient
+        from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_simulation_mode
+        print("Successfully imported unitmcp module after path adjustment.")
+    except ImportError:
+        print("Failed to import unitmcp module even after path adjustment.")
+        print("Please ensure the UnitMCP project is properly installed.")
+        sys.exit(1)
+
+# Load environment variables
+env = EnvLoader()
 
 # Check if we're on a Raspberry Pi
 IS_RPI = platform.machine() in ["armv7l", "aarch64"]
@@ -27,24 +52,25 @@ IS_RPI = platform.machine() in ["armv7l", "aarch64"]
 class LCDExample:
     """I2C LCD display example class."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 8888, 
-                 i2c_address: int = 0x27, width: int = 16, height: int = 2):
+    def __init__(self, host: str = None, port: int = None, 
+                 i2c_address: int = None, width: int = None, height: int = None):
         """Initialize the LCD example.
         
         Args:
-            host: The hostname or IP address of the MCP server
-            port: The port of the MCP server
+            host: The hostname or IP address of the MCP server (overrides env var)
+            port: The port of the MCP server (overrides env var)
             i2c_address: The I2C address of the LCD display (usually 0x27 or 0x3F)
             width: The width of the LCD display in characters
             height: The height of the LCD display in characters
         """
-        self.host = host
-        self.port = port
-        self.i2c_address = i2c_address
-        self.width = width
-        self.height = height
+        # Use parameters or environment variables with defaults
+        self.host = host or get_rpi_host()
+        self.port = port or get_rpi_port()
+        self.i2c_address = i2c_address or int(env.get("LCD_I2C_ADDR", "0x27"), 16)
+        self.width = width or env.get_int("LCD_COLS", 16)
+        self.height = height or env.get_int("LCD_ROWS", 2)
         self.client: Optional[MCPHardwareClient] = None
-        self.device_id = f"lcd_{hex(i2c_address)}"
+        self.device_id = f"lcd_{hex(self.i2c_address)}"
         self.running = False
         
     async def connect(self):
@@ -232,22 +258,27 @@ class LCDExample:
 async def main():
     """Main function to run the LCD example."""
     parser = argparse.ArgumentParser(description="UnitMCP LCD Display Example")
-    parser.add_argument("--host", default="127.0.0.1", help="MCP server hostname or IP")
-    parser.add_argument("--port", type=int, default=8888, help="MCP server port")
-    parser.add_argument("--address", type=lambda x: int(x, 0), default=0x27, 
-                      help="I2C address of LCD (default: 0x27)")
-    parser.add_argument("--width", type=int, default=16, help="LCD width in characters")
-    parser.add_argument("--height", type=int, default=2, help="LCD height in characters")
+    parser.add_argument("--host", default=None, help="MCP server hostname or IP (overrides env var)")
+    parser.add_argument("--port", type=int, default=None, help="MCP server port (overrides env var)")
+    parser.add_argument("--address", type=lambda x: int(x, 0), default=None, 
+                      help="I2C address of LCD (overrides env var)")
+    parser.add_argument("--width", type=int, default=None, help="LCD width in characters (overrides env var)")
+    parser.add_argument("--height", type=int, default=None, help="LCD height in characters (overrides env var)")
+    parser.add_argument("--env-file", default=None, help="Path to .env file")
     args = parser.parse_args()
     
-    if not IS_RPI:
+    # Load environment variables from specified file if provided
+    if args.env_file:
+        env = EnvLoader(args.env_file)
+    
+    if not IS_RPI and get_simulation_mode():
         print("Not running on a Raspberry Pi. Using simulation mode.")
     
     example = LCDExample(
         host=args.host, 
         port=args.port, 
-        i2c_address=args.address,
-        width=args.width,
+        i2c_address=args.address, 
+        width=args.width, 
         height=args.height
     )
     await example.run_demo()
@@ -258,3 +289,7 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         print("\nExiting LCD example...")
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()

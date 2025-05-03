@@ -15,9 +15,34 @@ import asyncio
 import argparse
 import platform
 import time
+import os
+import sys
 from typing import Optional
 
-from unitmcp import MCPHardwareClient
+# Add the project's src directory to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
+
+try:
+    from unitmcp import MCPHardwareClient
+    from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_default_led_pin, get_simulation_mode
+except ImportError:
+    print(f"Error: Could not import unitmcp module.")
+    print(f"Make sure the UnitMCP project is in your Python path.")
+    print(f"Current Python path: {sys.path}")
+    print(f"Trying to add {os.path.join(project_root, 'src')} to Python path...")
+    sys.path.insert(0, os.path.join(project_root, 'src'))
+    try:
+        from unitmcp import MCPHardwareClient
+        from unitmcp.utils import EnvLoader, get_rpi_host, get_rpi_port, get_default_led_pin, get_simulation_mode
+        print("Successfully imported unitmcp module after path adjustment.")
+    except ImportError:
+        print("Failed to import unitmcp module even after path adjustment.")
+        print("Please ensure the UnitMCP project is properly installed.")
+        sys.exit(1)
+
+# Load environment variables
+env = EnvLoader()
 
 # Check if we're on a Raspberry Pi
 IS_RPI = platform.machine() in ["armv7l", "aarch64"]
@@ -26,19 +51,20 @@ IS_RPI = platform.machine() in ["armv7l", "aarch64"]
 class GPIOExample:
     """Basic GPIO control example class."""
 
-    def __init__(self, host: str = "127.0.0.1", port: int = 8888, pin: int = 17):
+    def __init__(self, host: str = None, port: int = None, pin: int = None):
         """Initialize the GPIO example.
         
         Args:
-            host: The hostname or IP address of the MCP server
-            port: The port of the MCP server
-            pin: The GPIO pin number to use for the LED
+            host: The hostname or IP address of the MCP server (overrides env var)
+            port: The port of the MCP server (overrides env var)
+            pin: The GPIO pin number to use for the LED (overrides env var)
         """
-        self.host = host
-        self.port = port
-        self.pin = pin
+        # Use parameters or environment variables with defaults
+        self.host = host or get_rpi_host()
+        self.port = port or get_rpi_port()
+        self.pin = pin or get_default_led_pin()
         self.client: Optional[MCPHardwareClient] = None
-        self.device_id = f"led_{pin}"
+        self.device_id = f"led_{self.pin}"
         
     async def connect(self):
         """Connect to the MCP server."""
@@ -149,12 +175,17 @@ class GPIOExample:
 async def main():
     """Main function to run the GPIO example."""
     parser = argparse.ArgumentParser(description="UnitMCP GPIO Control Example")
-    parser.add_argument("--host", default="127.0.0.1", help="MCP server hostname or IP")
-    parser.add_argument("--port", type=int, default=8888, help="MCP server port")
-    parser.add_argument("--pin", type=int, default=17, help="GPIO pin number for LED")
+    parser.add_argument("--host", default=None, help="MCP server hostname or IP (overrides env var)")
+    parser.add_argument("--port", type=int, default=None, help="MCP server port (overrides env var)")
+    parser.add_argument("--pin", type=int, default=None, help="GPIO pin number for LED (overrides env var)")
+    parser.add_argument("--env-file", default=None, help="Path to .env file")
     args = parser.parse_args()
     
-    if not IS_RPI:
+    # Load environment variables from specified file if provided
+    if args.env_file:
+        env = EnvLoader(args.env_file)
+    
+    if not IS_RPI and get_simulation_mode():
         print("Not running on a Raspberry Pi. Using simulation mode.")
     
     example = GPIOExample(host=args.host, port=args.port, pin=args.pin)
